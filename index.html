@@ -93,7 +93,9 @@ body {
 
 /* ── DIAGRAM WRAPPER ── */
 .diagram-wrapper {
-  flex: 1;
+  height: 56vh;
+  min-height: 360px;
+  flex-shrink: 0;
   overflow-x: auto;
   overflow-y: auto;
   padding: 24px 20px;
@@ -467,6 +469,102 @@ body {
 
 /* highlight on filter */
 .card.highlighted { box-shadow: 0 0 0 3px #fbbf24; }
+
+/* ── FLOWS SECTION ── */
+.fs-section { background: #f8fafc; border-top: 3px solid #1a2744; }
+.fs-section-head {
+  background: #1a2744; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.fs-section-head h2 { color: #f1f5f9; font-size: 15px; font-weight: 700; }
+.fs-section-head p  { color: #94a3b8; font-size: 11px; margin-top: 2px; }
+.fs-tabs {
+  background: #1e2a3e; border-bottom: 1px solid #2d3a50;
+  display: flex; gap: 4px; padding: 10px 24px 0; overflow-x: auto;
+}
+.fs-tab {
+  padding: 7px 16px; border-radius: 8px 8px 0 0; border: 1px solid transparent;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  color: #94a3b8; background: transparent; white-space: nowrap;
+}
+.fs-tab:hover { color: #e2e8f0; }
+.fs-tab.active { background: #f8fafc; color: #1e293b; border-color: #e2e8f0; border-bottom-color: #f8fafc; }
+.fs-tab .fs-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 6px; }
+.fs-panels { padding: 28px 24px; overflow-x: auto; }
+.fs-panel { display: none; }
+.fs-panel.active { display: block; }
+.fs-flow-header { margin-bottom: 20px; max-width: 920px; margin-left: auto; margin-right: auto; }
+.fs-flow-header h3 { font-size: 16px; font-weight: 700; color: #1e293b; }
+.fs-flow-header p  { font-size: 12px; color: #64748b; margin-top: 3px; }
+.fs-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+.fs-badge { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 10px; border: 1px solid; }
+.fs-diagram { display: flex; flex-direction: column; align-items: center; max-width: 920px; margin: 0 auto; }
+.fs-node { width: 100%; max-width: 480px; }
+/* module card */
+.fs-mod {
+  border-radius: 10px; border: 2px solid; padding: 11px 15px;
+  background: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative;
+}
+.fs-mod:hover { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(0,0,0,0.1); }
+.fs-mod-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px; color: #fff; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+.fs-mod-name  { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.fs-mod-state { font-size: 11px; color: #64748b; }
+.fs-mod-tags  { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 4px; }
+.fs-mod-tag   { font-size: 10px; padding: 1px 6px; border-radius: 6px; background: rgba(0,0,0,0.05); color: #64748b; }
+.fs-dot-status { position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; }
+.fs-dot-status.active  { background: #16a34a; }
+.fs-dot-status.partial { background: #d97706; }
+.fs-dot-status.pending { background: #9ca3af; }
+/* connector */
+.fs-conn { width: 2px; height: 24px; background: #94a3b8; margin: 0 auto; position: relative; }
+.fs-conn-lbl { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; color: #64748b; white-space: nowrap; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0; }
+/* process oval */
+.fs-proc {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  border-radius: 100px; padding: 7px 18px; font-size: 11px; font-weight: 600;
+  cursor: default; align-self: center; min-width: 140px; text-align: center;
+}
+.fs-proc.process { background: #1e293b; color: #e2e8f0; }
+.fs-proc.api     { background: #0c4a6e; color: #7dd3fc; border: 1px solid #0369a1; }
+.fs-proc.email   { background: #14532d; color: #86efac; }
+.fs-proc.ocr     { background: #1c1917; color: #fde68a; }
+/* decision + branches */
+.fs-diamond { width: 130px; height: 46px; background: #1e293b; color: #f1f5f9; clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; text-align: center; }
+.fs-branches { display: flex; gap: 14px; justify-content: center; width: 100%; padding: 0 6px; }
+.fs-branch   { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+.fs-blabel   { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 8px; text-align: center; white-space: nowrap; }
+.fs-blabel.yes { background: rgba(22,163,74,.1); color: #15803d; border: 1px solid rgba(22,163,74,.3); }
+.fs-blabel.no  { background: rgba(220,38,38,.1); color: #b91c1c; border: 1px solid rgba(220,38,38,.3); }
+.fs-blabel.alt { background: rgba(59,130,246,.1); color: #1d4ed8; border: 1px solid rgba(59,130,246,.3); }
+/* parallel */
+.fs-parallel { display: flex; gap: 12px; width: 100%; justify-content: center; }
+.fs-par-col  { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+/* subinfo */
+.fs-subinfo { width: 100%; max-width: 480px; background: rgba(59,130,246,.04); border: 1px solid rgba(59,130,246,.15); border-radius: 8px; padding: 7px 11px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.fs-subinfo-lbl  { font-size: 10px; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: .06em; margin-right: 3px; }
+.fs-subinfo-item { font-size: 10px; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); border-radius: 5px; padding: 2px 7px; color: #1d4ed8; font-weight: 600; }
+/* end node */
+.fs-end { display: flex; align-items: center; justify-content: center; gap: 7px; border-radius: 100px; padding: 7px 18px; font-size: 12px; font-weight: 700; border: 2px solid; }
+.fs-end.success { background: rgba(22,163,74,.07); border-color: #16a34a; color: #15803d; }
+.fs-end.failure { background: rgba(220,38,38,.07); border-color: #dc2626; color: #b91c1c; }
+.fs-end.neutral { background: rgba(100,116,139,.07); border-color: #64748b; color: #475569; }
+/* pending banner */
+.fs-pending-banner { width: 100%; max-width: 480px; background: rgba(239,68,68,.05); border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 9px 13px; font-size: 12px; color: #b91c1c; display: flex; align-items: center; gap: 8px; }
+/* module colors */
+.fsm-proformas   { border-color: #7c3aed; } .fsm-proformas   .fs-mod-badge { background: #7c3aed; }
+.fsm-ofertas     { border-color: #1d4ed8; } .fsm-ofertas     .fs-mod-badge { background: #1d4ed8; }
+.fsm-riesgos     { border-color: #374151; } .fsm-riesgos     .fs-mod-badge { background: #374151; }
+.fsm-contrato    { border-color: #0f766e; } .fsm-contrato    .fs-mod-badge { background: #0f766e; }
+.fsm-pedidos     { border-color: #b91c1c; } .fsm-pedidos     .fs-mod-badge { background: #b91c1c; }
+.fsm-carga       { border-color: #92400e; } .fsm-carga       .fs-mod-badge { background: #92400e; }
+.fsm-entregas    { border-color: #a16207; } .fsm-entregas    .fs-mod-badge { background: #a16207; }
+.fsm-seguros     { border-color: #be185d; } .fsm-seguros     .fs-mod-badge { background: #be185d; }
+.fsm-facturacion { border-color: #15803d; } .fsm-facturacion .fs-mod-badge { background: #15803d; }
+.fsm-devolucion  { border-color: #6d28d9; } .fsm-devolucion  .fs-mod-badge { background: #6d28d9; }
+.fsm-vo          { border-color: #b45309; } .fsm-vo          .fs-mod-badge { background: #b45309; }
+.fsm-contabilidad{ border-color: #0369a1; } .fsm-contabilidad .fs-mod-badge { background: #0369a1; }
+.fs-tabs::-webkit-scrollbar { height: 3px; }
+.fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -477,7 +575,6 @@ body {
     <h1>ENDURAN — Proceso de Renting: Flujo Completo</h1>
     <div class="subtitle">De la oferta a la devolución · Todos los módulos, integraciones y agentes IA</div>
   </div>
-  <a href="flows.html" style="font-size:12px;color:#93c5fd;text-decoration:none;display:flex;align-items:center;gap:6px;border:1px solid rgba(147,197,253,0.3);padding:5px 12px;border-radius:6px;white-space:nowrap">Ver flujos detallados →</a>
   <div class="meta">
     <strong>Mayo 2026</strong>
     Arquitectura orientativa
@@ -538,6 +635,18 @@ body {
   <div class="legend-item"><span class="status-dot partial"></span>Parcial</div>
   <div class="legend-item"><span class="status-dot pending"></span>Pendiente</div>
   <div class="legend-footer">Documento confidencial · Uso interno · ENDURAN</div>
+</div>
+
+<!-- FLOWS SECTION -->
+<div class="fs-section">
+  <div class="fs-section-head">
+    <div>
+      <h2>Flujos de Proceso Detallados</h2>
+      <p>Estados, transiciones y decisiones por flujo de negocio · Clic en cualquier tarjeta para ver detalles</p>
+    </div>
+  </div>
+  <div class="fs-tabs" id="fs-tabs"></div>
+  <div class="fs-panels" id="fs-panels"></div>
 </div>
 
 <!-- MODAL -->
@@ -1145,6 +1254,298 @@ function applyLayerFilter() {
 // INIT
 // ══════════════════════════════════════════
 renderDiagram();
+
+// ══════════════════════════════════════════
+// FLOWS SECTION
+// ══════════════════════════════════════════
+const fsModuleDetails = {
+  proformas:   { tables:[{name:'proformas_vn',fields:28,status:'active'},{name:'proforma_opciones',fields:14,status:'active'},{name:'proforma_packs',fields:12,status:'active'},{name:'proforma_pool',fields:10,status:'active'}], note:'Configuración del vehículo nuevo: modelo, opcionales, packs y series.' },
+  ofertas:     { tables:[{name:'ofertas',fields:35,status:'active'},{name:'oferta_cuotas_servicios',fields:14,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'},{name:'perfil_cotizacion',fields:20,status:'active'}], note:'Ciclo de vida de la oferta con estados, cálculo de cuota y aprobación comercial.' },
+  perfil_fin:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'datos_financiacion',fields:22,status:'active'},{name:'disposiciones_financieras',fields:18,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'}], note:'Parámetros financieros: TAE, mensualidades, disposiciones y resultados del modelo financiero.' },
+  riesgos:     { tables:[{name:'riesgos',fields:20,status:'active'},{name:'estado_riesgo',fields:6,status:'active'},{name:'clientes',fields:30,status:'active'}], note:'Evaluación de riesgo crediticio. Estados: Pendiente CPP → Aprobado / Rechazado / Con garantía.' },
+  firma:       { tables:[], note:'Integración pendiente con Signaturit. El contrato se envía para firma electrónica avanzada y se obtiene PDF certificado.', pending:['Integración API Signaturit','Webhook de estado de firma','Almacenamiento PDF firmado'] },
+  contrato:    { tables:[{name:'contratos_renting',fields:38,status:'active'},{name:'condiciones_contrato',fields:18,status:'active'},{name:'documentos_contrato',fields:12,status:'active'},{name:'garantias',fields:15,status:'pending'}], note:'Contrato principal de renting con condiciones económicas y flujo de estados.' },
+  pedidos:     { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'pedidos_vehiculo',fields:18,status:'pending'},{name:'equipamientos',fields:10,status:'pending'}], note:'Pedido del vehículo al proveedor OEM y seguimiento hasta matriculación.', pending:['Tabla pedidos_vehiculo','Integración API proveedor OEM'] },
+  carga:       { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'flota',fields:20,status:'active'}], note:'Carga del número de matrícula y bastidor en el contrato una vez matriculado.' },
+  entregas:    { tables:[{name:'entregas',fields:20,status:'active'},{name:'actas_entrega',fields:16,status:'active'},{name:'encuesta_satisfaccion',fields:12,status:'active'}], note:'Acto formal de entrega del vehículo con acta fotográfica, km inicial y firma.' },
+  seguros:     { tables:[{name:'polizas_seguro',fields:24,status:'pending'}], note:'Gestión de póliza vinculada al vehículo. Integración con AFFINITY.', pending:['Módulo pólizas de seguro','Integración API AFFINITY','Solicitud documentos Excel/Atlas'] },
+  ocr:         { tables:[{name:'documentos_contrato',fields:12,status:'active'}], note:'OCR para validar documentación del cliente. Si es correcta activa el contrato y envía PIN.', pending:['Integración servicio OCR','Envío automático PIN','Workflow de incidencias'] },
+  devoluciones:{ tables:[{name:'devoluciones',fields:18,status:'pending'},{name:'actas_devolucion',fields:20,status:'pending'},{name:'peritaciones',fields:15,status:'pending'},{name:'cargos_devolucion',fields:12,status:'pending'}], note:'Proceso de devolución del vehículo al fin del contrato.', pending:['Módulo completo pendiente'] },
+  cierres:     { tables:[{name:'cierres_contrato',fields:16,status:'pending'},{name:'ofertas_renovacion',fields:14,status:'pending'}], note:'Cierre formal con liquidación final y P&L por vehículo.', pending:['Módulo completo pendiente'] },
+  recobros:    { tables:[{name:'impagos',fields:14,status:'pending'}], note:'Gestión de impagos: amistoso, extrajudicial y judicial.', pending:['Módulo impagos','Workflow de recobro','Integración agencia de recobro'] },
+  stock_vo:    { tables:[{name:'vehiculos_segunda_mano',fields:18,status:'pending'}], note:'Stock de vehículos VO disponibles tras devolución.', pending:['Módulo completo pendiente'] },
+  venta_vo:    { tables:[{name:'ventas_segunda_mano',fields:16,status:'pending'}], note:'Venta VO: valoración, portales, contrato y transferencia DGT.', pending:['Módulo completo pendiente','Integración Eurotax/Indicata','Integración AutoScout/Coches.net','Integración DGT transferencia'] },
+  fact_dev:    { tables:[{name:'facturas_clientes',fields:28,status:'partial'},{name:'cuotas_contrato',fields:14,status:'pending'},{name:'cobros',fields:16,status:'pending'}], note:'Factura final del contrato con penalizaciones por daños o exceso de km.', pending:['Factura de cierre automática','Cargos por daños/exceso km'] },
+};
+
+// Step builders
+const fsB = {
+  mod: (name, state, css, status, key, tags=[]) => ({type:'module',name,state,css,status,key,tags}),
+  conn: (label='') => ({type:'conn',label}),
+  proc: (label, style='process') => ({type:'proc',label,style}),
+  branch: (label, paths) => ({type:'branch',label,paths}),
+  par: (paths) => ({type:'par',paths}),
+  sub: (label, items) => ({type:'sub',label,items}),
+  end: (label, style) => ({type:'end',label,style}),
+  banner: (text) => ({type:'banner',text}),
+};
+
+const fsFlows = [
+  {
+    id:'financiacion', title:'💰 Financiación y Compra', dotColor:'#16a34a',
+    desc:'Desde la configuración del vehículo hasta la firma del contrato.',
+    badges:[{l:'Perfil Cotización',c:'#1d4ed8'},{l:'Líneas Financiación',c:'#0f766e'},{l:'Datos Financiación',c:'#0f766e'},{l:'Riesgos CPP',c:'#374151'},{l:'Signaturit',c:'#0369a1'}],
+    steps:[
+      fsB.mod('Mod. Proformas','VN Configurado','proformas','active','proformas',['Modelo','Opcionales','Pack']),
+      fsB.conn('Crear oferta'),
+      fsB.mod('Mod. Ofertas','1 — Borrador','ofertas','active','ofertas'),
+      fsB.sub('Financiación',['Perfil Cotización','Líneas Financiación','Datos Financiación','TAE · Mensualidades']),
+      fsB.conn('Completar datos financieros'),
+      fsB.mod('Mod. Ofertas','2 — Oferta para Validación','ofertas','active','ofertas'),
+      fsB.conn('Validar oferta'),
+      fsB.mod('Mod. Ofertas','3 — Oferta Validada','ofertas','active','ofertas'),
+      fsB.conn('Enviar a riesgos'),
+      fsB.mod('Mod. Riesgos','Pendiente de Sanción (CPP)','riesgos','active','riesgos'),
+      fsB.conn('Evaluar riesgo'),
+      fsB.branch('¿Resolución riesgo?',[
+        {label:'2 — Aprobado',type:'yes',steps:[
+          fsB.conn(''),fsB.mod('Mod. Ofertas','4 — Enviado para Firma','ofertas','active','ofertas'),
+          fsB.conn(''),fsB.proc('Signaturit','api'),
+          fsB.branch('¿Firmado?',[
+            {label:'5.1 — Firmado',type:'yes',steps:[fsB.conn(''),fsB.mod('Mod. Contrato','Activo','contrato','active','contrato'),fsB.conn(''),fsB.end('✅ Contrato firmado','success')]},
+            {label:'5.2 — No Firmado',type:'alt',steps:[fsB.conn(''),fsB.proc('Email seguimiento','email'),fsB.conn(''),fsB.end('⏳ Pendiente firma','neutral')]},
+            {label:'5.3 — Anulado',type:'no',steps:[fsB.conn(''),fsB.end('❌ Oferta anulada','failure')]}
+          ])
+        ]},
+        {label:'3 — Rechazado',type:'no',steps:[fsB.conn(''),fsB.end('❌ Riesgo rechazado','failure')]},
+        {label:'4 — Con garantía',type:'alt',steps:[
+          fsB.conn('Negociar garantía'),fsB.mod('Mod. Ofertas','4 — Enviado para Firma','ofertas','active','ofertas'),
+          fsB.conn(''),fsB.proc('Signaturit','api'),fsB.conn(''),
+          fsB.mod('Mod. Contrato','Activo','contrato','active','contrato'),fsB.conn(''),fsB.end('✅ Con garantía adicional','success')
+        ]}
+      ])
+    ]
+  },
+  {
+    id:'entregas', title:'🚗 Entregas', dotColor:'#d97706',
+    desc:'Desde la matrícula del vehículo hasta la entrega física al cliente.',
+    badges:[{l:'Mod. Pedidos',c:'#b91c1c'},{l:'Mod. Entregas',c:'#a16207'},{l:'Seguros AFFINITY',c:'#be185d'},{l:'OCR Activación',c:'#374151'}],
+    steps:[
+      fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','active','contrato'),
+      fsB.conn('Carga de matrícula a contrato'),
+      fsB.par([
+        {steps:[fsB.mod('Mod. Pedidos','1 — Pendiente de Matrícula','pedidos','pending','pedidos'),fsB.conn(''),fsB.mod('Mod. Carga Pedidos','En proceso','carga','active','carga')]},
+        {steps:[fsB.mod('Mod. Seguros','Alta de póliza','seguros','pending','seguros'),fsB.conn('AFFINITY'),fsB.proc('Email + Excel Atlas','email')]}
+      ]),
+      fsB.conn('Vehículo matriculado'),
+      fsB.mod('Mod. Pedidos','2 — Matriculado','pedidos','pending','pedidos'),
+      fsB.conn(''),
+      fsB.par([
+        {steps:[fsB.mod('Mod. Entregas','1 — Vehículo Matriculado','entregas','active','entregas')]},
+        {steps:[fsB.mod('Mod. Contrato','5 — Pendiente de Entrega','contrato','active','contrato')]}
+      ]),
+      fsB.conn('Formulario activación cliente'),
+      fsB.proc('Formulario Cliente','process'),
+      fsB.conn(''),
+      fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','active','contrato'),
+      fsB.conn('OCR + PIN por correo'),
+      fsB.proc('OCR + Email PIN','ocr'),
+      fsB.conn('¿Documentación válida?'),
+      fsB.branch('¿Documentación OK?',[
+        {label:'✓ Documentos OK',type:'yes',steps:[
+          fsB.conn(''),fsB.mod('Mod. Contrato','7 — Activo','contrato','active','contrato'),
+          fsB.sub('Logística',['Fecha Prevista Entrega','Dirección y lugar de entrega']),
+          fsB.conn(''),fsB.proc('Email logistica.operaciones','email'),
+          fsB.conn(''),fsB.mod('Mod. Entregas','2 — Puesta a Disposición','entregas','active','entregas'),
+          fsB.conn('Entrega física'),
+          fsB.branch('¿Resultado entrega?',[
+            {label:'3 — Entregado',type:'yes',steps:[fsB.conn(''),fsB.proc('Email confirmación','email'),fsB.conn(''),fsB.end('✅ Contrato activo','success')]},
+            {label:'4 — No Entregado',type:'no',steps:[fsB.conn(''),fsB.end('⏳ Gestión pendiente','neutral')]}
+          ])
+        ]},
+        {label:'✗ Incidencia docs',type:'no',steps:[fsB.conn(''),fsB.proc('Email cliente + proveedores','email'),fsB.conn(''),fsB.end('⏳ Pendiente subsanar','neutral')]}
+      ])
+    ]
+  },
+  {
+    id:'devoluciones', title:'↩️ Devoluciones + Recobros', dotColor:'#9ca3af',
+    desc:'Fin de vida del contrato: devolución, peritación, liquidación y gestión de impagos.',
+    badges:[{l:'❌ Pendiente desarrollo',c:'#9ca3af'}],
+    steps:[
+      fsB.banner('Flujo pendiente de desarrollo. Estructura propuesta:'),
+      fsB.mod('Mod. Contrato','Activo — Próximo a vencer','contrato','pending','contrato'),
+      fsB.conn('Aviso automático 60 días antes'),fsB.proc('Email aviso fin contrato','email'),
+      fsB.conn('Cliente confirma devolución'),
+      fsB.mod('Mod. Entregas','Devolución iniciada','entregas','pending','devoluciones'),
+      fsB.conn('Acta de devolución'),fsB.proc('Fotos + km + estado vehículo','process'),
+      fsB.conn(''),fsB.mod('Mod. Devoluciones','Peritación en curso','devolucion','pending','devoluciones'),
+      fsB.conn('Resultado peritación'),
+      fsB.branch('¿Daños o exceso km?',[
+        {label:'Sí — Cargos extra',type:'no',steps:[
+          fsB.conn(''),fsB.mod('Mod. Facturación','Factura cargos','facturacion','pending','fact_dev'),
+          fsB.conn('Cobro'),
+          fsB.branch('¿Pagado?',[
+            {label:'✓ Pagado',type:'yes',steps:[fsB.conn(''),fsB.mod('Mod. Contrato','Cerrado','contrato','pending','cierres'),fsB.conn(''),fsB.end('✅ Cierre con cargos','success')]},
+            {label:'✗ Impago',type:'no',steps:[fsB.conn(''),fsB.mod('Mod. Recobros','Gestión amistosa','facturacion','pending','recobros'),fsB.conn('Sin acuerdo'),fsB.mod('Mod. Recobros','Extrajudicial','facturacion','pending','recobros'),fsB.conn(''),fsB.end('⚖️ Proceso judicial','failure')]}
+          ])
+        ]},
+        {label:'No — Sin cargos',type:'yes',steps:[
+          fsB.conn(''),fsB.mod('Mod. Facturación','Liquidación sin cargos','facturacion','pending','fact_dev'),
+          fsB.conn(''),fsB.mod('Mod. Contrato','Cerrado','contrato','pending','cierres'),fsB.conn(''),fsB.end('✅ Cierre limpio','success')
+        ]}
+      ])
+    ]
+  },
+  {
+    id:'venta_vo', title:'🏷️ Venta VO', dotColor:'#9ca3af',
+    desc:'Segunda vida del vehículo: valoración, portales, venta y transferencia DGT.',
+    badges:[{l:'❌ Pendiente desarrollo',c:'#9ca3af'}],
+    steps:[
+      fsB.banner('Flujo pendiente de desarrollo. Estructura propuesta:'),
+      fsB.mod('Stock VO','Pendiente de valoración','vo','pending','stock_vo'),
+      fsB.conn('API Eurotax / Indicata'),fsB.proc('Valoración mercado VO','api'),
+      fsB.conn('¿Requiere acondicionamiento?'),
+      fsB.branch('Estado del vehículo',[
+        {label:'Preparación necesaria',type:'alt',steps:[fsB.conn('OT taller'),fsB.proc('Preparación estética/mecánica','process'),fsB.conn(''),fsB.mod('Stock VO','Listo para vender','vo','pending','stock_vo')]},
+        {label:'OK directo',type:'yes',steps:[fsB.conn(''),fsB.mod('Stock VO','Listo para vender','vo','pending','stock_vo')]}
+      ]),
+      fsB.conn('Publicación en portales'),fsB.proc('AutoScout · Coches.net · Wallapop Pro','api'),
+      fsB.conn('Lead interesado'),
+      fsB.mod('Gestión Comercial VO','Negociación','vo','pending','venta_vo'),
+      fsB.conn('Acuerdo precio'),
+      fsB.mod('Contrato Compraventa','Firmado','contrato','pending','venta_vo'),
+      fsB.conn(''),fsB.proc('Transferencia DGT','api'),
+      fsB.conn(''),fsB.mod('Mod. Facturación','Factura venta VO','facturacion','pending','fact_dev'),
+      fsB.conn(''),fsB.mod('Mod. Contabilidad','P&L por vehículo','contabilidad','pending','venta_vo'),
+      fsB.conn(''),fsB.end('✅ Venta cerrada','success')
+    ]
+  }
+];
+
+function fsRenderStep(s) {
+  switch(s.type) {
+    case 'module': {
+      const w = document.createElement('div'); w.className = 'fs-node';
+      w.innerHTML = `<div class="fs-mod fsm-${s.css}" onclick="fsOpenModal('${s.key}','${s.name} — ${s.state}')">
+        <div class="fs-dot-status ${s.status}"></div>
+        <div class="fs-mod-badge">${s.name}</div>
+        <div class="fs-mod-name">${s.state}</div>
+        ${s.tags.length?`<div class="fs-mod-tags">${s.tags.map(t=>`<span class="fs-mod-tag">${t}</span>`).join('')}</div>`:''}
+      </div>`; return w;
+    }
+    case 'conn': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;';
+      w.innerHTML=`<div class="fs-conn">${s.label?`<span class="fs-conn-lbl">${s.label}</span>`:''}</div>`; return w;
+    }
+    case 'proc': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;justify-content:center;';
+      w.innerHTML=`<div class="fs-proc ${s.style}">${s.label}</div>`; return w;
+    }
+    case 'branch': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;';
+      const top = document.createElement('div'); top.style.cssText='display:flex;flex-direction:column;align-items:center;';
+      top.innerHTML=`<div class="fs-conn"></div><div class="fs-diamond"><span>${s.label}</span></div><div class="fs-conn" style="background:transparent"></div>`;
+      w.appendChild(top);
+      const row = document.createElement('div'); row.className='fs-branches';
+      s.paths.forEach(p => {
+        const col = document.createElement('div'); col.className='fs-branch';
+        col.innerHTML=`<div class="fs-blabel ${p.type}">${p.label}</div>`;
+        p.steps.forEach(st => { const el=fsRenderStep(st); if(el){el.style.maxWidth='100%';col.appendChild(el);} });
+        row.appendChild(col);
+      });
+      w.appendChild(row); return w;
+    }
+    case 'par': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;';
+      const row = document.createElement('div'); row.className='fs-parallel';
+      s.paths.forEach(p => {
+        const col = document.createElement('div'); col.className='fs-par-col';
+        p.steps.forEach(st => { const el=fsRenderStep(st); if(el){el.style.maxWidth='100%';col.appendChild(el);} });
+        row.appendChild(col);
+      });
+      w.appendChild(row); return w;
+    }
+    case 'sub': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;';
+      w.innerHTML=`<div class="fs-subinfo"><span class="fs-subinfo-lbl">${s.label}</span>${s.items.map(i=>`<span class="fs-subinfo-item">${i}</span>`).join('')}</div>`; return w;
+    }
+    case 'end': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;justify-content:center;';
+      w.innerHTML=`<div class="fs-end ${s.style}">${s.label}</div>`; return w;
+    }
+    case 'banner': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;margin-bottom:12px;';
+      w.innerHTML=`<div class="fs-pending-banner"><span style="font-size:15px">⚠️</span><span>${s.text}</span></div>`; return w;
+    }
+    default: return null;
+  }
+}
+
+function fsOpenModal(key, title) {
+  const d = fsModuleDetails[key];
+  const badge = document.getElementById('modal-badge');
+  badge.textContent = 'Proceso';
+  badge.style.cssText = 'background:#1a2744;color:#fff';
+  document.getElementById('modal-title').textContent = title;
+  const body = document.getElementById('modal-body');
+  if (!d) { body.innerHTML = `<div class="modal-note">Nodo de proceso interno.</div>`; }
+  else {
+    const act = (d.tables||[]).filter(t=>t.status==='active').length;
+    const pnd = (d.tables||[]).filter(t=>t.status==='pending').length;
+    body.innerHTML = `
+      ${d.note?`<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:14px">${d.note}</p>`:''}
+      ${d.tables&&d.tables.length?`<div class="modal-section">
+        <div class="modal-section-title">Tablas (${act} activas · ${pnd} pendientes)</div>
+        ${d.tables.map(t=>`<div class="modal-table-row">
+          <div class="modal-table-dot" style="background:${t.status==='active'?'#16a34a':t.status==='partial'?'#d97706':'#9ca3af'}"></div>
+          <span class="modal-table-name">${t.name}</span>
+          <span class="modal-table-fields">~${t.fields} campos</span>
+          <span class="modal-table-s ${t.status}">${{active:'Activa',partial:'Parcial',pending:'Pendiente'}[t.status]}</span>
+        </div>`).join('')}
+      </div>`:''}
+      ${d.pending&&d.pending.length?`<div class="modal-section">
+        <div class="modal-section-title">Pendiente de desarrollo</div>
+        ${d.pending.map(p=>`<div style="font-size:11px;color:#b91c1c;padding:5px 10px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:6px;margin-bottom:4px">⏳ ${p}</div>`).join('')}
+      </div>`:''}`;
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function fsSwitchTab(id) {
+  document.querySelectorAll('.fs-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.fs-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`fst-${id}`).classList.add('active');
+  document.getElementById(`fsp-${id}`).classList.add('active');
+}
+
+function fsBuildUI() {
+  const tabsEl = document.getElementById('fs-tabs');
+  const panelsEl = document.getElementById('fs-panels');
+  fsFlows.forEach((f,i) => {
+    const tab = document.createElement('div');
+    tab.className = 'fs-tab'+(i===0?' active':'');
+    tab.id = `fst-${f.id}`;
+    tab.innerHTML = `${f.title}<span class="fs-dot" style="background:${f.dotColor}"></span>`;
+    tab.onclick = () => fsSwitchTab(f.id);
+    tabsEl.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'fs-panel'+(i===0?' active':'');
+    panel.id = `fsp-${f.id}`;
+
+    panel.innerHTML = `<div class="fs-flow-header">
+      <h3>${f.title}</h3><p>${f.desc}</p>
+      <div class="fs-badges">${f.badges.map(b=>`<span class="fs-badge" style="border-color:${b.c};color:${b.c};background:${b.c}15">${b.l}</span>`).join('')}</div>
+    </div>`;
+
+    const diag = document.createElement('div'); diag.className = 'fs-diagram';
+    f.steps.forEach(s => { const el = fsRenderStep(s); if(el) diag.appendChild(el); });
+    panel.appendChild(diag);
+    panelsEl.appendChild(panel);
+  });
+}
+
+fsBuildUI();
 </script>
 </body>
 </html>

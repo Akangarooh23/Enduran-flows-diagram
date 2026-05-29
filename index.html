@@ -1309,7 +1309,11 @@ const fsModuleDetails = {
   recobros:    { tables:[{name:'impagos',fields:14,status:'pending'}], note:'Gestión de impagos: amistoso, extrajudicial y judicial.', pending:['Módulo impagos','Workflow de recobro','Integración agencia de recobro'] },
   stock_vo:    { tables:[{name:'vehiculos_segunda_mano',fields:18,status:'pending'}], note:'Stock de vehículos VO disponibles tras devolución.', pending:['Módulo completo pendiente'] },
   venta_vo:    { tables:[{name:'ventas_segunda_mano',fields:16,status:'pending'}], note:'Venta VO: valoración, portales, contrato y transferencia DGT.', pending:['Módulo completo pendiente','Integración Eurotax/Indicata','Integración AutoScout/Coches.net','Integración DGT transferencia'] },
-  fact_dev:    { tables:[{name:'facturas_clientes',fields:28,status:'partial'},{name:'cuotas_contrato',fields:14,status:'pending'},{name:'cobros',fields:16,status:'pending'}], note:'Factura final del contrato con penalizaciones por daños o exceso de km.', pending:['Factura de cierre automática','Cargos por daños/exceso km'] },
+  fact_dev:       { tables:[{name:'facturas_clientes',fields:28,status:'partial'},{name:'cuotas_contrato',fields:14,status:'pending'},{name:'cobros',fields:16,status:'pending'}], note:'Factura final del contrato con penalizaciones por daños o exceso de km.', pending:['Factura de cierre automática','Cargos por daños/exceso km'] },
+  clientes_impag: { tables:[{name:'clientes_impagados',fields:14,status:'pending'},{name:'historial_impagos',fields:10,status:'pending'}], note:'Registro de clientes con facturas vencidas y seguimiento del estado de mora por tramos.', pending:['Módulo completo pendiente de desarrollo'] },
+  facturas_impag: { tables:[{name:'facturas_clientes',fields:28,status:'partial'},{name:'impagos',fields:14,status:'pending'}], note:'Control de facturas vencidas sin cobro: días de mora, importe pendiente y gestiones realizadas.', pending:['Tabla impagos','Workflow de escalado automático'] },
+  asnef:          { tables:[{name:'ficheros_asnef',fields:12,status:'pending'}], note:'Declaración en ASNEF/EQUIFAX de clientes morosos. Alta y baja automatizable al cobro.', pending:['Integración API ASNEF/EQUIFAX','Proceso de baja automática al cobro'] },
+  expedientes:    { tables:[{name:'expedientes_judiciales',fields:18,status:'pending'}], note:'Apertura y seguimiento de expedientes judiciales o extrajudiciales para recobro. Coordinación con gestoría externa.', pending:['Módulo completo pendiente de desarrollo','Integración gestoría de recobros'] },
 };
 
 // Step builders
@@ -1402,8 +1406,8 @@ const fsFlows = [
     ]
   },
   {
-    id:'devoluciones', title:'↩️ Devoluciones + Recobros', dotColor:'#9ca3af',
-    desc:'Fin de vida del contrato: devolución, peritación, liquidación y gestión de impagos.',
+    id:'devoluciones', title:'↩️ Devoluciones', dotColor:'#9ca3af',
+    desc:'Fin de vida del contrato: devolución del vehículo, peritación, cargos y liquidación final.',
     badges:[{l:'❌ Pendiente desarrollo',c:'#9ca3af'}],
     steps:[
       fsB.banner('Flujo pendiente de desarrollo. Estructura propuesta:'),
@@ -1420,12 +1424,41 @@ const fsFlows = [
           fsB.conn('Cobro'),
           fsB.branch('¿Pagado?',[
             {label:'✓ Pagado',type:'yes',steps:[fsB.conn(''),fsB.mod('Mod. Contrato','Cerrado','contrato','pending','cierres'),fsB.conn(''),fsB.end('✅ Cierre con cargos','success')]},
-            {label:'✗ Impago',type:'no',steps:[fsB.conn(''),fsB.mod('Mod. Recobros','Gestión amistosa','facturacion','pending','recobros'),fsB.conn('Sin acuerdo'),fsB.mod('Mod. Recobros','Extrajudicial','facturacion','pending','recobros'),fsB.conn(''),fsB.end('⚖️ Proceso judicial','failure')]}
+            {label:'✗ Impago',type:'no',steps:[fsB.conn(''),fsB.end('↪️ Ver flujo Recobros','neutral')]}
           ])
         ]},
         {label:'No — Sin cargos',type:'yes',steps:[
           fsB.conn(''),fsB.mod('Mod. Facturación','Liquidación sin cargos','facturacion','pending','fact_dev'),
           fsB.conn(''),fsB.mod('Mod. Contrato','Cerrado','contrato','pending','cierres'),fsB.conn(''),fsB.end('✅ Cierre limpio','success')
+        ]}
+      ])
+    ]
+  },
+  {
+    id:'recobros', title:'⚠️ Recobros', dotColor:'#dc2626',
+    desc:'Gestión de impagos: proceso amistoso, inscripción en ASNEF y procedimiento judicial.',
+    badges:[{l:'Clientes Impagados',c:'#b91c1c'},{l:'ASNEF',c:'#374151'},{l:'Expedientes',c:'#6d28d9'},{l:'❌ Pendiente desarrollo',c:'#9ca3af'}],
+    steps:[
+      fsB.banner('Flujo pendiente de desarrollo. Estructura propuesta:'),
+      fsB.par([
+        {steps:[fsB.mod('Clientes Impagados','Registro de mora','riesgos','pending','clientes_impag')]},
+        {steps:[fsB.mod('Facturas Impagadas','Deuda activa','facturacion','pending','facturas_impag')]}
+      ]),
+      fsB.conn(''),fsB.proc('Email aviso + llamada comercial','email'),
+      fsB.conn('¿Responde en 15 días?'),
+      fsB.branch('Gestión amistosa',[
+        {label:'✓ Pago acordado',type:'yes',steps:[
+          fsB.conn(''),fsB.mod('Facturas','Cobro recibido','facturacion','pending','facturas_impag'),
+          fsB.conn(''),fsB.end('✅ Impago resuelto','success')
+        ]},
+        {label:'✗ Sin respuesta',type:'no',steps:[
+          fsB.conn('Notificación ASNEF'),
+          fsB.mod('ASNEF','Cliente declarado moroso','riesgos','pending','asnef'),
+          fsB.conn('Gestión extrajudicial'),
+          fsB.branch('¿Acuerdo extrajudicial?',[
+            {label:'✓ Pago acordado',type:'yes',steps:[fsB.conn(''),fsB.proc('Baja ASNEF','email'),fsB.conn(''),fsB.end('✅ Resuelto extrajudicial','success')]},
+            {label:'✗ Sin acuerdo',type:'no',steps:[fsB.conn(''),fsB.mod('Expedientes','Apertura expediente judicial','devolucion','pending','expedientes'),fsB.conn(''),fsB.end('⚖️ Proceso judicial','failure')]}
+          ])
         ]}
       ])
     ]

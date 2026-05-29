@@ -417,6 +417,36 @@ const moduleDetails = {
     note:'Gestión de impagos y proceso de recobro: amistoso, extrajudicial y judicial.',
     pending: ['Módulo impagos', 'Workflow de recobro por segmentos', 'Integración agencia de recobro']
   },
+  clientes_impagados: {
+    tables: [
+      {name:'clientes_impagados', fields:14, status:'pending'},
+      {name:'historial_impagos', fields:10, status:'pending'},
+    ],
+    note:'Registro de clientes con facturas vencidas y seguimiento del estado de mora por tramos.',
+    pending: ['Módulo completo pendiente de desarrollo']
+  },
+  facturas_impagadas: {
+    tables: [
+      {name:'facturas_clientes', fields:28, status:'partial'},
+      {name:'impagos', fields:14, status:'pending'},
+    ],
+    note:'Control de facturas vencidas sin cobro: días de mora, importe pendiente y gestiones realizadas.',
+    pending: ['Tabla impagos', 'Workflow de escalado automático']
+  },
+  asnef_entry: {
+    tables: [
+      {name:'ficheros_asnef', fields:12, status:'pending'},
+    ],
+    note:'Declaración en ASNEF/EQUIFAX de clientes morosos. Alta y baja automatizable al cobro.',
+    pending: ['Integración API ASNEF/EQUIFAX', 'Proceso de baja automática al cobro']
+  },
+  expedientes_jud: {
+    tables: [
+      {name:'expedientes_judiciales', fields:18, status:'pending'},
+    ],
+    note:'Apertura y seguimiento de expedientes judiciales o extrajudiciales para recobro. Coordinación con gestoría externa.',
+    pending: ['Módulo completo pendiente de desarrollo', 'Integración gestoría de recobros']
+  },
   stock_vo: {
     tables: [
       {name:'vehiculos_segunda_mano', fields:18, status:'pending'},
@@ -480,21 +510,38 @@ const flows = [
     render: renderEntregas
   },
   // ══════════════════════════════
-  // FLUJO 3: DEVOLUCIONES + RECOBROS
+  // FLUJO 3: DEVOLUCIONES
   // ══════════════════════════════
   {
     id: 'devoluciones',
-    title: 'Devoluciones + Recobros',
+    title: 'Devoluciones',
     icon: '↩️',
     statusColor: '#9ca3af',
-    description: 'Fin de vida del contrato: devolución del vehículo, peritación, cargos, liquidación y gestión de impagos.',
+    description: 'Fin de vida del contrato: devolución del vehículo, peritación, cargos y liquidación final.',
     badges: [
       {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
     ],
     render: renderDevoluciones
   },
   // ══════════════════════════════
-  // FLUJO 4: VENTA VO
+  // FLUJO 4: RECOBROS
+  // ══════════════════════════════
+  {
+    id: 'recobros',
+    title: 'Recobros',
+    icon: '⚠️',
+    statusColor: '#dc2626',
+    description: 'Gestión de impagos: proceso amistoso, inscripción en ASNEF y procedimiento judicial.',
+    badges: [
+      {label:'Clientes Impagados', color:'#b91c1c'},
+      {label:'ASNEF', color:'#374151'},
+      {label:'Expedientes', color:'#6d28d9'},
+      {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
+    ],
+    render: renderRecobros
+  },
+  // ══════════════════════════════
+  // FLUJO 5: VENTA VO
   // ══════════════════════════════
   {
     id: 'venta_vo',
@@ -686,10 +733,7 @@ function renderDevoluciones(container) {
             ]},
             { label: '✗ Impago', type: 'no', steps: [
               conn(''),
-              mod('Mod. Recobros', 'Gestión amistosa', 'facturacion', 'pending', 'recobros'),
-              conn('Sin acuerdo'),
-              mod('Mod. Recobros', 'Gestión extrajudicial', 'facturacion', 'pending', 'recobros'),
-              conn(''), endNode('⚖️ Proceso judicial', 'failure')
+              endNode('↪️ Ver flujo Recobros', 'neutral')
             ]}
           ])
         ]
@@ -703,6 +747,53 @@ function renderDevoluciones(container) {
           mod('Mod. Contrato', 'Cerrado', 'contrato', 'pending', 'cierres'),
           conn(''),
           endNode('✅ Cierre limpio', 'success')
+        ]
+      }
+    ])
+  ];
+  renderSteps(container, steps);
+}
+
+function renderRecobros(container) {
+  const steps = [
+    pendingBanner('Este flujo está pendiente de desarrollo. La estructura propuesta es:'),
+    parallel([
+      { label:'', steps:[ mod('Clientes Impagados', 'Registro de mora', 'riesgos', 'pending', 'clientes_impagados') ]},
+      { label:'', steps:[ mod('Facturas Impagadas', 'Deuda activa', 'facturacion', 'pending', 'facturas_impagadas') ]}
+    ]),
+    conn(''),
+    proc('Email aviso + llamada comercial', 'email'),
+    conn('¿Responde en 15 días?'),
+    branch('Gestión amistosa', [
+      {
+        label: '✓ Pago acordado', type: 'yes',
+        steps: [
+          conn(''),
+          mod('Facturas Impagadas', 'Cobro recibido', 'facturacion', 'pending', 'facturas_impagadas'),
+          conn(''),
+          endNode('✅ Impago resuelto', 'success')
+        ]
+      },
+      {
+        label: '✗ Sin respuesta', type: 'no',
+        steps: [
+          conn('Notificación ASNEF'),
+          mod('ASNEF', 'Cliente declarado moroso', 'riesgos', 'pending', 'asnef_entry'),
+          conn('Gestión extrajudicial'),
+          branch('¿Acuerdo extrajudicial?', [
+            { label: '✓ Pago acordado', type: 'yes', steps: [
+              conn(''),
+              proc('Baja ASNEF', 'email'),
+              conn(''),
+              endNode('✅ Resuelto extrajudicial', 'success')
+            ]},
+            { label: '✗ Sin acuerdo', type: 'no', steps: [
+              conn(''),
+              mod('Expedientes', 'Apertura expediente judicial', 'devolucion', 'pending', 'expedientes_jud'),
+              conn(''),
+              endNode('⚖️ Proceso judicial', 'failure')
+            ]}
+          ])
         ]
       }
     ])

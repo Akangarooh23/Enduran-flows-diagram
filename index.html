@@ -522,7 +522,8 @@ body {
 .fs-proc {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   border-radius: 100px; padding: 7px 18px; font-size: 11px; font-weight: 600;
-  cursor: default; align-self: center; min-width: 140px; text-align: center;
+  cursor: default; align-self: center; min-width: 140px; max-width: 260px; text-align: center;
+  width: fit-content;
 }
 .fs-proc.process { background: #1e293b; color: #e2e8f0; }
 .fs-proc.api     { background: #0c4a6e; color: #7dd3fc; border: 1px solid #0369a1; }
@@ -532,6 +533,8 @@ body {
 .fs-diamond { width: 130px; height: 46px; background: #1e293b; color: #f1f5f9; clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; text-align: center; }
 .fs-branches { display: flex; gap: 14px; justify-content: center; width: 100%; padding: 0 6px; }
 .fs-branch   { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+.fs-branch:not(:first-child) { border-left: 1px dashed rgba(0,0,0,0.12); padding-left: 8px; }
+.fs-branch:not(:last-child)  { padding-right: 8px; }
 .fs-blabel   { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 8px; text-align: center; white-space: nowrap; }
 .fs-blabel.yes { background: rgba(22,163,74,.1); color: #15803d; border: 1px solid rgba(22,163,74,.3); }
 .fs-blabel.no  { background: rgba(220,38,38,.1); color: #b91c1c; border: 1px solid rgba(220,38,38,.3); }
@@ -565,6 +568,37 @@ body {
 .fsm-contabilidad{ border-color: #0369a1; } .fsm-contabilidad .fs-mod-badge { background: #0369a1; }
 .fs-tabs::-webkit-scrollbar { height: 3px; }
 .fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+
+/* ── RESPONSIVE MOBILE ── */
+@media (max-width: 768px) {
+  /* Header */
+  .page-header { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+  .page-header h1 { font-size: 14px; }
+  .page-header .meta { font-size: 10px; }
+  .nav-links { display: none; }
+
+  /* Overview diagram — keep scrollable horizontally */
+  .diagram-wrapper { height: 44vh; min-height: 200px; overflow-x: auto; }
+
+  /* Flows section header */
+  .fs-section-head { padding: 12px 14px; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .fs-tabs { padding: 8px 12px 0; gap: 3px; }
+  .fs-tab  { font-size: 10px; padding: 5px 10px; }
+  .fs-panels { padding: 16px 12px; }
+  .fs-diagram { max-width: 100%; }
+  .fs-node    { max-width: 100%; }
+
+  /* Stack branch columns vertically on mobile */
+  .fs-branches { flex-direction: column; gap: 0; padding: 0; }
+  .fs-branch   { width: 100%; flex: none; border-left: none !important; padding-left: 0 !important; padding-right: 0 !important; border-top: 1px dashed rgba(0,0,0,0.12); padding-top: 10px; margin-top: 4px; }
+  .fs-branch:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  .fs-blabel   { margin-bottom: 8px; }
+
+  /* Parallel paths — stack on mobile too */
+  .fs-parallel { flex-direction: column; gap: 0; }
+  .fs-par-col  { width: 100%; flex: none; border-top: 1px dashed rgba(0,0,0,0.08); padding-top: 8px; margin-top: 4px; }
+  .fs-par-col:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+}
 </style>
 </head>
 <body>

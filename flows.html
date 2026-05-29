@@ -94,7 +94,7 @@ body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var
   border-radius:100px; padding:8px 20px;
   font-size:12px; font-weight:600;
   cursor:pointer; transition:transform 0.15s;
-  align-self:center; min-width:160px; max-width:300px; text-align:center;
+  align-self:center; min-width:160px; max-width:260px; width:fit-content; text-align:center;
 }
 .process-node:hover { transform:scale(1.02); }
 .process-node.api { background:#0c4a6e; color:#7dd3fc; border:1px solid #0369a1; }
@@ -121,6 +121,8 @@ body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var
 }
 .decision-branches { display:flex; gap:16px; justify-content:center; width:100%; padding:0 8px; }
 .branch { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
+.branch:not(:first-child) { border-left: 1px dashed rgba(0,0,0,0.12); padding-left: 8px; }
+.branch:not(:last-child)  { padding-right: 8px; }
 .branch-label {
   font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px;
   margin-bottom:0; text-align:center; white-space:nowrap;
@@ -221,6 +223,34 @@ body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var
 .modal::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:3px; }
 .tabs::-webkit-scrollbar { height:4px; }
 .tabs::-webkit-scrollbar-thumb { background:#475569; border-radius:2px; }
+
+/* ── RESPONSIVE MOBILE ── */
+@media (max-width: 768px) {
+  .header { padding:10px 14px; flex-wrap:wrap; gap:6px; }
+  .header h1 { font-size:14px; }
+  .nav-back { display:none; }
+
+  .tabs { padding:8px 12px 0; gap:3px; }
+  .tab  { font-size:10px; padding:6px 10px; }
+
+  .flow-area { padding:16px 12px; }
+  .flow-panel { max-width:100%; }
+  .step-node  { max-width:100%; }
+
+  /* Stack branch columns vertically */
+  .decision-branches { flex-direction:column; gap:0; padding:0; }
+  .branch { width:100%; flex:none; border-left:none !important; padding-left:0 !important; padding-right:0 !important; border-top:1px dashed rgba(0,0,0,0.12); padding-top:10px; margin-top:4px; }
+  .branch:first-child { border-top:none; padding-top:0; margin-top:0; }
+  .branch-label { margin-bottom:8px; }
+
+  /* Stack parallel paths */
+  .parallel-wrap { flex-direction:column; gap:0; }
+  .parallel-branch { width:100%; flex:none; border-top:1px dashed rgba(0,0,0,0.08); padding-top:8px; margin-top:4px; }
+  .parallel-branch:first-child { border-top:none; padding-top:0; margin-top:0; }
+
+  .legend { padding:8px 12px; gap:8px; }
+  .legend-item[style*="margin-left:auto"] { margin-left:0 !important; width:100%; }
+}
 </style>
 </head>
 <body>

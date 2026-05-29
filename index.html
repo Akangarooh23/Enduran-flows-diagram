@@ -471,13 +471,21 @@ body {
 .card.highlighted { box-shadow: 0 0 0 3px #fbbf24; }
 
 /* ── FLOWS SECTION ── */
-.fs-section { background: #f8fafc; border-top: 3px solid #1a2744; }
+.fs-section { background: #f8fafc; margin-top: 64px; border-top: 4px solid #1a2744; }
+.fs-section-divider {
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px; margin-bottom: -1px; position: relative; top: -1px;
+}
+.fs-section-divider::before,
+.fs-section-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e2e8f0;
+}
 .fs-section-head {
-  background: #1a2744; padding: 14px 24px;
+  background: #1a2744; padding: 20px 28px;
   display: flex; align-items: center; justify-content: space-between;
 }
-.fs-section-head h2 { color: #f1f5f9; font-size: 15px; font-weight: 700; }
-.fs-section-head p  { color: #94a3b8; font-size: 11px; margin-top: 2px; }
+.fs-section-head h2 { color: #f1f5f9; font-size: 16px; font-weight: 700; }
+.fs-section-head p  { color: #94a3b8; font-size: 11px; margin-top: 3px; }
 .fs-tabs {
   background: #1e2a3e; border-bottom: 1px solid #2d3a50;
   display: flex; gap: 4px; padding: 10px 24px 0; overflow-x: auto;
@@ -490,7 +498,7 @@ body {
 .fs-tab:hover { color: #e2e8f0; }
 .fs-tab.active { background: #f8fafc; color: #1e293b; border-color: #e2e8f0; border-bottom-color: #f8fafc; }
 .fs-tab .fs-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 6px; }
-.fs-panels { padding: 28px 24px; overflow-x: auto; }
+.fs-panels { padding: 40px 24px 48px; overflow-x: auto; }
 .fs-panel { display: none; }
 .fs-panel.active { display: block; }
 .fs-flow-header { margin-bottom: 20px; max-width: 920px; margin-left: auto; margin-right: auto; }
@@ -498,7 +506,7 @@ body {
 .fs-flow-header p  { font-size: 12px; color: #64748b; margin-top: 3px; }
 .fs-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
 .fs-badge { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 10px; border: 1px solid; }
-.fs-diagram { display: flex; flex-direction: column; align-items: center; max-width: 920px; margin: 0 auto; }
+.fs-diagram { display: flex; flex-direction: column; align-items: center; max-width: 920px; margin: 0 auto; gap: 0; }
 .fs-node { width: 100%; max-width: 480px; }
 /* module card */
 .fs-mod {
@@ -676,7 +684,10 @@ body {
   <div class="fs-section-head">
     <div>
       <h2>Flujos de Proceso Detallados</h2>
-      <p>Estados, transiciones y decisiones por flujo de negocio · Clic en cualquier tarjeta para ver detalles</p>
+      <p>Estados, transiciones y decisiones por flujo de negocio &nbsp;·&nbsp; Clic en cualquier tarjeta para ver detalles del módulo</p>
+    </div>
+    <div style="font-size:11px;color:#475569;background:#1e2a3e;padding:4px 12px;border-radius:6px;border:1px solid #2d3a50;">
+      5 flujos &nbsp;·&nbsp; 20+ módulos
     </div>
   </div>
   <div class="fs-tabs" id="fs-tabs"></div>

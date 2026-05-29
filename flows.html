@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENDURAN — Flujos de Proceso</title>
+<style>
+:root {
+  --bg: #f0ede8;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --muted: #64748b;
+  --header: #1a2744;
+
+  /* Module colors */
+  --c-proformas:   #7c3aed;
+  --c-ofertas:     #1d4ed8;
+  --c-riesgos:     #374151;
+  --c-contrato:    #0f766e;
+  --c-pedidos:     #b91c1c;
+  --c-carga:       #92400e;
+  --c-entregas:    #a16207;
+  --c-seguros:     #be185d;
+  --c-facturacion: #15803d;
+  --c-devolucion:  #6d28d9;
+  --c-vo:          #b45309;
+  --c-contabilidad:#0369a1;
+  --c-api:         #0369a1;
+  --c-process:     #334155;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+
+/* HEADER */
+.header { background:var(--header); color:#fff; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.header h1 { font-size:18px; font-weight:700; }
+.header .subtitle { font-size:11px; color:#94a3b8; margin-top:2px; }
+.nav-back { font-size:12px; color:#93c5fd; text-decoration:none; display:flex; align-items:center; gap:6px; border:1px solid rgba(147,197,253,0.3); padding:5px 12px; border-radius:6px; transition:all 0.15s; }
+.nav-back:hover { background:rgba(147,197,253,0.1); }
+
+/* TABS */
+.tabs { background:#1e2a3e; border-bottom:1px solid #2d3a50; display:flex; gap:4px; padding:10px 24px 0; flex-shrink:0; overflow-x:auto; }
+.tab { padding:8px 18px; border-radius:8px 8px 0 0; border:1px solid transparent; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; color:#94a3b8; background:transparent; border-color:transparent; white-space:nowrap; }
+.tab:hover { color:#e2e8f0; }
+.tab.active { background:#f0ede8; color:var(--text); border-color:#e2e8f0; border-bottom-color:#f0ede8; }
+.tab .tab-icon { margin-right:6px; }
+.tab .tab-status { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:6px; }
+
+/* FLOW AREA */
+.flow-area { flex:1; overflow-y:auto; padding:28px 24px; }
+.flow-panel { display:none; max-width:920px; margin:0 auto; }
+.flow-panel.active { display:block; }
+
+.flow-header { margin-bottom:24px; }
+.flow-header h2 { font-size:18px; font-weight:700; }
+.flow-header p { font-size:13px; color:var(--muted); margin-top:4px; }
+.flow-header .badges { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.flow-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:12px; border:1px solid; }
+
+/* FLOW DIAGRAM */
+.flow-diagram { display:flex; flex-direction:column; align-items:center; gap:0; }
+
+/* STEP NODE */
+.step-node { width:100%; max-width:480px; position:relative; }
+
+/* MODULE CARD */
+.module-card {
+  border-radius:10px; border:2px solid; padding:12px 16px;
+  background:var(--surface); cursor:pointer;
+  transition:transform 0.15s, box-shadow 0.15s;
+  position:relative;
+}
+.module-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.1); }
+.module-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px;
+  color:#fff; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;
+}
+.module-name { font-size:13px; font-weight:700; margin-bottom:3px; }
+.module-state { font-size:12px; color:var(--muted); }
+.module-status-dot { position:absolute; top:10px; right:10px; width:8px; height:8px; border-radius:50%; }
+.module-status-dot.active  { background:#16a34a; }
+.module-status-dot.partial { background:#d97706; }
+.module-status-dot.pending { background:#9ca3af; }
+.module-extra { margin-top:8px; display:flex; flex-wrap:wrap; gap:4px; }
+.module-extra-tag { font-size:10px; padding:2px 7px; border-radius:8px; background:rgba(0,0,0,0.05); color:var(--muted); }
+
+/* PROCESS NODE (oval) */
+.process-node {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:#1e293b; color:#e2e8f0;
+  border-radius:100px; padding:8px 20px;
+  font-size:12px; font-weight:600;
+  cursor:pointer; transition:transform 0.15s;
+  align-self:center; min-width:160px; max-width:300px; text-align:center;
+}
+.process-node:hover { transform:scale(1.02); }
+.process-node.api { background:#0c4a6e; color:#7dd3fc; border:1px solid #0369a1; }
+.process-node.email { background:#1e3a1e; color:#86efac; }
+.process-node.ocr { background:#1c1917; color:#fde68a; }
+
+/* CONNECTOR */
+.connector { width:2px; height:24px; background:#94a3b8; margin:0 auto; position:relative; }
+.connector-label {
+  position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  font-size:10px; color:var(--muted); white-space:nowrap; background:var(--bg);
+  padding:1px 6px; border-radius:4px; border:1px solid var(--border);
+}
+.connector.dashed { background:repeating-linear-gradient(to bottom,#94a3b8 0,#94a3b8 4px,transparent 4px,transparent 8px); }
+
+/* DECISION DIAMOND */
+.decision-wrap { display:flex; flex-direction:column; align-items:center; width:100%; }
+.decision-diamond {
+  width:140px; height:50px; background:#1e293b; color:#f1f5f9;
+  clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; text-align:center;
+  cursor:default;
+}
+.decision-branches { display:flex; gap:16px; justify-content:center; width:100%; padding:0 8px; }
+.branch { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
+.branch-label {
+  font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px;
+  margin-bottom:0; text-align:center; white-space:nowrap;
+}
+.branch-label.yes { background:rgba(22,163,74,0.1); color:#15803d; border:1px solid rgba(22,163,74,0.3); }
+.branch-label.no  { background:rgba(220,38,38,0.1);  color:#b91c1c; border:1px solid rgba(220,38,38,0.3); }
+.branch-label.alt { background:rgba(59,130,246,0.1);  color:#1d4ed8; border:1px solid rgba(59,130,246,0.3); }
+
+/* END NODE */
+.end-node {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  border-radius:100px; padding:8px 20px; font-size:12px; font-weight:700;
+  min-width:120px; border:2px solid;
+}
+.end-node.success { background:rgba(22,163,74,0.08); border-color:#16a34a; color:#15803d; }
+.end-node.failure { background:rgba(220,38,38,0.08); border-color:#dc2626; color:#b91c1c; }
+.end-node.neutral { background:rgba(100,116,139,0.08); border-color:#64748b; color:#475569; }
+
+/* SUBINFO BOX */
+.subinfo-box {
+  width:100%; background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15);
+  border-radius:8px; padding:8px 12px; display:flex; flex-wrap:wrap; gap:6px;
+  align-items:center;
+}
+.subinfo-label { font-size:10px; font-weight:700; color:#1d4ed8; margin-right:4px; text-transform:uppercase; letter-spacing:0.06em; }
+.subinfo-item { font-size:11px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:6px; padding:2px 8px; color:#1d4ed8; font-weight:600; }
+
+/* PARALLEL PATHS (two modules side by side) */
+.parallel-wrap { display:flex; gap:12px; width:100%; justify-content:center; }
+.parallel-branch { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
+
+/* SECTION DIVIDER */
+.section-div {
+  width:100%; max-width:480px; display:flex; align-items:center; gap:10px;
+  margin:4px 0;
+}
+.section-div .section-line { flex:1; height:1px; background:var(--border); }
+.section-div .section-text { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; white-space:nowrap; }
+
+/* MODULE COLORS applied via JS */
+.mod-proformas   { border-color:var(--c-proformas);   }
+.mod-proformas   .module-badge { background:var(--c-proformas); }
+.mod-ofertas     { border-color:var(--c-ofertas);     }
+.mod-ofertas     .module-badge { background:var(--c-ofertas); }
+.mod-riesgos     { border-color:var(--c-riesgos);     }
+.mod-riesgos     .module-badge { background:var(--c-riesgos); }
+.mod-contrato    { border-color:var(--c-contrato);    }
+.mod-contrato    .module-badge { background:var(--c-contrato); }
+.mod-pedidos     { border-color:var(--c-pedidos);     }
+.mod-pedidos     .module-badge { background:var(--c-pedidos); }
+.mod-carga       { border-color:var(--c-carga);       }
+.mod-carga       .module-badge { background:var(--c-carga); }
+.mod-entregas    { border-color:var(--c-entregas);    }
+.mod-entregas    .module-badge { background:var(--c-entregas); }
+.mod-seguros     { border-color:var(--c-seguros);     }
+.mod-seguros     .module-badge { background:var(--c-seguros); }
+.mod-facturacion { border-color:var(--c-facturacion); }
+.mod-facturacion .module-badge { background:var(--c-facturacion); }
+.mod-devolucion  { border-color:var(--c-devolucion);  }
+.mod-devolucion  .module-badge { background:var(--c-devolucion); }
+.mod-vo          { border-color:var(--c-vo);          }
+.mod-vo          .module-badge { background:var(--c-vo); }
+.mod-contabilidad{ border-color:var(--c-contabilidad);}
+.mod-contabilidad.module-badge { background:var(--c-contabilidad); }
+
+/* MODAL */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; border-radius:14px; width:520px; max-width:90vw; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
+.modal-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; border-radius:14px 14px 0 0; }
+.modal-head h2 { font-size:15px; font-weight:700; }
+.modal-close { width:28px; height:28px; border-radius:7px; border:1px solid var(--border); background:transparent; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
+.modal-close:hover { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
+.modal-body { padding:16px 20px; }
+.modal-section { margin-bottom:16px; }
+.modal-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px; }
+.modal-table-row { display:flex; align-items:center; gap:8px; padding:5px 10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border); margin-bottom:4px; }
+.modal-table-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.modal-table-name { font-family:'Consolas',monospace; font-size:12px; flex:1; }
+.modal-table-fields { font-size:11px; color:var(--muted); }
+.modal-table-s { font-size:10px; padding:1px 6px; border-radius:8px; font-weight:600; }
+.modal-table-s.active  { background:rgba(22,163,74,0.1); color:#15803d; }
+.modal-table-s.partial { background:rgba(217,119,6,0.1); color:#b45309; }
+.modal-table-s.pending { background:rgba(156,163,175,0.1); color:#6b7280; }
+.modal-note { font-size:12px; color:#374151; line-height:1.6; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid var(--border); }
+.pending-item { font-size:11px; color:#b91c1c; padding:5px 10px; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15); border-radius:6px; margin-bottom:4px; }
+
+/* Legend */
+.legend { background:var(--surface); border-top:1px solid var(--border); padding:10px 24px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; flex-shrink:0; }
+.legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+.legend-sq { width:12px; height:12px; border-radius:3px; border:2px solid; }
+.legend-dot { width:8px; height:8px; border-radius:50%; }
+
+/* scrollbar */
+.flow-area::-webkit-scrollbar { width:6px; }
+.flow-area::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+.modal::-webkit-scrollbar { width:5px; }
+.modal::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:3px; }
+.tabs::-webkit-scrollbar { height:4px; }
+.tabs::-webkit-scrollbar-thumb { background:#475569; border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>ENDURAN — Flujos de Proceso</h1>
+    <div class="subtitle">Diagrama de estados y transiciones por flujo de negocio</div>
+  </div>
+  <a class="nav-back" href="index.html">← Vista general</a>
+</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div class="flow-area" id="flow-area"></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-sq" style="border-color:#16a34a;background:rgba(22,163,74,0.1)"></div>Implementado</div>
+  <div class="legend-item"><div class="legend-sq" style="border-color:#d97706;background:rgba(217,119,6,0.1)"></div>Parcial</div>
+  <div class="legend-item"><div class="legend-sq" style="border-color:#9ca3af;background:rgba(156,163,175,0.1)"></div>Pendiente</div>
+  <div style="width:1px;height:16px;background:var(--border)"></div>
+  <div class="legend-item"><div style="width:32px;height:2px;background:#94a3b8"></div> Flujo</div>
+  <div class="legend-item"><div style="width:32px;height:2px;background:repeating-linear-gradient(to right,#94a3b8 0,#94a3b8 4px,transparent 4px,transparent 8px)"></div> Condicional</div>
+  <div style="width:1px;height:16px;background:var(--border)"></div>
+  <div class="legend-item" style="margin-left:auto;color:#94a3b8;font-size:11px;font-style:italic">Clic en cualquier tarjeta para ver detalles</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-title"></h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// FLOW DATA
+// ══════════════════════════════════════════
+
+const moduleDetails = {
+  proformas: {
+    tables: [
+      {name:'proformas_vn', fields:28, status:'active'},
+      {name:'proforma_opciones', fields:14, status:'active'},
+      {name:'proforma_packs', fields:12, status:'active'},
+      {name:'proforma_series', fields:10, status:'active'},
+      {name:'proforma_pool', fields:10, status:'active'},
+    ],
+    note:'Configuración del vehículo nuevo: modelo, opcionales, packs y series disponibles.'
+  },
+  ofertas: {
+    tables: [
+      {name:'ofertas', fields:35, status:'active'},
+      {name:'oferta_cuotas_servicios', fields:14, status:'active'},
+      {name:'oferta_resultados_financieros', fields:18, status:'active'},
+      {name:'estado_oferta', fields:6, status:'active'},
+      {name:'perfil_cotizacion', fields:20, status:'active'},
+    ],
+    note:'Ciclo de vida de la oferta con estados, cálculo de cuota y aprobación comercial.'
+  },
+  perfil_financiacion: {
+    tables: [
+      {name:'perfil_cotizacion', fields:20, status:'active'},
+      {name:'datos_financiacion', fields:22, status:'active'},
+      {name:'disposiciones_financieras', fields:18, status:'active'},
+      {name:'oferta_resultados_financieros', fields:18, status:'active'},
+    ],
+    note:'Parámetros financieros de la oferta: TAE, mensualidades, disposiciones y resultados del modelo financiero.'
+  },
+  riesgos: {
+    tables: [
+      {name:'riesgos', fields:20, status:'active'},
+      {name:'estado_riesgo', fields:6, status:'active'},
+      {name:'clientes', fields:30, status:'active'},
+    ],
+    note:'Evaluación de riesgo crediticio del cliente. Estados: Pendiente CPP → Aprobado / Rechazado / Rechazado con garantía adicional.'
+  },
+  firma_digital: {
+    tables: [],
+    note:'Integración pendiente con Signaturit para firma electrónica avanzada. El contrato se envía para firma, el cliente firma digitalmente y se obtiene el PDF certificado con timestamp legal.',
+    pending: ['Integración API Signaturit', 'Webhook de estado de firma', 'Almacenamiento PDF firmado']
+  },
+  contrato: {
+    tables: [
+      {name:'contratos_renting', fields:38, status:'active'},
+      {name:'condiciones_contrato', fields:18, status:'active'},
+      {name:'documentos_contrato', fields:12, status:'active'},
+      {name:'garantias', fields:15, status:'pending'},
+      {name:'cesiones_contrato', fields:10, status:'pending'},
+    ],
+    note:'Contrato principal de renting con condiciones económicas y flujo de estados.'
+  },
+  pedidos: {
+    tables: [
+      {name:'vehiculos', fields:45, status:'active'},
+      {name:'pedidos_vehiculo', fields:18, status:'pending'},
+      {name:'equipamientos', fields:10, status:'pending'},
+    ],
+    note:'Gestión del pedido del vehículo al proveedor OEM y seguimiento hasta matriculación.',
+    pending: ['Tabla pedidos_vehiculo', 'Integración API proveedor OEM', 'Estado de seguimiento del pedido']
+  },
+  carga_pedidos: {
+    tables: [
+      {name:'vehiculos', fields:45, status:'active'},
+      {name:'flota', fields:20, status:'active'},
+    ],
+    note:'Carga de datos de matrícula y bastidor en el contrato una vez el vehículo está matriculado.'
+  },
+  entregas: {
+    tables: [
+      {name:'entregas', fields:20, status:'active'},
+      {name:'actas_entrega', fields:16, status:'active'},
+      {name:'encuesta_satisfaccion', fields:12, status:'active'},
+    ],
+    note:'Acto formal de entrega del vehículo con acta fotográfica, km inicial y firma del cliente.'
+  },
+  seguros: {
+    tables: [
+      {name:'polizas_seguro', fields:24, status:'pending'},
+    ],
+    note:'Gestión de la póliza de seguro vinculada al vehículo. Integración con AFFINITY para alta de póliza y envío de documentación.',
+    pending: ['Módulo pólizas de seguro', 'Integración API AFFINITY', 'Solicitud de documentos Excel/Atlas']
+  },
+  validacion_anticipos: {
+    tables: [
+      {name:'contratos_renting', fields:38, status:'active'},
+      {name:'datos_financiacion', fields:22, status:'active'},
+    ],
+    note:'Validación del anticipo pagado por el cliente antes de proceder a la firma definitiva del contrato.'
+  },
+  ocr_activacion: {
+    tables: [
+      {name:'documentos_contrato', fields:12, status:'active'},
+    ],
+    note:'Proceso OCR para extraer y validar documentación del cliente. Si es correcta, activa el contrato y envía PIN de acceso. Si hay incidencias, notifica al cliente y proveedores.',
+    pending: ['Integración servicio OCR', 'Envío automático PIN por correo', 'Workflow de incidencias']
+  },
+  devoluciones: {
+    tables: [
+      {name:'devoluciones', fields:18, status:'pending'},
+      {name:'actas_devolucion', fields:20, status:'pending'},
+      {name:'peritaciones', fields:15, status:'pending'},
+      {name:'cargos_devolucion', fields:12, status:'pending'},
+    ],
+    note:'Proceso completo de devolución del vehículo al fin del contrato.',
+    pending: ['Módulo completo pendiente de desarrollo']
+  },
+  cierres: {
+    tables: [
+      {name:'cierres_contrato', fields:16, status:'pending'},
+      {name:'ofertas_renovacion', fields:14, status:'pending'},
+    ],
+    note:'Cierre formal del contrato con liquidación final, P&L por vehículo y propuesta de renovación.',
+    pending: ['Módulo completo pendiente de desarrollo']
+  },
+  recobros: {
+    tables: [
+      {name:'impagos', fields:14, status:'pending'},
+    ],
+    note:'Gestión de impagos y proceso de recobro: amistoso, extrajudicial y judicial.',
+    pending: ['Módulo impagos', 'Workflow de recobro por segmentos', 'Integración agencia de recobro']
+  },
+  stock_vo: {
+    tables: [
+      {name:'vehiculos_segunda_mano', fields:18, status:'pending'},
+    ],
+    note:'Stock de vehículos de ocasión disponibles para venta tras devolución.',
+    pending: ['Módulo completo pendiente']
+  },
+  venta_vo: {
+    tables: [
+      {name:'ventas_segunda_mano', fields:16, status:'pending'},
+    ],
+    note:'Proceso de venta de vehículo de ocasión: valoración, portales, contrato y transferencia DGT.',
+    pending: ['Módulo completo pendiente', 'Integración Eurotax/Indicata', 'Integración AutoScout/Coches.net', 'Integración DGT transferencia']
+  },
+  facturacion_devolucion: {
+    tables: [
+      {name:'facturas_clientes', fields:28, status:'partial'},
+      {name:'cuotas_contrato', fields:14, status:'pending'},
+      {name:'cobros', fields:16, status:'pending'},
+    ],
+    note:'Facturación final del contrato incluyendo penalizaciones por daños o exceso de km.',
+    pending: ['Factura de cierre automática', 'Cargos por daños y exceso km']
+  }
+};
+
+// ── FLOWS DEFINITION ──
+const flows = [
+  // ══════════════════════════════
+  // FLUJO 1: FINANCIACIÓN Y COMPRA
+  // ══════════════════════════════
+  {
+    id: 'financiacion',
+    title: 'Financiación y Compra',
+    icon: '💰',
+    statusColor: '#16a34a',
+    description: 'Desde la configuración del vehículo hasta la firma del contrato. Incluye cálculo financiero, evaluación de riesgo y firma digital.',
+    badges: [
+      {label:'Perfil Cotización', color:'#1d4ed8'},
+      {label:'Líneas Financiación', color:'#0f766e'},
+      {label:'Datos Financiación', color:'#0f766e'},
+      {label:'Riesgos CPP', color:'#374151'},
+      {label:'Signaturit', color:'#0369a1'},
+    ],
+    render: renderFinanciacion
+  },
+  // ══════════════════════════════
+  // FLUJO 2: ENTREGAS
+  // ══════════════════════════════
+  {
+    id: 'entregas',
+    title: 'Entregas',
+    icon: '🚗',
+    statusColor: '#d97706',
+    description: 'Desde la matrícula del vehículo hasta la entrega física al cliente. Incluye seguros, activación por OCR y notificaciones logísticas.',
+    badges: [
+      {label:'Mod. Pedidos', color:'#b91c1c'},
+      {label:'Mod. Entregas', color:'#a16207'},
+      {label:'Seguros AFFINITY', color:'#be185d'},
+      {label:'OCR Activación', color:'#374151'},
+    ],
+    render: renderEntregas
+  },
+  // ══════════════════════════════
+  // FLUJO 3: DEVOLUCIONES + RECOBROS
+  // ══════════════════════════════
+  {
+    id: 'devoluciones',
+    title: 'Devoluciones + Recobros',
+    icon: '↩️',
+    statusColor: '#9ca3af',
+    description: 'Fin de vida del contrato: devolución del vehículo, peritación, cargos, liquidación y gestión de impagos.',
+    badges: [
+      {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
+    ],
+    render: renderDevoluciones
+  },
+  // ══════════════════════════════
+  // FLUJO 4: VENTA VO
+  // ══════════════════════════════
+  {
+    id: 'venta_vo',
+    title: 'Venta VO',
+    icon: '🏷️',
+    statusColor: '#9ca3af',
+    description: 'Segunda vida del vehículo: valoración, preparación, publicación en portales, venta y transferencia DGT.',
+    badges: [
+      {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
+    ],
+    render: renderVentaVO
+  }
+];
+
+// ══════════════════════════════════════════
+// RENDERERS
+// ══════════════════════════════════════════
+
+function renderFinanciacion(container) {
+  const steps = [
+    mod('Mod. Proformas', 'VN Configurado', 'proformas', 'active', 'proformas', ['Modelo', 'Opcionales', 'Pack']),
+    conn('Crear oferta'),
+    mod('Mod. Ofertas', '1 — Borrador', 'ofertas', 'active', 'ofertas'),
+    subinfo('Financiación', ['Perfil Cotización', 'Líneas Financiación', 'Datos Financiación', 'TAE · Mensualidades']),
+    conn('Completar datos financieros'),
+    mod('Mod. Ofertas', '2 — Oferta para Validación', 'ofertas', 'active', 'ofertas'),
+    conn('Validar oferta'),
+    mod('Mod. Ofertas', '3 — Oferta Validada', 'ofertas', 'active', 'ofertas'),
+    conn('Enviar a riesgos'),
+    mod('Mod. Riesgos', 'Pendiente de Sanción (CPP)', 'riesgos', 'active', 'riesgos'),
+    conn('Evaluar riesgo'),
+    branch('¿Resolución riesgo?', [
+      {
+        label: '2 — Aprobado', type: 'yes',
+        steps: [
+          conn(''),
+          mod('Mod. Ofertas', '4 — Enviado para Firma', 'ofertas', 'active', 'ofertas'),
+          conn('Firma digital'),
+          proc('Signaturit', 'api'),
+          branch('¿Firmado?', [
+            { label: '5.1 — Firmado', type: 'yes', steps: [
+              conn(''),
+              mod('Mod. Contrato', 'Activo', 'contrato', 'active', 'contrato'),
+              conn(''),
+              endNode('✅ Contrato firmado', 'success')
+            ]},
+            { label: '5.2 — No Firmado', type: 'alt', steps: [
+              conn(''),
+              proc('Email seguimiento', 'email'),
+              conn(''),
+              endNode('⏳ Pendiente firma', 'neutral')
+            ]},
+            { label: '5.3 — Anulado', type: 'no', steps: [
+              conn(''),
+              endNode('❌ Oferta anulada', 'failure')
+            ]}
+          ])
+        ]
+      },
+      {
+        label: '3 — Rechazado', type: 'no',
+        steps: [
+          conn(''),
+          endNode('❌ Riesgo rechazado', 'failure')
+        ]
+      },
+      {
+        label: '4 — Rechazado + garantía', type: 'alt',
+        steps: [
+          conn('Negociar garantía'),
+          mod('Mod. Ofertas', '4 — Enviado para Firma', 'ofertas', 'active', 'ofertas'),
+          conn('Firma con garantía'),
+          proc('Signaturit', 'api'),
+          conn(''),
+          mod('Mod. Contrato', 'Activo', 'contrato', 'active', 'contrato'),
+          conn(''),
+          endNode('✅ Con garantía adicional', 'success')
+        ]
+      }
+    ])
+  ];
+  renderSteps(container, steps);
+}
+
+function renderEntregas(container) {
+  const steps = [
+    mod('Mod. Contrato', '4 — Pendiente de Matrícula', 'contrato', 'active', 'contrato'),
+    conn('Carga de matrícula a contrato'),
+    parallel([
+      {
+        label: '', steps: [
+          mod('Mod. Pedidos', '1 — Pendiente de Matrícula', 'pedidos', 'pending', 'pedidos'),
+          conn(''),
+          mod('Mod. Carga Pedidos', 'En proceso', 'carga', 'active', 'carga_pedidos'),
+        ]
+      },
+      {
+        label: '', steps: [
+          mod('Mod. Seguros', 'Alta de póliza', 'seguros', 'pending', 'seguros'),
+          conn('AFFINITY'),
+          proc('Email + Excel Atlas', 'email'),
+        ]
+      }
+    ]),
+    conn('Vehículo matriculado'),
+    mod('Mod. Pedidos', '2 — Matriculado', 'pedidos', 'pending', 'pedidos'),
+    conn(''),
+    parallel([
+      { label:'', steps: [
+        mod('Mod. Entregas', '1 — Vehículo Matriculado', 'entregas', 'active', 'entregas'),
+      ]},
+      { label:'', steps: [
+        mod('Mod. Contrato', '5 — Pendiente de Entrega', 'contrato', 'active', 'contrato'),
+      ]}
+    ]),
+    conn('Formulario de activación cliente'),
+    proc('Formulario Cliente', 'process'),
+    conn(''),
+    mod('Mod. Contrato', '6 — Pendiente de Activación', 'contrato', 'active', 'contrato'),
+    conn('OCR + PIN por correo'),
+    proc('OCR + Email PIN', 'ocr'),
+    conn('¿Documentación OK?'),
+    branch('¿Documentación válida?', [
+      {
+        label: '✓ Documentos OK', type: 'yes',
+        steps: [
+          conn(''),
+          mod('Mod. Contrato', '7 — Activo', 'contrato', 'active', 'contrato'),
+          conn('Fijar fecha y lugar de entrega'),
+          subinfo('Logística', ['Fecha Prevista Entrega', 'Dirección y lugar de entrega']),
+          conn(''),
+          proc('Email logistica.operaciones', 'email'),
+          conn(''),
+          mod('Mod. Entregas', '2 — Puesta a Disposición', 'entregas', 'active', 'entregas'),
+          conn('Entrega física'),
+          branch('¿Resultado entrega?', [
+            { label: '3 — Entregado', type: 'yes', steps: [
+              conn(''),
+              proc('Email confirmación', 'email'),
+              conn(''),
+              endNode('✅ Contrato activo', 'success')
+            ]},
+            { label: '4 — No Entregado', type: 'no', steps: [
+              conn(''),
+              endNode('⏳ Gestión pendiente', 'neutral')
+            ]}
+          ])
+        ]
+      },
+      {
+        label: '✗ Incidencia docs', type: 'no',
+        steps: [
+          conn(''),
+          proc('Email cliente + proveedores', 'email'),
+          conn(''),
+          endNode('⏳ Pendiente subsanar', 'neutral')
+        ]
+      }
+    ])
+  ];
+  renderSteps(container, steps);
+}
+
+function renderDevoluciones(container) {
+  const steps = [
+    pendingBanner('Este flujo está pendiente de desarrollo. La estructura propuesta es:'),
+    mod('Mod. Contrato', 'Activo — Próximo a vencer', 'contrato', 'pending', 'contrato'),
+    conn('Aviso automático 60 días antes'),
+    proc('Email aviso fin de contrato', 'email'),
+    conn('Cliente confirma devolución'),
+    mod('Mod. Entregas', 'Devolución iniciada', 'entregas', 'pending', 'devoluciones'),
+    conn('Acta de devolución'),
+    proc('Fotos + km + estado vehículo', 'process'),
+    conn(''),
+    mod('Mod. Devoluciones', 'Peritación en curso', 'devolucion', 'pending', 'devoluciones'),
+    conn('Resultado peritación'),
+    branch('¿Daños o exceso km?', [
+      {
+        label: 'Sí — Cargos extra', type: 'no',
+        steps: [
+          conn('Calcular penalizaciones'),
+          mod('Mod. Facturación', 'Factura cargos', 'facturacion', 'pending', 'facturacion_devolucion'),
+          conn('Cobro'),
+          branch('¿Pagado?', [
+            { label: '✓ Pagado', type: 'yes', steps: [
+              conn(''),
+              mod('Mod. Contrato', 'Cerrado', 'contrato', 'pending', 'cierres'),
+              conn(''), endNode('✅ Cierre con cargos', 'success')
+            ]},
+            { label: '✗ Impago', type: 'no', steps: [
+              conn(''),
+              mod('Mod. Recobros', 'Gestión amistosa', 'facturacion', 'pending', 'recobros'),
+              conn('Sin acuerdo'),
+              mod('Mod. Recobros', 'Gestión extrajudicial', 'facturacion', 'pending', 'recobros'),
+              conn(''), endNode('⚖️ Proceso judicial', 'failure')
+            ]}
+          ])
+        ]
+      },
+      {
+        label: 'No — Sin cargos', type: 'yes',
+        steps: [
+          conn(''),
+          mod('Mod. Facturación', 'Liquidación sin cargos', 'facturacion', 'pending', 'facturacion_devolucion'),
+          conn(''),
+          mod('Mod. Contrato', 'Cerrado', 'contrato', 'pending', 'cierres'),
+          conn(''),
+          endNode('✅ Cierre limpio', 'success')
+        ]
+      }
+    ])
+  ];
+  renderSteps(container, steps);
+}
+
+function renderVentaVO(container) {
+  const steps = [
+    pendingBanner('Este flujo está pendiente de desarrollo. La estructura propuesta es:'),
+    mod('Stock VO', 'Pendiente de valoración', 'vo', 'pending', 'stock_vo'),
+    conn('Consulta API Eurotax / Indicata'),
+    proc('Valoración mercado VO', 'api'),
+    conn('¿Requiere acondicionamiento?'),
+    branch('Estado del vehículo', [
+      {
+        label: 'Requiere preparación', type: 'alt',
+        steps: [
+          conn('OT taller'),
+          proc('Preparación estética/mecánica', 'process'),
+          conn(''),
+          mod('Stock VO', 'Listo para vender', 'vo', 'pending', 'stock_vo'),
+        ]
+      },
+      {
+        label: 'OK directo', type: 'yes',
+        steps: [
+          conn(''),
+          mod('Stock VO', 'Listo para vender', 'vo', 'pending', 'stock_vo'),
+        ]
+      }
+    ]),
+    conn('Publicación en portales'),
+    proc('AutoScout · Coches.net · Wallapop Pro', 'api'),
+    conn('Lead interesado'),
+    mod('Gestión Comercial VO', 'Negociación', 'vo', 'pending', 'venta_vo'),
+    conn('Acuerdo precio'),
+    mod('Contrato Compraventa', 'Firmado', 'contrato', 'pending', 'venta_vo'),
+    conn(''),
+    proc('Transferencia DGT', 'api'),
+    conn(''),
+    mod('Mod. Facturación', 'Factura venta VO', 'facturacion', 'pending', 'facturacion_devolucion'),
+    conn(''),
+    mod('Mod. Contabilidad', 'P&L por vehículo', 'contabilidad', 'pending', 'venta_vo'),
+    conn(''),
+    endNode('✅ Venta cerrada', 'success')
+  ];
+  renderSteps(container, steps);
+}
+
+// ══════════════════════════════════════════
+// STEP BUILDERS
+// ══════════════════════════════════════════
+function mod(name, state, cssClass, status, detailKey, tags=[]) {
+  return { type:'module', name, state, cssClass, status, detailKey, tags };
+}
+function conn(label='') { return { type:'connector', label }; }
+function proc(label, style='process') { return { type:'process', label, style }; }
+function branch(label, paths) { return { type:'branch', label, paths }; }
+function parallel(paths) { return { type:'parallel', paths }; }
+function subinfo(label, items) { return { type:'subinfo', label, items }; }
+function endNode(label, style) { return { type:'end', label, style }; }
+function pendingBanner(text) { return { type:'pending_banner', text }; }
+
+// ══════════════════════════════════════════
+// RENDER ENGINE
+// ══════════════════════════════════════════
+function renderSteps(container, steps) {
+  const wrap = document.createElement('div');
+  wrap.className = 'flow-diagram';
+  steps.forEach(s => {
+    const el = renderStep(s);
+    if (el) wrap.appendChild(el);
+  });
+  container.appendChild(wrap);
+}
+
+function renderStep(s) {
+  switch(s.type) {
+    case 'module':      return renderModule(s);
+    case 'connector':   return renderConnector(s);
+    case 'process':     return renderProcess(s);
+    case 'branch':      return renderBranch(s);
+    case 'parallel':    return renderParallel(s);
+    case 'subinfo':     return renderSubinfo(s);
+    case 'end':         return renderEnd(s);
+    case 'pending_banner': return renderPendingBanner(s);
+    default: return null;
+  }
+}
+
+function renderModule(s) {
+  const wrap = document.createElement('div');
+  wrap.className = 'step-node';
+  const statusDotColor = {active:'#16a34a', partial:'#d97706', pending:'#9ca3af'}[s.status];
+
+  wrap.innerHTML = `
+    <div class="module-card mod-${s.cssClass}" onclick="openModal('${s.detailKey}','${s.name} — ${s.state}')">
+      <div class="module-status-dot ${s.status}"></div>
+      <div class="module-badge">${s.name}</div>
+      <div class="module-name">${s.state}</div>
+      ${s.tags.length ? `<div class="module-extra">${s.tags.map(t=>`<span class="module-extra-tag">${t}</span>`).join('')}</div>` : ''}
+    </div>`;
+  return wrap;
+}
+
+function renderConnector(s) {
+  const div = document.createElement('div');
+  div.style.cssText = 'width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;position:relative;';
+  div.innerHTML = `<div class="connector" style="position:relative">${s.label ? `<span class="connector-label">${s.label}</span>` : ''}</div>`;
+  return div;
+}
+
+function renderProcess(s) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;max-width:480px;display:flex;justify-content:center;';
+  wrap.innerHTML = `<div class="process-node ${s.style}" onclick="openModal(null,'${s.label}','${s.label}')">${s.label}</div>`;
+  return wrap;
+}
+
+function renderBranch(s) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;';
+  const diamond = document.createElement('div');
+  diamond.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
+  diamond.innerHTML = `<div class="connector"></div>
+    <div class="decision-diamond"><span>${s.label}</span></div>
+    <div class="connector" style="background:transparent"></div>`;
+  wrap.appendChild(diamond);
+
+  const branchRow = document.createElement('div');
+  branchRow.className = 'decision-branches';
+
+  s.paths.forEach(path => {
+    const col = document.createElement('div');
+    col.className = 'branch';
+    const labelDiv = document.createElement('div');
+    labelDiv.className = `branch-label ${path.type}`;
+    labelDiv.textContent = path.label;
+    col.appendChild(labelDiv);
+    path.steps.forEach(st => {
+      const el = renderStep(st);
+      if (el) { el.style.maxWidth = '100%'; col.appendChild(el); }
+    });
+    branchRow.appendChild(col);
+  });
+
+  wrap.appendChild(branchRow);
+  return wrap;
+}
+
+function renderParallel(s) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;';
+  const row = document.createElement('div');
+  row.className = 'parallel-wrap';
+  s.paths.forEach(path => {
+    const col = document.createElement('div');
+    col.className = 'parallel-branch';
+    path.steps.forEach(st => {
+      const el = renderStep(st);
+      if (el) { el.style.maxWidth = '100%'; col.appendChild(el); }
+    });
+    row.appendChild(col);
+  });
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function renderSubinfo(s) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;max-width:480px;';
+  wrap.innerHTML = `<div class="subinfo-box">
+    <span class="subinfo-label">${s.label}</span>
+    ${s.items.map(i=>`<span class="subinfo-item">${i}</span>`).join('')}
+  </div>`;
+  return wrap;
+}
+
+function renderEnd(s) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;max-width:480px;display:flex;justify-content:center;';
+  wrap.innerHTML = `<div class="end-node ${s.style}">${s.label}</div>`;
+  return wrap;
+}
+
+function renderPendingBanner(s) {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'width:100%;max-width:480px;margin-bottom:16px;';
+  wrap.innerHTML = `<div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#b91c1c;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:16px">⚠️</span><span>${s.text}</span>
+  </div>`;
+  return wrap;
+}
+
+// ══════════════════════════════════════════
+// TABS + PANELS
+// ══════════════════════════════════════════
+function buildUI() {
+  const tabsEl  = document.getElementById('tabs');
+  const areaEl  = document.getElementById('flow-area');
+
+  flows.forEach((f, i) => {
+    // Tab
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (i===0?' active':'');
+    tab.id = `tab-${f.id}`;
+    tab.innerHTML = `<span class="tab-icon">${f.icon}</span>${f.title}<span class="tab-status" style="background:${f.statusColor}"></span>`;
+    tab.onclick = () => switchTab(f.id);
+    tabsEl.appendChild(tab);
+
+    // Panel
+    const panel = document.createElement('div');
+    panel.className = 'flow-panel' + (i===0?' active':'');
+    panel.id = `panel-${f.id}`;
+
+    const header = document.createElement('div');
+    header.className = 'flow-header';
+    header.innerHTML = `
+      <h2>${f.icon} ${f.title}</h2>
+      <p>${f.description}</p>
+      <div class="badges">${f.badges.map(b=>`<span class="flow-badge" style="border-color:${b.color};color:${b.color};background:${b.color}15">${b.label}</span>`).join('')}</div>`;
+    panel.appendChild(header);
+
+    const diagramWrap = document.createElement('div');
+    f.render(diagramWrap);
+    panel.appendChild(diagramWrap);
+    areaEl.appendChild(panel);
+  });
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.flow-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${id}`).classList.add('active');
+  document.getElementById(`panel-${id}`).classList.add('active');
+}
+
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function openModal(key, title) {
+  const d = key ? moduleDetails[key] : null;
+  document.getElementById('modal-title').textContent = title;
+  const body = document.getElementById('modal-body');
+
+  if (!d) {
+    body.innerHTML = `<div class="modal-note">Nodo de proceso interno — sin tabla de base de datos asociada.</div>`;
+  } else {
+    const active  = (d.tables||[]).filter(t=>t.status==='active').length;
+    const pending = (d.tables||[]).filter(t=>t.status==='pending').length;
+    body.innerHTML = `
+      ${d.note ? `<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px">${d.note}</p>` : ''}
+      ${d.tables && d.tables.length > 0 ? `
+      <div class="modal-section">
+        <div class="modal-section-title">Tablas (${active} activas · ${pending} pendientes)</div>
+        ${d.tables.map(t=>`
+          <div class="modal-table-row">
+            <div class="modal-table-dot" style="background:${t.status==='active'?'#16a34a':t.status==='partial'?'#d97706':'#9ca3af'}"></div>
+            <span class="modal-table-name">${t.name}</span>
+            <span class="modal-table-fields">~${t.fields} campos</span>
+            <span class="modal-table-s ${t.status}">${{active:'Activa',partial:'Parcial',pending:'Pendiente'}[t.status]}</span>
+          </div>`).join('')}
+      </div>` : ''}
+      ${d.pending && d.pending.length ? `
+      <div class="modal-section">
+        <div class="modal-section-title">Pendiente de desarrollo</div>
+        ${d.pending.map(p=>`<div class="pending-item">⏳ ${p}</div>`).join('')}
+      </div>` : ''}
+    `;
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function handleOverlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+// INIT
+buildUI();
+</script>
+</body>
+</html>

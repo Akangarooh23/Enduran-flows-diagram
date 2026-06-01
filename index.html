@@ -1648,7 +1648,7 @@ const fsFlows = [
       fsB.proc('Banco devuelve cobro de una factura','api'),
       fsB.conn(''),
       fsB.mod('Mod. Facturación Clientes','Factura marcada como no pagada','facturacion','active','facturacion'),
-      fsB.sub('Proceso actual (pendiente automatización)',['Botón "Eliminar Cobro" → introducir fecha y motivo','Botón "Pasar a Recobro" → genera línea en Facturas Impagadas','⚠️ Pendiente: recepción automática de devolución desde banco']),
+      fsB.sub('Proceso actual (pendiente automatización)',['Botón "Pasar a Recobro" → genera línea en Facturas Impagadas','⚠️ Pendiente: recepción automática de devolución desde banco']),
       // ── 2. FACTURAS IMPAGADAS + EMAIL 1
       fsB.conn(''),
       fsB.mod('Facturas Impagadas','Factura impagada registrada','recobros','active','facturas_impag'),

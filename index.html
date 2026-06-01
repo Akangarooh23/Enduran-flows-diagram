@@ -561,6 +561,8 @@ body {
 .fs-end.neutral { background: rgba(100,116,139,.07); border-color: #64748b; color: #475569; }
 /* pending banner */
 .fs-pending-banner { width: 100%; max-width: 480px; background: rgba(239,68,68,.05); border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 9px 13px; font-size: 12px; color: #b91c1c; display: flex; align-items: center; gap: 8px; }
+/* flow link shortcut */
+.fs-flowlink { display: inline-flex; align-items: center; gap: 5px; background: rgba(55,65,81,.07); border: 1.5px solid #374151; border-radius: 100px; padding: 5px 16px; font-size: 11px; font-weight: 700; color: #374151; cursor: pointer; transition: all .15s; }
 /* module colors */
 .fsm-proformas   { border-color: #7c3aed; } .fsm-proformas   .fs-mod-badge { background: #7c3aed; }
 .fsm-ofertas     { border-color: #1d4ed8; } .fsm-ofertas     .fs-mod-badge { background: #1d4ed8; }
@@ -1351,6 +1353,7 @@ const fsB = {
   sub: (label, items) => ({type:'sub',label,items}),
   end: (label, style) => ({type:'end',label,style}),
   banner: (text) => ({type:'banner',text}),
+  link: (flowId, label) => ({type:'flowlink', flowId, label}),
 };
 
 const fsFlows = [
@@ -1381,81 +1384,6 @@ const fsFlows = [
       // FIN
       fsB.conn(''),
       fsB.end('↪️ Ver flujo Entregas (Facturas · Gestoría)','neutral')
-    ]
-  },
-  {
-    id:'riesgos_cpp', title:'🔍 Riesgos (CPP)', dotColor:'#374151',
-    desc:'Admisión de Riesgos en la Customer Profile Platform (CPP). Proceso externo al ERP con tres screenings: INCOFISA → Score Financiero (AIS / EQUIFAX) → ASNEF.',
-    badges:[{l:'INCOFISA',c:'#374151'},{l:'AIS · P.Física',c:'#1d4ed8'},{l:'EQUIFAX · P.Jurídica',c:'#dc2626'},{l:'ASNEF',c:'#6d28d9'},{l:'Riesgos ERP ✅',c:'#374151'}],
-    steps:[
-      // ── 1. ENTRADA + DECISOR
-      fsB.mod('Mod. Ofertas','5 — Firmada','ofertas','active','ofertas'),
-      fsB.conn('Solicitud de admisión de riesgos'),
-      fsB.sub('Decisor según Riesgos Totales del Cliente (cuotas activas + en admisión)',[
-        'P. Física / Autónomo → ≤ 30k€: Automático · 30-200k€: Risk Manager · > 200k€: Risk Committee',
-        'P. Jurídica → ≤ 40k€: Automático · 40-200k€: Risk Manager · > 200k€: Risk Committee'
-      ]),
-      // ── 2. DOCUMENTACIÓN → K → CPP
-      fsB.conn('RS recopila documentación y carga en K → CPP'),
-      fsB.proc('K → CPP (Customer Profile Platform)','process'),
-      fsB.par([
-        {steps:[fsB.sub('Docs P. Física / Autónomo',['DNI + Permiso conducir','Cert. titularidad cuenta bancaria','P.Física: IRPF + 2 últimas nóminas','Autónomo: IRPF + IVA anual + trimestres en curso'])]},
-        {steps:[fsB.sub('Docs P. Jurídica',['Tarjeta NIF + DNI representante','Escrituras constitución y apoderamiento','Cert. titularidad cuenta bancaria','IS 2 últimos años + IVA anual + trimestres'])]}
-      ]),
-      fsB.mod('Mod. Riesgos','1 — Pendiente de Sanción','riesgos','active','riesgos'),
-      // ── 3. SCREENING 1: INCOFISA
-      fsB.conn('Screening 1 — Score de Comportamiento'),
-      fsB.proc('INCOFISA Score Digital','api'),
-      fsB.par([
-        {steps:[fsB.sub('P. Física / Autónomo',['Score ≤ 43 → Aprobada · prosigue al S2','Score > 43 → Rechazada'])]},
-        {steps:[fsB.sub('P. Jurídica',['Score ≤ 79 → Aprobada · prosigue al S2','Score > 79 → Rechazada','Consulta administrador: ≤ 43 OK · > 43 En estudio'])]}
-      ]),
-      // ── 4. SCREENING 2: SCORE FINANCIERO (AIS / EQUIFAX)
-      fsB.conn('Screening 2 — Score Financiero (si Aprobada en S1)'),
-      fsB.par([
-        {steps:[
-          fsB.proc('AIS — P. Física / Autónomo','api'),
-          fsB.sub('Filtros previos → En estudio si aplica',['Desempleado / Estudiante / Hogar','CP Canarias · Ceuta · Melilla · Baleares','>75 años con plazo del contrato > 24 meses','Nacionalidad fuera de la UE']),
-          fsB.sub('Intención de pago',['Ratio ≤ 2,4 → Aceptada','Ratio > 2,4 → En estudio']),
-          fsB.sub('Capacidad de pago',['Ingresos disp. ≥ 2 cuotas → OK · 1-2c → Estudio · < 1c → Denegada','Endeudamiento ≤ 0,8 → OK · 0,8–0,9 → Estudio · > 0,9 → Rechazada'])
-        ]},
-        {steps:[
-          fsB.proc('EQUIFAX — P. Jurídica','api'),
-          fsB.sub('Intención de pago — Peers',['Score 4–10 → Aceptada','Score 1–3 → Rechazada']),
-          fsB.sub('Filtros capacidad de pago',['Fondos Propios < 0 → Rechazada · ≥ 0 → prosigue','PyG < 0 → En estudio · ≥ 0 → prosigue']),
-          fsB.sub('Ratios masas + generación caja (según CNAE)',['45/49/77 Motor y Transp.: liquidez ≥ 0,8 · solvencia ≥ 1 · endeud. ≤ 3,5','41/68 Inmob. y Const.: liquidez ≥ 1,2 · solvencia ≥ 1,3 · endeud. ≤ 3','Resto CNAEs: liquidez ≥ 1 · solvencia ≥ 1 · endeud. ≤ 3'])
-        ]}
-      ]),
-      // ── 5. SCREENING 3: ASNEF
-      fsB.conn('Screening 3 — Comprobación Impagados (si Aprobada en S2)'),
-      fsB.proc('ASNEF Fichero Impagados','api'),
-      fsB.sub('Criterios ASNEF',[
-        'P. Física / Autónomo: sin impagados o ≤ 300€ servicios no financieros → Aceptada · resto → Rechazada',
-        'P. Jurídica: sin impagados o ≤ 0,1% de ingresos servicios no financieros → Aceptada · resto → Rechazada'
-      ]),
-      // ── 6. SANCIÓN FINAL
-      fsB.conn('Sanción final — RS/RM comunica resultado a Comercial'),
-      fsB.branch('Sanción final',[
-        {label:'2 — Aprobada',type:'yes',steps:[
-          fsB.mod('Mod. Riesgos','2 — Aprobada','riesgos','active','riesgos'),
-          fsB.conn(''),
-          fsB.end('↪️ Continúa al Contrato','neutral')
-        ]},
-        {label:'⚠️ En Estudio',type:'alt',steps:[
-          fsB.sub('Evaluación RM / RC',['Análisis cualitativo y cuantitativo','Riesgo avalista + grupo empresarial (P.Jurídica)','RM puede elevar operación al Risk Committee']),
-          fsB.end('↪️ Resolución → Aprobada / Garantía / Rechazada','neutral')
-        ]},
-        {label:'3 — Con Garantía',type:'alt',steps:[
-          fsB.mod('Mod. Riesgos','3 — Con Incremento de Garantía','riesgos','active','riesgos'),
-          fsB.sub('Nueva oferta con garantías',['Avales / avalistas firmados antes del contrato','Se genera y firma nueva oferta con las garantías establecidas']),
-          fsB.end('↪️ Nueva oferta','neutral')
-        ]},
-        {label:'4 — Rechazada',type:'no',steps:[
-          fsB.mod('Mod. Riesgos','4 — Rechazada','riesgos','active','riesgos'),
-          fsB.conn(''),
-          fsB.end('❌ Rechazo comunicado a Comercial','failure')
-        ]}
-      ])
     ]
   },
   {
@@ -1491,6 +1419,7 @@ const fsFlows = [
       fsB.conn('Análisis de riesgo crediticio'),
       fsB.mod('Mod. Riesgos','1 — Pendiente de Sanción','riesgos','active','riesgos'),
       fsB.proc('Aprobación CPP','process'),
+      fsB.link('riesgos_cpp','Ver proceso completo Riesgos CPP'),
       fsB.branch('Resultado riesgo CPP',[
         {label:'2 — Aprobada',type:'yes',steps:[
           fsB.mod('Mod. Riesgos','2 — Aprobada','riesgos','active','riesgos'),
@@ -1589,6 +1518,81 @@ const fsFlows = [
           ])
         ]},
         {label:'✗ Anulado',type:'no',steps:[fsB.end('❌ Contrato anulado','failure')]}
+      ])
+    ]
+  },
+  {
+    id:'riesgos_cpp', title:'🔍 Riesgos (CPP)', dotColor:'#374151',
+    desc:'Admisión de Riesgos en la Customer Profile Platform (CPP). Proceso externo al ERP con tres screenings: INCOFISA → Score Financiero (AIS / EQUIFAX) → ASNEF.',
+    badges:[{l:'INCOFISA',c:'#374151'},{l:'AIS · P.Física',c:'#1d4ed8'},{l:'EQUIFAX · P.Jurídica',c:'#dc2626'},{l:'ASNEF',c:'#6d28d9'},{l:'Riesgos ERP ✅',c:'#374151'}],
+    steps:[
+      // ── 1. ENTRADA + DECISOR
+      fsB.mod('Mod. Ofertas','5 — Firmada','ofertas','active','ofertas'),
+      fsB.conn('Solicitud de admisión de riesgos'),
+      fsB.sub('Decisor según Riesgos Totales del Cliente (cuotas activas + en admisión)',[
+        'P. Física / Autónomo → ≤ 30k€: Automático · 30-200k€: Risk Manager · > 200k€: Risk Committee',
+        'P. Jurídica → ≤ 40k€: Automático · 40-200k€: Risk Manager · > 200k€: Risk Committee'
+      ]),
+      // ── 2. DOCUMENTACIÓN → K → CPP
+      fsB.conn('RS recopila documentación y carga en K → CPP'),
+      fsB.proc('K → CPP (Customer Profile Platform)','process'),
+      fsB.par([
+        {steps:[fsB.sub('Docs P. Física / Autónomo',['DNI + Permiso conducir','Cert. titularidad cuenta bancaria','P.Física: IRPF + 2 últimas nóminas','Autónomo: IRPF + IVA anual + trimestres en curso'])]},
+        {steps:[fsB.sub('Docs P. Jurídica',['Tarjeta NIF + DNI representante','Escrituras constitución y apoderamiento','Cert. titularidad cuenta bancaria','IS 2 últimos años + IVA anual + trimestres'])]}
+      ]),
+      fsB.mod('Mod. Riesgos','1 — Pendiente de Sanción','riesgos','active','riesgos'),
+      // ── 3. SCREENING 1: INCOFISA
+      fsB.conn('Screening 1 — Score de Comportamiento'),
+      fsB.proc('INCOFISA Score Digital','api'),
+      fsB.par([
+        {steps:[fsB.sub('P. Física / Autónomo',['Score ≤ 43 → Aprobada · prosigue al S2','Score > 43 → Rechazada'])]},
+        {steps:[fsB.sub('P. Jurídica',['Score ≤ 79 → Aprobada · prosigue al S2','Score > 79 → Rechazada','Consulta administrador: ≤ 43 OK · > 43 En estudio'])]}
+      ]),
+      // ── 4. SCREENING 2: SCORE FINANCIERO (AIS / EQUIFAX)
+      fsB.conn('Screening 2 — Score Financiero (si Aprobada en S1)'),
+      fsB.par([
+        {steps:[
+          fsB.proc('AIS — P. Física / Autónomo','api'),
+          fsB.sub('Filtros previos → En estudio si aplica',['Desempleado / Estudiante / Hogar','CP Canarias · Ceuta · Melilla · Baleares','>75 años con plazo del contrato > 24 meses','Nacionalidad fuera de la UE']),
+          fsB.sub('Intención de pago',['Ratio ≤ 2,4 → Aceptada','Ratio > 2,4 → En estudio']),
+          fsB.sub('Capacidad de pago',['Ingresos disp. ≥ 2 cuotas → OK · 1-2c → Estudio · < 1c → Denegada','Endeudamiento ≤ 0,8 → OK · 0,8–0,9 → Estudio · > 0,9 → Rechazada'])
+        ]},
+        {steps:[
+          fsB.proc('EQUIFAX — P. Jurídica','api'),
+          fsB.sub('Intención de pago — Peers',['Score 4–10 → Aceptada','Score 1–3 → Rechazada']),
+          fsB.sub('Filtros capacidad de pago',['Fondos Propios < 0 → Rechazada · ≥ 0 → prosigue','PyG < 0 → En estudio · ≥ 0 → prosigue']),
+          fsB.sub('Ratios masas + generación caja (según CNAE)',['45/49/77 Motor y Transp.: liquidez ≥ 0,8 · solvencia ≥ 1 · endeud. ≤ 3,5','41/68 Inmob. y Const.: liquidez ≥ 1,2 · solvencia ≥ 1,3 · endeud. ≤ 3','Resto CNAEs: liquidez ≥ 1 · solvencia ≥ 1 · endeud. ≤ 3'])
+        ]}
+      ]),
+      // ── 5. SCREENING 3: ASNEF
+      fsB.conn('Screening 3 — Comprobación Impagados (si Aprobada en S2)'),
+      fsB.proc('ASNEF Fichero Impagados','api'),
+      fsB.sub('Criterios ASNEF',[
+        'P. Física / Autónomo: sin impagados o ≤ 300€ servicios no financieros → Aceptada · resto → Rechazada',
+        'P. Jurídica: sin impagados o ≤ 0,1% de ingresos servicios no financieros → Aceptada · resto → Rechazada'
+      ]),
+      // ── 6. SANCIÓN FINAL
+      fsB.conn('Sanción final — RS/RM comunica resultado a Comercial'),
+      fsB.branch('Sanción final',[
+        {label:'2 — Aprobada',type:'yes',steps:[
+          fsB.mod('Mod. Riesgos','2 — Aprobada','riesgos','active','riesgos'),
+          fsB.conn(''),
+          fsB.end('↪️ Continúa al Contrato','neutral')
+        ]},
+        {label:'⚠️ En Estudio',type:'alt',steps:[
+          fsB.sub('Evaluación RM / RC',['Análisis cualitativo y cuantitativo','Riesgo avalista + grupo empresarial (P.Jurídica)','RM puede elevar operación al Risk Committee']),
+          fsB.end('↪️ Resolución → Aprobada / Garantía / Rechazada','neutral')
+        ]},
+        {label:'3 — Con Garantía',type:'alt',steps:[
+          fsB.mod('Mod. Riesgos','3 — Con Incremento de Garantía','riesgos','active','riesgos'),
+          fsB.sub('Nueva oferta con garantías',['Avales / avalistas firmados antes del contrato','Se genera y firma nueva oferta con las garantías establecidas']),
+          fsB.end('↪️ Nueva oferta','neutral')
+        ]},
+        {label:'4 — Rechazada',type:'no',steps:[
+          fsB.mod('Mod. Riesgos','4 — Rechazada','riesgos','active','riesgos'),
+          fsB.conn(''),
+          fsB.end('❌ Rechazo comunicado a Comercial','failure')
+        ]}
       ])
     ]
   },
@@ -1730,6 +1734,10 @@ function fsRenderStep(s) {
     case 'banner': {
       const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;margin-bottom:12px;';
       w.innerHTML=`<div class="fs-pending-banner"><span style="font-size:15px">⚠️</span><span>${s.text}</span></div>`; return w;
+    }
+    case 'flowlink': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;justify-content:center;';
+      w.innerHTML=`<button class="fs-flowlink" onclick="fsSwitchTab('${s.flowId}');document.getElementById('fs-tabs').scrollIntoView({behavior:'smooth'})">↗ ${s.label}</button>`; return w;
     }
     default: return null;
   }

@@ -576,6 +576,7 @@ body {
 .fsm-contabilidad{ border-color: #0369a1; } .fsm-contabilidad .fs-mod-badge { background: #0369a1; }
 .fsm-lineas      { border-color: #0e7490; } .fsm-lineas      .fs-mod-badge { background: #0e7490; }
 .fsm-disposicion { border-color: #6b5a2e; } .fsm-disposicion .fs-mod-badge { background: #6b5a2e; }
+.fsm-datos_fin   { border-color: #0891b2; } .fsm-datos_fin   .fs-mod-badge { background: #0891b2; }
 .fs-tabs::-webkit-scrollbar { height: 3px; }
 .fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 
@@ -1311,6 +1312,7 @@ const fsModuleDetails = {
   lineas_fin:  { tables:[{name:'lineas_financiacion',fields:22,status:'pending'},{name:'entidades_financieras',fields:14,status:'pending'},{name:'perfiles_linea',fields:10,status:'pending'}], note:'Líneas de crédito por entidad financiera para compra de flota. Controla el disponible total, el importe dispuesto en cada momento y las condiciones asociadas a cada entidad.', pending:['Módulo completo pendiente de desarrollo','Control de disponible en tiempo real'] },
   perfil_cot:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'requerimientos_perfil',fields:18,status:'active'},{name:'peculiaridades_perfil',fields:14,status:'active'},{name:'datos_financiacion',fields:22,status:'active'}], note:'Módulo completo. Incluye: datos del perfil, requerimientos (ej: Current Interest Rate Basis, concentración máxima por región/cliente) y peculiaridades que condicionan directamente la cotización de la oferta. Vinculado a una línea de financiación.' },
   disposicion: { tables:[{name:'disposiciones_financieras',fields:18,status:'active'}], note:'Módulo existente. Solicitud de fondos sobre una línea de crédito firmada manualmente con la entidad. Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Vinculación directa con flota ya implementada. Falta: campo que vincule la disposición con la línea de financiación (módulo Líneas de Financiación pendiente de crear).', pending:['Campo id_linea_financiacion en disposiciones_financieras'] },
+  datos_fin:   { tables:[{name:'datos_financiacion',fields:22,status:'active'}], note:'Módulo existente. Contiene los datos de la disposición financiera prorrateados por el porcentaje de representación de cada vehículo en el total de la disposición. A diferencia de Disposiciones Financieras (nivel disposición), este módulo trabaja a nivel matrícula/vehículo. Ej: disposición 2M€ para 20 coches → datos_financiacion tiene 20 registros, uno por matrícula, con su importe prorrateado según el % que representa cada coche sobre el total.' },
   perfil_fin:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'datos_financiacion',fields:22,status:'active'},{name:'disposiciones_financieras',fields:18,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'}], note:'Parámetros financieros: TAE, mensualidades, disposiciones y resultados del modelo financiero.' },
   riesgos:     { tables:[{name:'riesgos',fields:20,status:'active'},{name:'estado_riesgo',fields:6,status:'active'},{name:'clientes',fields:30,status:'active'}], note:'Evaluación de riesgo crediticio. Estados: Pendiente CPP → Aprobado / Rechazado / Con garantía.' },
   firma:       { tables:[], note:'Integración pendiente con Signaturit. El contrato se envía para firma electrónica avanzada y se obtiene PDF certificado.', pending:['Integración API Signaturit','Webhook de estado de firma','Almacenamiento PDF firmado'] },
@@ -1347,29 +1349,31 @@ const fsB = {
 const fsFlows = [
   {
     id:'financiacion', title:'💰 Financiación y Compra', dotColor:'#16a34a',
-    desc:'Líneas de crédito por entidad, perfiles de cotización y disposiciones financieras para la compra de flota.',
-    badges:[{l:'Líneas de Financiación ❌',c:'#0e7490'},{l:'Perfil de Cotización ✅',c:'#1d4ed8'},{l:'Disposiciones Financieras ✅',c:'#6b5a2e'}],
+    desc:'Líneas de crédito, perfiles de cotización, disposiciones financieras y datos prorrateados por vehículo.',
+    badges:[{l:'Líneas de Financiación ❌',c:'#0e7490'},{l:'Perfil de Cotización ✅',c:'#1d4ed8'},{l:'Disposiciones Financieras ✅',c:'#6b5a2e'},{l:'Datos de Financiación ✅',c:'#0891b2'}],
     steps:[
-      // ── SETUP: configuración back-office ──
-      fsB.sub('Configuración (back-office)',['Líneas de crédito por entidad','Perfiles con restricciones','Disponible en tiempo real']),
+      // 1 · LÍNEAS DE FINANCIACIÓN + PERFIL (background)
       fsB.par([
-        {steps:[fsB.mod('Líneas de Financiación','Disponible por entidad','lineas','pending','lineas_fin',['Entidad','Disponible total','Condiciones'])]},
-        {steps:[fsB.mod('Perfil de Cotización','Datos · Requerimientos · Peculiaridades','ofertas','active','perfil_cot',['Requerimientos','Peculiaridades cotización','Datos financieros'])]}
+        {steps:[
+          fsB.mod('Líneas de Financiación','Disponible por entidad financiera','lineas','pending','lineas_fin',['Entidad','Disponible total','Condiciones'])
+        ]},
+        {steps:[
+          fsB.mod('Perfil de Cotización','Datos · Requerimientos · Peculiaridades','ofertas','active','perfil_cot',['Requerimientos','Peculiaridades cotización','Datos financieros'])
+        ]}
       ]),
-      fsB.conn('Vinculación perfil ↔ línea'),
-      // ── DECISIÓN DE COMPRA ──
-      fsB.proc('Identificar necesidad de compra de vehículos','process'),
-      fsB.conn('Calcular importe necesario'),
-      // ── DISPOSICIÓN FINANCIERA ──
-      fsB.mod('Disposición Financiera','Solicitud de fondos sobre línea','disposicion','active','disposicion',['Importe solicitado','Línea ⚠️ campo pendiente']),
-      fsB.proc('Firma manual con entidad financiera','process'),
-      fsB.conn('Fondos habilitados · Reduce disponible en línea'),
-      fsB.mod('Disposición Financiera','Fondos confirmados','disposicion','active','disposicion',['Importe dispuesto','Disponible restante en línea']),
-      // ── COMPRA ──
-      fsB.conn('Adquisición de vehículos'),
-      fsB.mod('Vehículos','Vinculados a disposición','pedidos','pending','pedidos',['Matrícula','Bastidor','Nº disposición']),
-      fsB.conn('Registrar compra'),
-      fsB.end('↪️ Ver flujo Entregas (Flota · Facturas · Gestoría)','neutral')
+      // 2 · DISPOSICIÓN FINANCIERA
+      fsB.conn('Solicitar disposición de fondos'),
+      fsB.mod('Disposición Financiera','Fondos habilitados sobre línea','disposicion','active','disposicion',['Importe dispuesto','Disponible restante','⚠️ Falta campo → línea']),
+      fsB.sub('Firma manual con entidad financiera',['No requiere Signaturit','Reduce disponible en línea']),
+      // 3 · FLOTA
+      fsB.conn('Vehículos registrados en flota y vinculados a disposición'),
+      fsB.mod('Mod. Flota','Vehículos vinculados a disposición','carga','active','carga',['Matrícula','Bastidor','Nº disposición']),
+      // 4 · DATOS DE FINANCIACIÓN (por vehículo)
+      fsB.conn('Prorrateo por % de representación de cada vehículo'),
+      fsB.mod('Datos de Financiación','Datos prorrateados por matrícula','datos_fin','active','datos_fin',['% Representación','Importe prorrateado','Por matrícula']),
+      // FIN
+      fsB.conn(''),
+      fsB.end('↪️ Ver flujo Entregas (Facturas · Gestoría)','neutral')
     ]
   },
   {

@@ -167,6 +167,8 @@ body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var
 .mod-lineas      .module-badge { background:#0e7490;   }
 .mod-disposicion { border-color:#6b5a2e;               }
 .mod-disposicion .module-badge { background:#6b5a2e;   }
+.mod-datos_fin   { border-color:#0891b2;               }
+.mod-datos_fin   .module-badge { background:#0891b2;   }
 .mod-proformas   { border-color:var(--c-proformas);   }
 .mod-proformas   .module-badge { background:var(--c-proformas); }
 .mod-ofertas     { border-color:var(--c-ofertas);     }
@@ -344,6 +346,12 @@ const moduleDetails = {
     note:'Módulo existente. Solicitud de fondos sobre una línea de crédito, firmada manualmente con la entidad financiera (no requiere Signaturit). Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Vinculación directa con flota ya implementada. Falta: campo que vincule la disposición con la línea de financiación.',
     pending: ['Campo id_linea_financiacion en disposiciones_financieras']
   },
+  datos_fin_mod: {
+    tables: [
+      {name:'datos_financiacion', fields:22, status:'active'},
+    ],
+    note:'Módulo existente. Contiene los datos de la disposición financiera prorrateados por el porcentaje de representación de cada vehículo. A diferencia de Disposiciones Financieras (nivel disposición), trabaja a nivel matrícula/vehículo. Ej: disposición 2M€ para 20 coches → 20 registros, uno por matrícula, con su importe prorrateado según el % que representa cada coche sobre el total de la disposición.'
+  },
   perfil_financiacion: {
     tables: [
       {name:'perfil_cotizacion', fields:20, status:'active'},
@@ -516,6 +524,7 @@ const flows = [
       {label:'Líneas de Financiación ❌', color:'#0e7490'},
       {label:'Perfil de Cotización ✅', color:'#1d4ed8'},
       {label:'Disposiciones Financieras ✅', color:'#6b5a2e'},
+      {label:'Datos de Financiación ✅', color:'#0891b2'},
     ],
     render: renderFinanciacion
   },
@@ -589,30 +598,28 @@ const flows = [
 
 function renderFinanciacion(container) {
   const steps = [
-    // ── SETUP back-office ──
-    subinfo('Configuración (back-office)', ['Líneas de crédito por entidad', 'Perfiles con restricciones', 'Disponible en tiempo real']),
+    // 1 · LÍNEAS DE FINANCIACIÓN + PERFIL
     parallel([
       { label:'', steps:[
-        mod('Líneas de Financiación', 'Disponible por entidad', 'lineas', 'pending', 'lineas_financiacion', ['Entidad', 'Disponible total', 'Condiciones'])
+        mod('Líneas de Financiación', 'Disponible por entidad financiera', 'lineas', 'pending', 'lineas_financiacion', ['Entidad', 'Disponible total', 'Condiciones'])
       ]},
       { label:'', steps:[
         mod('Perfil de Cotización', 'Datos · Requerimientos · Peculiaridades', 'ofertas', 'active', 'perfil_cotizacion_full', ['Requerimientos', 'Peculiaridades cotización', 'Datos financieros'])
       ]}
     ]),
-    conn('Vinculación perfil ↔ línea'),
-    // ── DECISIÓN DE COMPRA ──
-    proc('Identificar necesidad de compra de vehículos', 'process'),
-    conn('Calcular importe necesario'),
-    // ── DISPOSICIÓN FINANCIERA ──
-    mod('Disposición Financiera', 'Solicitud de fondos sobre línea', 'disposicion', 'active', 'disposicion_fin', ['Importe solicitado', 'Línea ⚠️ campo pendiente']),
-    proc('Firma manual con entidad financiera', 'process'),
-    conn('Fondos habilitados · Reduce disponible en línea'),
-    mod('Disposición Financiera', 'Fondos confirmados', 'disposicion', 'active', 'disposicion_fin', ['Importe dispuesto', 'Disponible restante en línea']),
-    // ── COMPRA ──
-    conn('Adquisición de vehículos'),
-    mod('Vehículos', 'Vinculados a disposición', 'pedidos', 'pending', 'pedidos', ['Matrícula', 'Bastidor', 'Nº disposición']),
-    conn('Registrar compra'),
-    endNode('↪️ Ver flujo Entregas (Flota · Facturas · Gestoría)', 'neutral')
+    // 2 · DISPOSICIÓN FINANCIERA
+    conn('Solicitar disposición de fondos'),
+    mod('Disposición Financiera', 'Fondos habilitados sobre línea', 'disposicion', 'active', 'disposicion_fin', ['Importe dispuesto', 'Disponible restante', '⚠️ Falta campo → línea']),
+    subinfo('Firma manual con entidad financiera', ['No requiere Signaturit', 'Reduce disponible en línea']),
+    // 3 · FLOTA
+    conn('Vehículos registrados en flota y vinculados a disposición'),
+    mod('Mod. Flota', 'Vehículos vinculados a disposición', 'carga', 'active', 'carga_pedidos', ['Matrícula', 'Bastidor', 'Nº disposición']),
+    // 4 · DATOS DE FINANCIACIÓN (por vehículo)
+    conn('Prorrateo por % de representación de cada vehículo'),
+    mod('Datos de Financiación', 'Datos prorrateados por matrícula', 'datos_fin', 'active', 'datos_fin_mod', ['% Representación', 'Importe prorrateado', 'Por matrícula']),
+    // FIN
+    conn(''),
+    endNode('↪️ Ver flujo Entregas (Facturas · Gestoría)', 'neutral')
   ];
   renderSteps(container, steps);
 }

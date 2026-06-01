@@ -577,6 +577,8 @@ body {
 .fsm-lineas      { border-color: #0e7490; } .fsm-lineas      .fs-mod-badge { background: #0e7490; }
 .fsm-disposicion { border-color: #6b5a2e; } .fsm-disposicion .fs-mod-badge { background: #6b5a2e; }
 .fsm-datos_fin   { border-color: #0891b2; } .fsm-datos_fin   .fs-mod-badge { background: #0891b2; }
+.fsm-mant        { border-color: #166534; } .fsm-mant        .fs-mod-badge { background: #166534; }
+.fsm-residuales  { border-color: #92400e; } .fsm-residuales  .fs-mod-badge { background: #78350f; }
 .fs-tabs::-webkit-scrollbar { height: 3px; }
 .fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 
@@ -1307,6 +1309,8 @@ renderDiagram();
 // FLOWS SECTION
 // ══════════════════════════════════════════
 const fsModuleDetails = {
+  mant_plan:   { tables:[{name:'planes_mantenimiento',fields:20,status:'active'},{name:'plan_mantenimiento_costes',fields:14,status:'active'},{name:'plan_mantenimiento_cuadricula',fields:12,status:'active'}], note:'Plan de mantenimiento vinculado a la proforma. Debe estar asociado antes de crear la oferta. Define costes preventivos por km y modelo.' },
+  residuales:  { tables:[{name:'residuales',fields:12,status:'active'}], note:'Listado manual de valores residuales por código Jato. Prerrequisito para crear oferta: el Jato de la proforma debe tener registro aquí. Módulo temporal — será reemplazado por integración API con EUROTAX.', pending:['Integración API EUROTAX (reemplaza este módulo)'] },
   proformas:   { tables:[{name:'proformas_vn',fields:28,status:'active'},{name:'proforma_opciones',fields:14,status:'active'},{name:'proforma_packs',fields:12,status:'active'},{name:'proforma_pool',fields:10,status:'active'}], note:'Configuración del vehículo nuevo: modelo, opcionales, packs y series.' },
   ofertas:     { tables:[{name:'ofertas',fields:35,status:'active'},{name:'oferta_cuotas_servicios',fields:14,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'},{name:'perfil_cotizacion',fields:20,status:'active'}], note:'Ciclo de vida de la oferta con estados, cálculo de cuota y aprobación comercial.' },
   lineas_fin:  { tables:[{name:'lineas_financiacion',fields:22,status:'pending'},{name:'entidades_financieras',fields:14,status:'pending'},{name:'perfiles_linea',fields:10,status:'pending'}], note:'Líneas de crédito por entidad financiera para compra de flota. Controla el disponible total, el importe dispuesto en cada momento y las condiciones asociadas a cada entidad.', pending:['Módulo completo pendiente de desarrollo','Control de disponible en tiempo real'] },
@@ -1380,11 +1384,21 @@ const fsFlows = [
   {
     id:'entregas', title:'🚗 Entregas', dotColor:'#d97706',
     desc:'Flujo completo: proforma VN → oferta → riesgos → contrato → matrícula → activación → entrega al cliente.',
-    badges:[{l:'Proformas ✅',c:'#7c3aed'},{l:'Ofertas ✅',c:'#1d4ed8'},{l:'Riesgos ✅',c:'#374151'},{l:'Contratos ✅',c:'#0f766e'},{l:'Pedidos ❌',c:'#b91c1c'},{l:'Entregas ✅',c:'#a16207'}],
+    badges:[{l:'Proformas ✅',c:'#7c3aed'},{l:'Mantenimientos ✅',c:'#166534'},{l:'Residuales ⚠️',c:'#78350f'},{l:'Ofertas ✅',c:'#1d4ed8'},{l:'Riesgos ✅',c:'#374151'},{l:'Contratos ✅',c:'#0f766e'},{l:'Pedidos ❌',c:'#b91c1c'},{l:'Entregas ✅',c:'#a16207'}],
     steps:[
       // ── 1. PROFORMA VN
       fsB.mod('Mod. Proformas VN','Configuración vehículo nuevo','proformas','active','proformas',['Modelo','Opcionales','Packs']),
-      fsB.conn('Proforma aprobada → crear oferta'),
+      // ── PREREQUISITOS para crear oferta
+      fsB.conn('Verificar prerequisitos para crear oferta'),
+      fsB.par([
+        {steps:[
+          fsB.mod('Mod. Mantenimientos','Plan vinculado a proforma','mant','active','mant_plan',['Costes por km','Cuadrícula preventiva'])
+        ]},
+        {steps:[
+          fsB.mod('Listado Residuales','Código Jato registrado','residuales','partial','residuales',['⚠️ Manual · temporal','Pendiente → API EUROTAX'])
+        ]}
+      ]),
+      fsB.conn('Prerequisitos OK → crear oferta borrador'),
       // ── 2. OFERTA (flujo lineal, salidas alternativas en nota)
       fsB.mod('Mod. Ofertas','1 — Borrador','ofertas','active','ofertas'),
       fsB.conn('Revisión y cotización'),

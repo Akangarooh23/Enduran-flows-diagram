@@ -1652,7 +1652,7 @@ const fsFlows = [
       fsB.mod('Facturas Impagadas','Factura impagada registrada','recobros','active','facturas_impag'),
       fsB.sub('⚠️ Pendiente',['Recepción automática de devolución desde banco']),
       // ── 2. BRANCH: ¿QUÉ FACTURA ES DEL CONTRATO?
-      fsB.branch('¿Nº de factura impagada del contrato?',[
+      fsB.branch('¿Nº factura impagada?',[
         {label:'1ª Factura',type:'alt',steps:[
           fsB.conn('Email automático'),
           fsB.proc('Email 1 — Primer Emplazamiento de Pago','email'),

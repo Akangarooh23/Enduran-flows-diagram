@@ -1472,14 +1472,21 @@ const fsFlows = [
             {steps:[fsB.mod('Mod. Entregas','Vehículo Matrículado ✓','entregas','active','entregas')]},
             {steps:[fsB.mod('Mod. Contrato','5 — Pendiente de Entrega','contrato','pending','contrato')]}
           ]),
-          // ── 6. ACTIVACIÓN
-          fsB.sub('Datos logísticos a introducir antes del formulario',['Lugar de entrega','Fecha prevista de entrega']),
-          fsB.conn('Envío formulario al cliente con lugar y fecha'),
+          // ── EMAIL LOGÍSTICA: coordinar entrega
+          fsB.conn('Email a logística para coordinar entrega'),
+          fsB.proc('Email logistica.operaciones','email'),
+          fsB.sub('Datos a rellenar en Mod. Entregas',['Proveedor / quien entrega el vehículo','Lugar y dirección de entrega','Fecha prevista de entrega']),
+          fsB.conn('Campos rellenados en Entregas'),
+          // ── PUESTA A DISPOSICIÓN + PENDIENTE DE ACTIVACIÓN
+          fsB.par([
+            {steps:[fsB.mod('Mod. Entregas','2 — Puesta a Disposición','entregas','pending','entregas')]},
+            {steps:[fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','pending','contrato')]}
+          ]),
+          // ── FORMULARIO CLIENTE (con lugar y fecha ya definidos)
+          fsB.conn('Formulario al cliente con lugar y fecha de entrega'),
           fsB.proc('Formulario Cliente','process'),
           fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
-          fsB.conn(''),
-          fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','pending','contrato'),
-          // ── 7. HOJA DE ENTREGA VÍA SIGNATURIT OCR
+          // ── HOJA DE ENTREGA VÍA SIGNATURIT OCR
           fsB.conn('En fecha prevista de entrega'),
           fsB.proc('Hoja de entrega → Signaturit OCR → Concesionario/Campa','firma'),
           fsB.sub('Proceso de verificación en el acto de entrega',[
@@ -1495,8 +1502,6 @@ const fsFlows = [
                 {steps:[fsB.mod('Mod. Entregas','3 — Entregado','entregas','pending','entregas')]},
                 {steps:[fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato')]}
               ]),
-              fsB.conn(''),
-              fsB.proc('Email logistica.operaciones','email'),
               fsB.conn(''),
               fsB.end('✅ Contrato activo · entrega completada','success')
             ]},

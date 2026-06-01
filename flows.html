@@ -331,11 +331,11 @@ const moduleDetails = {
   perfil_cotizacion_full: {
     tables: [
       {name:'perfil_cotizacion', fields:20, status:'active'},
-      {name:'reglas_concentracion', fields:12, status:'pending'},
+      {name:'requerimientos_perfil', fields:18, status:'active'},
+      {name:'peculiaridades_perfil', fields:14, status:'active'},
       {name:'datos_financiacion', fields:22, status:'active'},
     ],
-    note:'Parámetros y restricciones vinculados a una línea de financiación: TAE, plazos, concentración máxima por cliente/región, tipo de vehículo permitido. Ej: con perfil MKQ máximo 20% concentración en Madrid.',
-    pending: ['Módulo reglas de concentración', 'Validaciones automáticas al cotizar']
+    note:'Módulo completo. Incluye datos del perfil, requerimientos (ej: Current Interest Rate Basis, concentración máxima por región/cliente) y peculiaridades que condicionan directamente la cotización de la oferta. Vinculado a una línea de financiación.'
   },
   disposicion_fin: {
     tables: [
@@ -515,10 +515,8 @@ const flows = [
     description: 'Desde la configuración del vehículo hasta la firma del contrato. Incluye cálculo financiero, evaluación de riesgo y firma digital.',
     badges: [
       {label:'Líneas de Financiación ❌', color:'#0e7490'},
-      {label:'Perfil de Cotización', color:'#1d4ed8'},
-      {label:'Disposición Financiera ❌', color:'#6b5a2e'},
-      {label:'Riesgos CPP', color:'#374151'},
-      {label:'Signaturit', color:'#0369a1'},
+      {label:'Perfil de Cotización ✅', color:'#1d4ed8'},
+      {label:'Disposiciones Financieras ✅', color:'#6b5a2e'},
     ],
     render: renderFinanciacion
   },
@@ -599,7 +597,7 @@ function renderFinanciacion(container) {
         mod('Líneas de Financiación', 'Disponible por entidad', 'lineas', 'pending', 'lineas_financiacion', ['Entidad', 'Disponible total', 'Condiciones'])
       ]},
       { label:'', steps:[
-        mod('Perfil de Cotización', 'Requisitos y restricciones', 'ofertas', 'partial', 'perfil_cotizacion_full', ['TAE', 'Concentración máx.', 'Tipo vehículo'])
+        mod('Perfil de Cotización', 'Datos · Requerimientos · Peculiaridades', 'ofertas', 'active', 'perfil_cotizacion_full', ['Requerimientos', 'Peculiaridades cotización', 'Datos financieros'])
       ]}
     ]),
     conn('Vinculación perfil ↔ línea'),

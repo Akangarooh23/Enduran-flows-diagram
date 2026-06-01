@@ -1316,10 +1316,10 @@ const fsModuleDetails = {
   perfil_fin:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'datos_financiacion',fields:22,status:'active'},{name:'disposiciones_financieras',fields:18,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'}], note:'Parámetros financieros: TAE, mensualidades, disposiciones y resultados del modelo financiero.' },
   riesgos:     { tables:[{name:'riesgos',fields:20,status:'active'},{name:'estado_riesgo',fields:6,status:'active'},{name:'clientes',fields:30,status:'active'}], note:'Evaluación de riesgo crediticio. Estados: Pendiente CPP → Aprobado / Rechazado / Con garantía.' },
   firma:       { tables:[], note:'Integración pendiente con Signaturit. El contrato se envía para firma electrónica avanzada y se obtiene PDF certificado.', pending:['Integración API Signaturit','Webhook de estado de firma','Almacenamiento PDF firmado'] },
-  contrato:    { tables:[{name:'contratos_renting',fields:38,status:'active'},{name:'condiciones_contrato',fields:18,status:'active'},{name:'documentos_contrato',fields:12,status:'active'},{name:'garantias',fields:15,status:'pending'}], note:'Contrato principal de renting con condiciones económicas y flujo de estados.' },
+  contrato:    { tables:[{name:'contratos_renting',fields:38,status:'active'},{name:'condiciones_contrato',fields:18,status:'active'},{name:'documentos_contrato',fields:12,status:'active'},{name:'garantias',fields:15,status:'pending'}], note:'Contrato principal de renting. Estados implementados: Pendiente de Firma · Enviada para Firma · Firmada · Paralizada · Anulada. Pendientes de crear: 4-Pendiente de Matrícula · 5-Pendiente de Entrega · 6-Pendiente de Activación · 7-Activo.', pending:['Estado 4: Pendiente de Matrícula','Estado 5: Pendiente de Entrega','Estado 6: Pendiente de Activación','Estado 7: Activo'] },
   pedidos:     { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'pedidos_vehiculo',fields:18,status:'pending'},{name:'equipamientos',fields:10,status:'pending'}], note:'Pedido del vehículo al proveedor OEM y seguimiento hasta matriculación.', pending:['Tabla pedidos_vehiculo','Integración API proveedor OEM'] },
   carga:       { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'flota',fields:20,status:'active'}], note:'Carga del número de matrícula y bastidor en el contrato una vez matriculado.' },
-  entregas:    { tables:[{name:'entregas',fields:20,status:'active'},{name:'actas_entrega',fields:16,status:'active'},{name:'encuesta_satisfaccion',fields:12,status:'active'}], note:'Acto formal de entrega del vehículo con acta fotográfica, km inicial y firma.' },
+  entregas:    { tables:[{name:'entregas',fields:20,status:'active'},{name:'actas_entrega',fields:16,status:'active'},{name:'encuesta_satisfaccion',fields:12,status:'active'}], note:'Módulo de entregas. Estados implementados: 1-Pendiente de Matrícula · 2-Vehículo Matrículado (nota: tilde en ú en código). Pendientes: 3-Puesta a Disposición · 4-Entregado · 5-No Entregado.', pending:['Estado: Puesta a Disposición','Estado: Entregado','Estado: No Entregado'] },
   seguros:     { tables:[{name:'polizas_seguro',fields:24,status:'pending'}], note:'Gestión de póliza vinculada al vehículo. Integración con AFFINITY.', pending:['Módulo pólizas de seguro','Integración API AFFINITY','Solicitud documentos Excel/Atlas'] },
   ocr:         { tables:[{name:'documentos_contrato',fields:12,status:'active'}], note:'OCR para validar documentación del cliente. Si es correcta activa el contrato y envía PIN.', pending:['Integración servicio OCR','Envío automático PIN','Workflow de incidencias'] },
   devoluciones:{ tables:[{name:'devoluciones',fields:18,status:'pending'},{name:'actas_devolucion',fields:20,status:'pending'},{name:'peritaciones',fields:15,status:'pending'},{name:'cargos_devolucion',fields:12,status:'pending'}], note:'Proceso de devolución del vehículo al fin del contrato.', pending:['Módulo completo pendiente'] },
@@ -1379,34 +1379,35 @@ const fsFlows = [
   {
     id:'entregas', title:'🚗 Entregas', dotColor:'#d97706',
     desc:'Desde la matrícula del vehículo hasta la entrega física al cliente.',
-    badges:[{l:'Mod. Pedidos',c:'#b91c1c'},{l:'Mod. Entregas',c:'#a16207'},{l:'Seguros AFFINITY',c:'#be185d'},{l:'OCR Activación',c:'#374151'}],
+    badges:[{l:'Mod. Pedidos ❌',c:'#b91c1c'},{l:'Mod. Entregas ✅',c:'#a16207'},{l:'Seguros AFFINITY ❌',c:'#be185d'},{l:'OCR Activación ❌',c:'#374151'}],
     steps:[
-      fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','active','contrato'),
+      fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','pending','contrato'),
+      fsB.sub('❌ Estado pendiente de crear',['Contrato hoy: Pendiente Firma · Enviada Firma · Firmada · Paralizada · Anulada','Pendientes: estados 4 · 5 · 6 · 7']),
       fsB.conn('Carga de matrícula a contrato'),
       fsB.par([
-        {steps:[fsB.mod('Mod. Pedidos','1 — Pendiente de Matrícula','pedidos','pending','pedidos'),fsB.conn(''),fsB.mod('Mod. Carga Pedidos','En proceso','carga','active','carga')]},
+        {steps:[fsB.mod('Mod. Pedidos','1 — Pendiente de Matrícula','pedidos','pending','pedidos'),fsB.conn(''),fsB.mod('Mod. Carga Pedidos','En proceso','carga','pending','carga')]},
         {steps:[fsB.mod('Mod. Seguros','Alta de póliza','seguros','pending','seguros'),fsB.conn('AFFINITY'),fsB.proc('Email + Excel Atlas','email')]}
       ]),
       fsB.conn('Vehículo matriculado'),
       fsB.mod('Mod. Pedidos','2 — Matriculado','pedidos','pending','pedidos'),
       fsB.conn(''),
       fsB.par([
-        {steps:[fsB.mod('Mod. Entregas','1 — Vehículo Matriculado','entregas','active','entregas')]},
-        {steps:[fsB.mod('Mod. Contrato','5 — Pendiente de Entrega','contrato','active','contrato')]}
+        {steps:[fsB.mod('Mod. Entregas','Vehículo Matrículado ✓','entregas','active','entregas')]},
+        {steps:[fsB.mod('Mod. Contrato','5 — Pendiente de Entrega','contrato','pending','contrato')]}
       ]),
       fsB.conn('Formulario activación cliente'),
       fsB.proc('Formulario Cliente','process'),
       fsB.conn(''),
-      fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','active','contrato'),
+      fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','pending','contrato'),
       fsB.conn('OCR + PIN por correo'),
       fsB.proc('OCR + Email PIN','ocr'),
       fsB.conn('¿Documentación válida?'),
       fsB.branch('¿Documentación OK?',[
         {label:'✓ Documentos OK',type:'yes',steps:[
-          fsB.conn(''),fsB.mod('Mod. Contrato','7 — Activo','contrato','active','contrato'),
+          fsB.conn(''),fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
           fsB.sub('Logística',['Fecha Prevista Entrega','Dirección y lugar de entrega']),
           fsB.conn(''),fsB.proc('Email logistica.operaciones','email'),
-          fsB.conn(''),fsB.mod('Mod. Entregas','2 — Puesta a Disposición','entregas','active','entregas'),
+          fsB.conn(''),fsB.mod('Mod. Entregas','2 — Puesta a Disposición','entregas','pending','entregas'),
           fsB.conn('Entrega física'),
           fsB.branch('¿Resultado entrega?',[
             {label:'3 — Entregado',type:'yes',steps:[fsB.conn(''),fsB.proc('Email confirmación','email'),fsB.conn(''),fsB.end('✅ Contrato activo','success')]},

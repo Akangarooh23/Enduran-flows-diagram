@@ -1479,25 +1479,33 @@ const fsFlows = [
           fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
           fsB.conn(''),
           fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','pending','contrato'),
-          fsB.conn('OCR + PIN por correo'),
-          fsB.proc('OCR + Email PIN','ocr'),
-          // ── 7. ENTREGA FÍSICA
-          fsB.conn('¿Documentación válida?'),
-          fsB.branch('¿Documentación OK?',[
-            {label:'✓ Documentos OK',type:'yes',steps:[
-              fsB.conn(''),
-              fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
+          // ── 7. HOJA DE ENTREGA VÍA SIGNATURIT OCR
+          fsB.conn('En fecha prevista de entrega'),
+          fsB.proc('Hoja de entrega → Signaturit OCR → Concesionario/Campa','firma'),
+          fsB.sub('Proceso de verificación en el acto de entrega',[
+            '1 · Entregador abre email Signaturit',
+            '2 · Sistema envía código 4 cifras automáticamente al cliente (quien recoge)',
+            '3 · Cliente da el código al entregador → se abre la hoja',
+            '4 · Entregador rellena los campos y envía la hoja firmada'
+          ]),
+          fsB.branch('¿Entrega realizada?',[
+            {label:'✓ Hoja enviada',type:'yes',steps:[
+              fsB.conn('Hoja guardada en Mod. Entregas'),
+              fsB.par([
+                {steps:[fsB.mod('Mod. Entregas','3 — Entregado','entregas','pending','entregas')]},
+                {steps:[fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato')]}
+              ]),
               fsB.conn(''),
               fsB.proc('Email logistica.operaciones','email'),
               fsB.conn(''),
-              fsB.mod('Mod. Entregas','2 — Puesta a Disposición','entregas','pending','entregas'),
-              fsB.conn('Entrega física'),
-              fsB.branch('¿Resultado entrega?',[
-                {label:'3 — Entregado',type:'yes',steps:[fsB.conn(''),fsB.proc('Email confirmación','email'),fsB.conn(''),fsB.end('✅ Contrato activo','success')]},
-                {label:'4 — No Entregado',type:'no',steps:[fsB.conn(''),fsB.end('⏳ Gestión pendiente','neutral')]}
-              ])
+              fsB.end('✅ Contrato activo · entrega completada','success')
             ]},
-            {label:'✗ Incidencia docs',type:'no',steps:[fsB.conn(''),fsB.proc('Email cliente','email'),fsB.conn(''),fsB.end('⏳ Pendiente subsanar','neutral')]}
+            {label:'✗ No Entregado',type:'no',steps:[
+              fsB.conn(''),
+              fsB.mod('Mod. Entregas','4 — No Entregado','entregas','pending','entregas'),
+              fsB.conn(''),
+              fsB.end('⏳ Gestión pendiente','neutral')
+            ]}
           ])
         ]},
         {label:'✗ Anulado',type:'no',steps:[fsB.end('❌ Contrato anulado','failure')]}

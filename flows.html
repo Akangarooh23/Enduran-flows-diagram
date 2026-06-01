@@ -340,10 +340,9 @@ const moduleDetails = {
   disposicion_fin: {
     tables: [
       {name:'disposiciones_financieras', fields:18, status:'active'},
-      {name:'vehiculos_disposicion', fields:8, status:'pending'},
     ],
-    note:'Módulo existente. Solicitud de fondos sobre una línea de crédito, firmada manualmente con la entidad financiera (no requiere Signaturit). Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Falta: campo que vincule la disposición con la línea de financiación.',
-    pending: ['Campo id_linea_financiacion en disposiciones_financieras', 'Vinculación automática vehículo-disposición']
+    note:'Módulo existente. Solicitud de fondos sobre una línea de crédito, firmada manualmente con la entidad financiera (no requiere Signaturit). Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Vinculación directa con flota ya implementada. Falta: campo que vincule la disposición con la línea de financiación.',
+    pending: ['Campo id_linea_financiacion en disposiciones_financieras']
   },
   perfil_financiacion: {
     tables: [

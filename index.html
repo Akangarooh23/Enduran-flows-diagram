@@ -1452,7 +1452,8 @@ const fsFlows = [
           fsB.conn('Concesionario entrega vehículos'),
           // ── Alta en Flota con bastidor (sin matrícula aún)
           fsB.mod('Mod. Flota','Alta bastidor — sin matrícula','carga','active','carga'),
-          fsB.conn(''),
+          fsB.conn('Alta bastidor genera solicitud automática'),
+          fsB.proc('Solicitud matrícula → Gestoría','email'),
           // ── Parallel: Gestoría (matrícula) + Seguros
           fsB.par([
             {steps:[

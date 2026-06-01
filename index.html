@@ -1478,7 +1478,7 @@ const fsFlows = [
             {label:'✗ Incidencia docs',type:'no',steps:[fsB.conn(''),fsB.proc('Email cliente','email'),fsB.conn(''),fsB.end('⏳ Pendiente subsanar','neutral')]}
           ])
         ]},
-        {label:'✗ Paralizado / Anulado',type:'no',steps:[fsB.end('⏳ Contrato paralizado','neutral')]}
+        {label:'✗ Anulado',type:'no',steps:[fsB.end('❌ Contrato anulado','failure')]}
       ])
     ]
   },

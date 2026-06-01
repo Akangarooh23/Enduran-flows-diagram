@@ -1597,32 +1597,46 @@ const fsFlows = [
     ]
   },
   {
-    id:'devoluciones', title:'↩️ Devoluciones', dotColor:'#9ca3af',
-    desc:'Fin de vida del contrato: devolución del vehículo, peritación, cargos y liquidación final.',
-    badges:[{l:'❌ Pendiente desarrollo',c:'#9ca3af'}],
+    id:'devoluciones', title:'↩️ Devoluciones / Liquidaciones', dotColor:'#7c3aed',
+    desc:'Fin de vida del contrato: comunicación de vencimiento, coordinación de devolución, peritación y liquidación final.',
+    badges:[{l:'Contratos ✅',c:'#0f766e'},{l:'Entregas ✅',c:'#a16207'},{l:'OTP Devoluciones',c:'#374151'},{l:'❌ Módulo pendiente desarrollo',c:'#9ca3af'}],
     steps:[
-      fsB.banner('Flujo pendiente de desarrollo. Estructura propuesta:'),
-      fsB.mod('Mod. Contrato','Activo — Próximo a vencer','contrato','pending','contrato'),
-      fsB.conn('Aviso automático 60 días antes'),fsB.proc('Email aviso fin contrato','email'),
-      fsB.conn('Cliente confirma devolución'),
-      fsB.mod('Mod. Entregas','Devolución iniciada','entregas','pending','devoluciones'),
-      fsB.conn('Acta de devolución'),fsB.proc('Fotos + km + estado vehículo','process'),
-      fsB.conn(''),fsB.mod('Mod. Devoluciones','Peritación en curso','devolucion','pending','devoluciones'),
-      fsB.conn('Resultado peritación'),
-      fsB.branch('¿Daños o exceso km?',[
-        {label:'Sí — Cargos extra',type:'no',steps:[
-          fsB.conn(''),fsB.mod('Mod. Facturación','Factura cargos','facturacion','pending','fact_dev'),
-          fsB.conn('Cobro'),
-          fsB.branch('¿Pagado?',[
-            {label:'✓ Pagado',type:'yes',steps:[fsB.conn(''),fsB.mod('Mod. Contrato','Cerrado','contrato','pending','cierres'),fsB.conn(''),fsB.end('✅ Cierre con cargos','success')]},
-            {label:'✗ Impago',type:'no',steps:[fsB.conn(''),fsB.end('↪️ Ver flujo Recobros','neutral')]}
-          ])
-        ]},
-        {label:'No — Sin cargos',type:'yes',steps:[
-          fsB.conn(''),fsB.mod('Mod. Facturación','Liquidación sin cargos','facturacion','pending','fact_dev'),
-          fsB.conn(''),fsB.mod('Mod. Contrato','Cerrado','contrato','pending','cierres'),fsB.conn(''),fsB.end('✅ Cierre limpio','success')
-        ]}
-      ])
+      // ── 1. INICIO: CONTRATO ACTIVO
+      fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
+      fsB.conn('En el momento de la entrega del vehículo'),
+      fsB.proc('Encuesta Entregas','email'),
+      // ── 2. EMAIL PASAR POR TALLER (acción manual)
+      fsB.conn(''),
+      fsB.proc('Email pasar por Taller','email'),
+      fsB.sub('Acción manual',['Lo deben ejecutar con un botón desde el módulo']),
+      // ── 3. EMAIL VENCIMIENTO (60 días antes — Renting Cerrado)
+      fsB.conn('60 días antes del vencimiento · solo Renting Cerrado'),
+      fsB.proc('Email Vencimiento','email'),
+      fsB.sub('Opciones del cliente',['Devolver el vehículo','Contratar Nuevo Renting → indicar si quiere transporte por coste adicional']),
+      // ── 4. COORDINACIÓN CON ANDRÉS
+      fsB.conn('Coordinación de la devolución'),
+      fsB.proc('Email a Andrés','email'),
+      fsB.par([
+        {steps:[fsB.sub('Email con indicaciones al cliente',['Fecha Prevista de Devolución','Lugar de Devolución','Proveedor de Devolución'])]},
+        {steps:[fsB.sub('OTP Devoluciones',['Con los datos de Andrés se manda la OTP','Se recogen datos para liquidación y Stock'])]}
+      ]),
+      // ── 5. DEVOLUCIÓN REALIZADA
+      fsB.conn('Vehículo devuelto'),
+      fsB.par([
+        {steps:[fsB.proc('Email Tras Devolución','email')]},
+        {steps:[fsB.proc('Email Solicitud Peritación','email')]},
+        {steps:[fsB.proc('Encuesta Devoluciones','process')]}
+      ]),
+      fsB.conn(''),
+      fsB.sub('Datos iniciales tras devolución',['Solo KM y Días — fórmula de KM pendiente de actualizar']),
+      // ── 6. PERITACIÓN REGISTRADA
+      fsB.conn('Una vez registrada la peritación'),
+      fsB.par([
+        {steps:[fsB.proc('Email Liquidaciones','email')]},
+        {steps:[fsB.sub('Datos de peritación',['KM','Días','Daños de Peritación'])]}
+      ]),
+      fsB.conn(''),
+      fsB.end('✅ Liquidación completada','success')
     ]
   },
   {

@@ -1648,63 +1648,73 @@ const fsFlows = [
       fsB.proc('Banco devuelve cobro de una factura','api'),
       fsB.conn(''),
       fsB.mod('Mod. Facturación Clientes','Factura marcada como no pagada','facturacion','active','facturacion'),
-      fsB.sub('Proceso actual (pendiente automatización)',['Botón "Pasar a Recobro" → genera línea en Facturas Impagadas','⚠️ Pendiente: recepción automática de devolución desde banco']),
-      // ── 2. FACTURAS IMPAGADAS + EMAIL 1
-      fsB.conn(''),
+      fsB.conn('Botón "Pasar a Recobro"'),
       fsB.mod('Facturas Impagadas','Factura impagada registrada','recobros','active','facturas_impag'),
-      fsB.conn('Email automático al cliente'),
-      fsB.proc('Email 1 — Primer Emplazamiento de Pago','email'),
-      fsB.sub('Burofax 1 · Importe = Total Deuda + FIC + FCAM',['Contrato nuevo → se crea expediente nuevo','Contrato con impago previo → se suma al expediente abierto']),
-      // ── 3. EXPEDIENTES + CLIENTES IMPAGADOS
-      fsB.conn('Facturas agrupadas automáticamente'),
-      fsB.par([
-        {steps:[fsB.mod('Expedientes','Nuevo · agrupado por matrícula','recobros','active','expedientes')]},
-        {steps:[fsB.mod('Clientes Impagados','Expedientes y facturas por cliente','recobros','active','clientes_impag')]}
-      ]),
-      fsB.conn('MC registra contacto y apunta resultado como nota'),
-      fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
-      fsB.sub('Estados iniciales del expediente',['Demanda: Reclamación Prejudicial','Denuncia: Pendiente de Recuperación']),
-      // ── 4. 2ª FACTURA IMPAGADA
-      fsB.conn('2ª factura impagada'),
-      fsB.proc('Email 2 — Segundo Emplazamiento de Pago','email'),
-      fsB.sub('Burofax 2 = Burofax 1 + Uso no Retribuido',['Informa el impago de la 2ª factura','Muestra total deuda acumulada (facturas 1 + 2)']),
-      // ── 5. 3ª FACTURA: ESCALADA TOTAL
-      fsB.conn('3ª factura impagada — escalada total'),
-      fsB.proc('Email 3 — Tercer Emplazamiento de Pago','email'),
-      fsB.sub('Burofax 3 = Burofax 2 + Liquidación Km y Daños',['Deuda total = Facturas + FIC + FCAM + Vehículo','Sistema genera FIC y FCAM automáticamente','Paraliza el contrato','Plazo de 5 días para pagar antes de ASNEF']),
-      fsB.conn('5 días sin cobro tras Email 3'),
-      fsB.proc('Burofax 4 — Email certificado ASNEF','email'),
-      fsB.sub('Burofax 4 — NO enviado por sistema · manual',['Email certificado enviado manualmente']),
-      fsB.conn('Sin cobro — inscripción en fichero'),
-      fsB.mod('ASNEF','Deuda registrada por cliente','recobros','active','asnef'),
-      // ── 6. VÍAS EN PARALELO: DEMANDA + DENUNCIA
-      fsB.conn('MC envía documentación al Abogado · Portal Documentos'),
-      fsB.par([
-        {steps:[
-          fsB.sub('DEMANDA — Deuda Monetaria',['Estado demanda: Contrato Resuelto → Con envío Burofax 1']),
-          fsB.conn('MC introduce Fecha Envío Demanda'),
-          fsB.mod('Expedientes','En proceso de Demanda','recobros','active','expedientes'),
-          fsB.conn('Abogado presenta · MC marca Fecha Presentación Demanda'),
-          fsB.mod('Expedientes','Contrato Demandado','recobros','active','expedientes'),
-          fsB.conn('Todas las facturas con fecha de cobro'),
-          fsB.mod('Expedientes','Demanda Recuperada','recobros','active','expedientes'),
-          fsB.end('✅ Deuda Recuperada','success')
+      fsB.sub('⚠️ Pendiente',['Recepción automática de devolución desde banco']),
+      // ── 2. BRANCH: ¿QUÉ FACTURA ES DEL CONTRATO?
+      fsB.branch('¿Nº de factura impagada del contrato?',[
+        {label:'1ª Factura',type:'alt',steps:[
+          fsB.conn('Email automático'),
+          fsB.proc('Email 1 — Primer Emplazamiento de Pago','email'),
+          fsB.sub('Burofax 1 · Importe = Total Deuda + FIC + FCAM',[]),
+          fsB.conn('Se crea Expediente nuevo'),
+          fsB.par([
+            {steps:[fsB.mod('Expedientes','Nuevo · por matrícula','recobros','active','expedientes')]},
+            {steps:[fsB.mod('Clientes Impagados','Por cliente','recobros','active','clientes_impag')]}
+          ]),
+          fsB.conn('MC registra contacto y apunta nota'),
+          fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
+          fsB.sub('Estados iniciales',['Demanda: Reclamación Prejudicial','Denuncia: Pendiente de Recuperación']),
+          fsB.end('⏳ Pendiente pago o nueva factura impagada','neutral')
         ]},
-        {steps:[
-          fsB.sub('DENUNCIA — Recuperación Vehículo',['Estado denuncia: Pendiente de Recuperación','Email 3 ya solicita la devolución del vehículo']),
-          fsB.conn('MC introduce Fecha Envío Denuncia'),
-          fsB.mod('Expedientes','En proceso de Denuncia','recobros','active','expedientes'),
-          fsB.conn('Abogado responde · Fecha Presentación Denuncia'),
-          fsB.mod('Expedientes','Vehículo Presentado','recobros','active','expedientes'),
-          fsB.conn('Vehículo devuelto · MC apunta Fecha Baja Requisitoria'),
-          fsB.mod('Expedientes','Denuncia Recuperada','recobros','active','expedientes'),
-          fsB.end('✅ Vehículo Recuperado','success')
+        {label:'2ª Factura',type:'alt',steps:[
+          fsB.conn('Email automático'),
+          fsB.proc('Email 2 — Segundo Emplazamiento de Pago','email'),
+          fsB.sub('Burofax 2 = Burofax 1 + Uso no Retribuido',['Total deuda acumulada (facturas 1 + 2)']),
+          fsB.conn('Se suma al Expediente abierto'),
+          fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
+          fsB.end('⏳ Pendiente pago o nueva factura impagada','neutral')
+        ]},
+        {label:'3ª Factura — Escalada',type:'no',steps:[
+          fsB.conn('Email automático'),
+          fsB.proc('Email 3 — Tercer Emplazamiento de Pago','email'),
+          fsB.sub('Burofax 3 = Burofax 2 + Liquidación Km y Daños',['Deuda = Facturas + FIC + FCAM + Vehículo','FIC y FCAM generados automáticamente','Contrato paralizado']),
+          fsB.conn('Se suma al Expediente · contrato resuelto'),
+          fsB.mod('Expedientes','Contrato Resuelto','recobros','active','expedientes'),
+          fsB.conn('5 días sin cobro'),
+          fsB.proc('Burofax 4 — Email certificado ASNEF','email'),
+          fsB.sub('Burofax 4 — NO enviado por sistema · manual',['Email certificado enviado manualmente']),
+          fsB.conn('Sin cobro — inscripción en fichero'),
+          fsB.mod('ASNEF','Deuda registrada por cliente','recobros','active','asnef'),
+          fsB.conn('MC envía documentación al Abogado · Portal Documentos'),
+          fsB.par([
+            {steps:[
+              fsB.sub('DEMANDA — Deuda Monetaria',['Estado: Contrato Resuelto → Con envío Burofax 1']),
+              fsB.conn('MC introduce Fecha Envío Demanda'),
+              fsB.mod('Expedientes','En proceso de Demanda','recobros','active','expedientes'),
+              fsB.conn('Abogado presenta · Fecha Presentación Demanda'),
+              fsB.mod('Expedientes','Contrato Demandado','recobros','active','expedientes'),
+              fsB.conn('Todas las facturas con fecha de cobro'),
+              fsB.mod('Expedientes','Demanda Recuperada','recobros','active','expedientes'),
+              fsB.end('✅ Deuda Recuperada','success')
+            ]},
+            {steps:[
+              fsB.sub('DENUNCIA — Recuperación Vehículo',['Estado: Pendiente de Recuperación','Email 3 ya solicita la devolución del vehículo']),
+              fsB.conn('MC introduce Fecha Envío Denuncia'),
+              fsB.mod('Expedientes','En proceso de Denuncia','recobros','active','expedientes'),
+              fsB.conn('Abogado responde · Fecha Presentación Denuncia'),
+              fsB.mod('Expedientes','Vehículo Presentado','recobros','active','expedientes'),
+              fsB.conn('Vehículo devuelto · MC apunta Fecha Baja Requisitoria'),
+              fsB.mod('Expedientes','Denuncia Recuperada','recobros','active','expedientes'),
+              fsB.end('✅ Vehículo Recuperado','success')
+            ]}
+          ]),
+          fsB.conn('Demanda + Denuncia = Recuperado'),
+          fsB.mod('Expedientes','Cerrado — se oculta en módulo','recobros','active','expedientes'),
+          fsB.conn(''),
+          fsB.end('✅ Expediente cerrado · recuperación completada','success')
         ]}
-      ]),
-      fsB.conn('Demanda + Denuncia = Recuperado'),
-      fsB.mod('Expedientes','Cerrado — se oculta en módulo','recobros','active','expedientes'),
-      fsB.conn(''),
-      fsB.end('✅ Expediente cerrado · recuperación completada','success')
+      ])
     ]
   },
   {

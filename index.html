@@ -1662,7 +1662,7 @@ const fsFlows = [
             {steps:[fsB.mod('Expedientes','Nuevo · por matrícula','recobros','active','expedientes')]},
             {steps:[fsB.mod('Clientes Impagados','Por cliente','recobros','active','clientes_impag')]}
           ]),
-          fsB.conn('MC registra contacto y apunta nota'),
+          fsB.conn('Dep. Recobros registra contacto y apunta nota'),
           fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
           fsB.sub('Estados iniciales',['Demanda: Reclamación Prejudicial','Denuncia: Pendiente de Recuperación']),
           fsB.end('⏳ Pendiente pago o nueva factura impagada','neutral')
@@ -1686,11 +1686,11 @@ const fsFlows = [
           fsB.sub('Burofax 4 — NO enviado por sistema · manual',['Email certificado enviado manualmente']),
           fsB.conn('Sin cobro — inscripción en fichero'),
           fsB.mod('ASNEF','Deuda registrada por cliente','recobros','active','asnef'),
-          fsB.conn('MC envía documentación al Abogado · Portal Documentos'),
+          fsB.conn('Dep. Recobros envía documentación al Abogado · Portal Documentos'),
           fsB.par([
             {steps:[
               fsB.sub('COLUMNA: Estado Demanda — Deuda Monetaria',[]),
-              fsB.conn('MC introduce Fecha Envío Demanda'),
+              fsB.conn('Dep. Recobros introduce Fecha Envío Demanda'),
               fsB.mod('Expedientes','Estado Demanda: En proceso de Demanda','recobros','active','expedientes'),
               fsB.conn('Abogado presenta · Fecha Presentación Demanda'),
               fsB.mod('Expedientes','Estado Demanda: Contrato Demandado','recobros','active','expedientes'),
@@ -1700,11 +1700,11 @@ const fsFlows = [
             ]},
             {steps:[
               fsB.sub('COLUMNA: Estado Denuncia — Recuperación Vehículo',[]),
-              fsB.conn('MC introduce Fecha Envío Denuncia'),
+              fsB.conn('Dep. Recobros introduce Fecha Envío Denuncia'),
               fsB.mod('Expedientes','Estado Denuncia: En proceso de Denuncia','recobros','active','expedientes'),
               fsB.conn('Abogado responde · Fecha Presentación Denuncia'),
               fsB.mod('Expedientes','Estado Denuncia: Vehículo Presentado','recobros','active','expedientes'),
-              fsB.conn('Vehículo devuelto · MC apunta Fecha Baja Requisitoria'),
+              fsB.conn('Vehículo devuelto · Dep. Recobros apunta Fecha Baja Requisitoria'),
               fsB.mod('Expedientes','Estado Denuncia: Recuperado','recobros','active','expedientes'),
               fsB.end('✅ Vehículo Recuperado','success')
             ]}

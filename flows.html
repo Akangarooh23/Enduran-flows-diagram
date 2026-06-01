@@ -342,8 +342,8 @@ const moduleDetails = {
       {name:'disposiciones_financieras', fields:18, status:'active'},
       {name:'vehiculos_disposicion', fields:8, status:'pending'},
     ],
-    note:'Solicitud de fondos sobre una línea de crédito. Habilita un importe concreto que reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Se vincula a los vehículos comprados con esos fondos.',
-    pending: ['Vinculación automática vehículo-disposición', 'Cierre de disposición al devolver vehículo']
+    note:'Módulo existente. Solicitud de fondos sobre una línea de crédito, firmada manualmente con la entidad financiera (no requiere Signaturit). Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Falta: campo que vincule la disposición con la línea de financiación.',
+    pending: ['Campo id_linea_financiacion en disposiciones_financieras', 'Vinculación automática vehículo-disposición']
   },
   perfil_financiacion: {
     tables: [
@@ -593,76 +593,29 @@ const flows = [
 function renderFinanciacion(container) {
   const steps = [
     // ── SETUP back-office ──
-    subinfo('Configuración previa (back-office)', ['Líneas de Crédito por entidad', 'Perfiles de Cotización', 'Reglas de concentración y restricciones']),
+    subinfo('Configuración (back-office)', ['Líneas de crédito por entidad', 'Perfiles con restricciones', 'Disponible en tiempo real']),
     parallel([
       { label:'', steps:[
         mod('Líneas de Financiación', 'Disponible por entidad', 'lineas', 'pending', 'lineas_financiacion', ['Entidad', 'Disponible total', 'Condiciones'])
       ]},
       { label:'', steps:[
-        mod('Perfil de Cotización', 'Requisitos y restricciones', 'ofertas', 'partial', 'perfil_cotizacion_full', ['TAE', 'Concentración', 'Tipo vehículo'])
+        mod('Perfil de Cotización', 'Requisitos y restricciones', 'ofertas', 'partial', 'perfil_cotizacion_full', ['TAE', 'Concentración máx.', 'Tipo vehículo'])
       ]}
     ]),
-    // ── OFERTA ──
-    conn('Inicio cotización con cliente'),
-    mod('Mod. Proformas', 'VN Configurado', 'proformas', 'active', 'proformas', ['Modelo', 'Opcionales', 'Pack']),
-    conn('Crear oferta'),
-    mod('Mod. Ofertas', '1 — Borrador', 'ofertas', 'active', 'ofertas'),
-    subinfo('Calculado sobre perfil de cotización', ['TAE', 'Mensualidades', 'Datos Financiación', 'Resultados Financieros']),
-    conn('Completar y validar datos'),
-    mod('Mod. Ofertas', '2 — Para Validación', 'ofertas', 'active', 'ofertas'),
-    conn(''),
-    mod('Mod. Ofertas', '3 — Validada', 'ofertas', 'active', 'ofertas'),
-    // ── RIESGOS ──
-    conn('Enviar a riesgos (CPP)'),
-    mod('Mod. Riesgos', 'Pendiente de Sanción (CPP)', 'riesgos', 'active', 'riesgos'),
-    conn('Evaluar riesgo crediticio'),
-    branch('¿Resolución riesgo?', [
-      {
-        label: '2 — Aprobado', type: 'yes',
-        steps: [
-          conn(''),
-          mod('Mod. Ofertas', '4 — Enviado para Firma', 'ofertas', 'active', 'ofertas'),
-          conn(''),
-          proc('Signaturit', 'api'),
-          branch('¿Firmado?', [
-            { label: '5.1 — Firmado', type: 'yes', steps: [
-              conn(''),
-              mod('Mod. Contrato', 'Activo', 'contrato', 'active', 'contrato'),
-              conn('Solicitar disposición de fondos'),
-              mod('Disposición Financiera', 'Fondos habilitados sobre línea', 'disposicion', 'pending', 'disposicion_fin', ['Importe dispuesto', 'Disponible restante']),
-              conn('Reduce disponible en línea de crédito'),
-              endNode('↪️ Ver flujo Entregas (Flota · Facturas · Gestoría)', 'neutral')
-            ]},
-            { label: '5.2 — No Firmado', type: 'alt', steps: [
-              conn(''),
-              proc('Email seguimiento', 'email'),
-              conn(''),
-              endNode('⏳ Pendiente firma', 'neutral')
-            ]},
-            { label: '5.3 — Anulado', type: 'no', steps: [
-              conn(''),
-              endNode('❌ Oferta anulada', 'failure')
-            ]}
-          ])
-        ]
-      },
-      {
-        label: '3 — Rechazado', type: 'no',
-        steps: [ conn(''), endNode('❌ Riesgo rechazado', 'failure') ]
-      },
-      {
-        label: '4 — Con garantía', type: 'alt',
-        steps: [
-          conn('Negociar garantía adicional'),
-          mod('Mod. Ofertas', '4 — Enviado para Firma', 'ofertas', 'active', 'ofertas'),
-          conn(''), proc('Signaturit', 'api'), conn(''),
-          mod('Mod. Contrato', 'Activo', 'contrato', 'active', 'contrato'),
-          conn('Solicitar disposición de fondos'),
-          mod('Disposición Financiera', 'Fondos habilitados', 'disposicion', 'pending', 'disposicion_fin'),
-          conn(''), endNode('↪️ Ver flujo Entregas', 'neutral')
-        ]
-      }
-    ])
+    conn('Vinculación perfil ↔ línea'),
+    // ── DECISIÓN DE COMPRA ──
+    proc('Identificar necesidad de compra de vehículos', 'process'),
+    conn('Calcular importe necesario'),
+    // ── DISPOSICIÓN FINANCIERA ──
+    mod('Disposición Financiera', 'Solicitud de fondos sobre línea', 'disposicion', 'active', 'disposicion_fin', ['Importe solicitado', 'Línea ⚠️ campo pendiente']),
+    proc('Firma manual con entidad financiera', 'process'),
+    conn('Fondos habilitados · Reduce disponible en línea'),
+    mod('Disposición Financiera', 'Fondos confirmados', 'disposicion', 'active', 'disposicion_fin', ['Importe dispuesto', 'Disponible restante en línea']),
+    // ── COMPRA ──
+    conn('Adquisición de vehículos'),
+    mod('Vehículos', 'Vinculados a disposición', 'pedidos', 'pending', 'pedidos', ['Matrícula', 'Bastidor', 'Nº disposición']),
+    conn('Registrar compra'),
+    endNode('↪️ Ver flujo Entregas (Flota · Facturas · Gestoría)', 'neutral')
   ];
   renderSteps(container, steps);
 }

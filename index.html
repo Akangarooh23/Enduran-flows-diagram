@@ -579,6 +579,7 @@ body {
 .fsm-datos_fin   { border-color: #0891b2; } .fsm-datos_fin   .fs-mod-badge { background: #0891b2; }
 .fsm-mant        { border-color: #166534; } .fsm-mant        .fs-mod-badge { background: #166534; }
 .fsm-residuales  { border-color: #92400e; } .fsm-residuales  .fs-mod-badge { background: #78350f; }
+.fsm-gestoria    { border-color: #4338ca; } .fsm-gestoria    .fs-mod-badge { background: #4338ca; }
 .fs-tabs::-webkit-scrollbar { height: 3px; }
 .fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 
@@ -1322,6 +1323,7 @@ const fsModuleDetails = {
   firma:       { tables:[], note:'Integración pendiente con Signaturit. El contrato se envía para firma electrónica avanzada y se obtiene PDF certificado.', pending:['Integración API Signaturit','Webhook de estado de firma','Almacenamiento PDF firmado'] },
   contrato:    { tables:[{name:'contratos_renting',fields:38,status:'active'},{name:'condiciones_contrato',fields:18,status:'active'},{name:'documentos_contrato',fields:12,status:'active'},{name:'garantias',fields:15,status:'pending'}], note:'Contrato principal de renting. Estados implementados: Pendiente de Firma · Enviada para Firma · Firmada · Paralizada · Anulada. Pendientes de crear: 4-Pendiente de Matrícula · 5-Pendiente de Entrega · 6-Pendiente de Activación · 7-Activo.', pending:['Estado 4: Pendiente de Matrícula','Estado 5: Pendiente de Entrega','Estado 6: Pendiente de Activación','Estado 7: Activo'] },
   anticipos:   { tables:[], note:'Verificación de cobro de anticipos del cliente antes de proceder con la matriculación. Módulo pendiente de desarrollo.', pending:['Módulo completo pendiente de desarrollo','Workflow de validación de anticipo'] },
+  gestoria:    { tables:[{name:'gestoria_facturas',fields:20,status:'active'},{name:'gestoria_lineas',fields:14,status:'active'}], note:'Registro de gastos de gestoría por vehículo. Al introducir el gasto y la matrícula, el sistema vincula automáticamente: Gestoría → Flota → Pedido → Contrato. Esta vinculación activa la transición del contrato a "Pendiente de Entrega".' },
   pedidos:     { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'pedidos_vehiculo',fields:18,status:'pending'},{name:'equipamientos',fields:10,status:'pending'}], note:'Pedido del vehículo al proveedor OEM y seguimiento hasta matriculación.', pending:['Tabla pedidos_vehiculo','Integración API proveedor OEM'] },
   carga:       { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'flota',fields:20,status:'active'}], note:'Carga del número de matrícula y bastidor en el contrato una vez matriculado.' },
   entregas:    { tables:[{name:'entregas',fields:20,status:'active'},{name:'actas_entrega',fields:16,status:'active'},{name:'encuesta_satisfaccion',fields:12,status:'active'}], note:'Módulo de entregas. Estados implementados: 1-Pendiente de Matrícula · 2-Vehículo Matrículado (nota: tilde en ú en código). Pendientes: 3-Puesta a Disposición · 4-Entregado · 5-No Entregado.', pending:['Estado: Puesta a Disposición','Estado: Entregado','Estado: No Entregado'] },
@@ -1444,13 +1446,17 @@ const fsFlows = [
           fsB.conn(''),
           fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','pending','contrato'),
           fsB.sub('❌ Estados 4–7 pendientes',['Actuales: Pendiente Firma · Enviada Firma · Firmada · Paralizada · Anulada']),
-          // ── 5. MATRÍCULA (paralelo)
-          fsB.conn('Carga de matrícula'),
+          // ── 5. PEDIDO DE COMPRA
+          fsB.conn('Se genera pedido de compra según proforma'),
+          fsB.mod('Mod. Pedidos','1 — Pedido creado','pedidos','pending','pedidos'),
+          fsB.conn('Concesionario entrega vehículos'),
+          // ── Alta en Flota con bastidor (sin matrícula aún)
+          fsB.mod('Mod. Flota','Alta bastidor — sin matrícula','carga','active','carga'),
+          fsB.conn(''),
+          // ── Parallel: Gestoría (matrícula) + Seguros
           fsB.par([
             {steps:[
-              fsB.mod('Mod. Pedidos','1 — Pendiente Matrícula','pedidos','pending','pedidos'),
-              fsB.conn(''),
-              fsB.mod('Carga Pedidos','En proceso','carga','pending','carga')
+              fsB.mod('Mod. Gestoría','Gasto gestoría + matrícula','gestoria','active','gestoria')
             ]},
             {steps:[
               fsB.mod('Mod. Seguros','Alta de póliza','seguros','pending','seguros'),
@@ -1458,7 +1464,7 @@ const fsFlows = [
               fsB.proc('Email + Excel Atlas','email')
             ]}
           ]),
-          fsB.conn('Vehículo matriculado'),
+          fsB.conn('Gestoría vincula: Flota → Pedido → Contrato'),
           fsB.mod('Mod. Pedidos','2 — Matriculado','pedidos','pending','pedidos'),
           fsB.conn(''),
           fsB.par([

@@ -1615,7 +1615,7 @@ const fsFlows = [
       fsB.sub('Opciones del cliente',['Devolver el vehículo','Contratar Nuevo Renting → indicar si quiere transporte por coste adicional']),
       // ── 4. COORDINACIÓN CON ANDRÉS
       fsB.conn('Coordinación de la devolución'),
-      fsB.proc('Email a Andrés','email'),
+      fsB.proc('Email a Postventa','email'),
       fsB.par([
         {steps:[fsB.sub('Email con indicaciones al cliente',['Fecha Prevista de Devolución','Lugar de Devolución','Proveedor de Devolución'])]},
         {steps:[fsB.sub('OTP Devoluciones',['Con los datos de Andrés se manda la OTP','Se recogen datos para liquidación y Stock'])]}

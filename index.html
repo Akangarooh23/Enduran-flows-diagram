@@ -1409,13 +1409,27 @@ const fsFlows = [
       fsB.mod('Mod. Ofertas','4 — Enviada para Firma','ofertas','active','ofertas'),
       fsB.proc('Signaturit','firma'),
       fsB.mod('Mod. Ofertas','5 — Firmada','ofertas','active','ofertas'),
-      fsB.sub('Salidas alternativas',['Si no firma → oferta Anulada (fin del proceso)','Riesgos rechazado → sin contrato · Con garantía → continúa con condición']),
-      // ── 3. RIESGOS CPP (flujo lineal)
+      fsB.sub('Salida alternativa',['Si no firma → oferta Anulada (fin del proceso)']),
+      // ── 3. RIESGOS CPP
       fsB.conn('Análisis de riesgo crediticio'),
       fsB.mod('Mod. Riesgos','1 — Pendiente de Sanción','riesgos','active','riesgos'),
       fsB.proc('Aprobación CPP','process'),
-      fsB.mod('Mod. Riesgos','2 — Aprobado','riesgos','active','riesgos'),
-      // ── 4. CONTRATO FIRMA
+      fsB.branch('Resultado riesgo CPP',[
+        {label:'2 — Aprobada',type:'yes',steps:[
+          fsB.mod('Mod. Riesgos','2 — Aprobada','riesgos','active','riesgos'),
+          fsB.end('↓ Continúa al Contrato','neutral')
+        ]},
+        {label:'3 — Con Garantía',type:'alt',steps:[
+          fsB.mod('Mod. Riesgos','3 — Con Incremento de Garantía','riesgos','active','riesgos'),
+          fsB.sub('Requiere garantía adicional',['Si el cliente la aporta → continúa al Contrato','Si no se aporta → sin contrato']),
+          fsB.end('↪️ Continúa con condición','neutral')
+        ]},
+        {label:'4 — Rechazada',type:'no',steps:[
+          fsB.mod('Mod. Riesgos','4 — Rechazada','riesgos','active','riesgos'),
+          fsB.end('❌ Sin contrato','failure')
+        ]}
+      ]),
+      // ── 4. CONTRATO FIRMA (camino Aprobada / Con Garantía)
       fsB.conn('→ Crear contrato'),
       fsB.mod('Mod. Contrato','1 — Pendiente de Firma','contrato','active','contrato'),
       fsB.conn(''),

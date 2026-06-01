@@ -574,6 +574,8 @@ body {
 .fsm-devolucion  { border-color: #6d28d9; } .fsm-devolucion  .fs-mod-badge { background: #6d28d9; }
 .fsm-vo          { border-color: #b45309; } .fsm-vo          .fs-mod-badge { background: #b45309; }
 .fsm-contabilidad{ border-color: #0369a1; } .fsm-contabilidad .fs-mod-badge { background: #0369a1; }
+.fsm-lineas      { border-color: #0e7490; } .fsm-lineas      .fs-mod-badge { background: #0e7490; }
+.fsm-disposicion { border-color: #6b5a2e; } .fsm-disposicion .fs-mod-badge { background: #6b5a2e; }
 .fs-tabs::-webkit-scrollbar { height: 3px; }
 .fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 
@@ -1306,6 +1308,9 @@ renderDiagram();
 const fsModuleDetails = {
   proformas:   { tables:[{name:'proformas_vn',fields:28,status:'active'},{name:'proforma_opciones',fields:14,status:'active'},{name:'proforma_packs',fields:12,status:'active'},{name:'proforma_pool',fields:10,status:'active'}], note:'Configuración del vehículo nuevo: modelo, opcionales, packs y series.' },
   ofertas:     { tables:[{name:'ofertas',fields:35,status:'active'},{name:'oferta_cuotas_servicios',fields:14,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'},{name:'perfil_cotizacion',fields:20,status:'active'}], note:'Ciclo de vida de la oferta con estados, cálculo de cuota y aprobación comercial.' },
+  lineas_fin:  { tables:[{name:'lineas_financiacion',fields:22,status:'pending'},{name:'entidades_financieras',fields:14,status:'pending'},{name:'perfiles_linea',fields:10,status:'pending'}], note:'Líneas de crédito por entidad financiera para compra de flota. Controla el disponible total, el importe dispuesto en cada momento y las condiciones asociadas a cada entidad.', pending:['Módulo completo pendiente de desarrollo','Control de disponible en tiempo real','Alertas de concentración por perfil'] },
+  perfil_cot:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'reglas_concentracion',fields:12,status:'pending'},{name:'datos_financiacion',fields:22,status:'active'}], note:'Parámetros y restricciones para cotizar vinculados a una línea de financiación: TAE, plazos, concentración máxima por cliente/región, tipo de vehículo permitido. Ej: con perfil MKQ máximo 20% concentración en Madrid.', pending:['Módulo reglas de concentración','Validaciones automáticas al cotizar'] },
+  disposicion: { tables:[{name:'disposiciones_financieras',fields:18,status:'active'},{name:'vehiculos_disposicion',fields:8,status:'pending'}], note:'Solicitud de fondos sobre una línea de crédito. Habilita un importe concreto (ej: 2M€) que reduce el disponible de la línea. Se vincula a los vehículos comprados con esos fondos. Ej: línea de 15M€ → disposición de 2M€ → disponible restante 13M€.', pending:['Vinculación automática vehículo-disposición','Cierre de disposición al devolver vehículo'] },
   perfil_fin:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'datos_financiacion',fields:22,status:'active'},{name:'disposiciones_financieras',fields:18,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'}], note:'Parámetros financieros: TAE, mensualidades, disposiciones y resultados del modelo financiero.' },
   riesgos:     { tables:[{name:'riesgos',fields:20,status:'active'},{name:'estado_riesgo',fields:6,status:'active'},{name:'clientes',fields:30,status:'active'}], note:'Evaluación de riesgo crediticio. Estados: Pendiente CPP → Aprobado / Rechazado / Con garantía.' },
   firma:       { tables:[], note:'Integración pendiente con Signaturit. El contrato se envía para firma electrónica avanzada y se obtiene PDF certificado.', pending:['Integración API Signaturit','Webhook de estado de firma','Almacenamiento PDF firmado'] },
@@ -1342,35 +1347,56 @@ const fsB = {
 const fsFlows = [
   {
     id:'financiacion', title:'💰 Financiación y Compra', dotColor:'#16a34a',
-    desc:'Desde la configuración del vehículo hasta la firma del contrato.',
-    badges:[{l:'Perfil Cotización',c:'#1d4ed8'},{l:'Líneas Financiación',c:'#0f766e'},{l:'Datos Financiación',c:'#0f766e'},{l:'Riesgos CPP',c:'#374151'},{l:'Signaturit',c:'#0369a1'}],
+    desc:'Líneas de crédito, perfiles de cotización, disposiciones financieras y firma de contrato.',
+    badges:[{l:'Líneas de Financiación ❌',c:'#0e7490'},{l:'Perfil Cotización',c:'#1d4ed8'},{l:'Disposición Financiera ❌',c:'#6b5a2e'},{l:'Riesgos CPP',c:'#374151'},{l:'Signaturit',c:'#0369a1'}],
     steps:[
+      // ── SETUP: Líneas + Perfiles ──
+      fsB.sub('Configuración previa (back-office)',['Líneas de Crédito por entidad','Perfiles de Cotización','Reglas de concentración y restricciones']),
+      fsB.par([
+        {steps:[fsB.mod('Líneas de Financiación','Disponible por entidad','lineas','pending','lineas_fin',['Entidad','Disponible total','Condiciones'])]},
+        {steps:[fsB.mod('Perfil de Cotización','Requisitos y restricciones','ofertas','partial','perfil_cot',['TAE','Concentración','Tipo vehículo'])]}
+      ]),
+      // ── OFERTA ──
+      fsB.conn('Inicio cotización con cliente'),
       fsB.mod('Mod. Proformas','VN Configurado','proformas','active','proformas',['Modelo','Opcionales','Pack']),
       fsB.conn('Crear oferta'),
       fsB.mod('Mod. Ofertas','1 — Borrador','ofertas','active','ofertas'),
-      fsB.sub('Financiación',['Perfil Cotización','Líneas Financiación','Datos Financiación','TAE · Mensualidades']),
-      fsB.conn('Completar datos financieros'),
-      fsB.mod('Mod. Ofertas','2 — Oferta para Validación','ofertas','active','ofertas'),
-      fsB.conn('Validar oferta'),
-      fsB.mod('Mod. Ofertas','3 — Oferta Validada','ofertas','active','ofertas'),
-      fsB.conn('Enviar a riesgos'),
+      fsB.sub('Calculado sobre perfil de cotización',['TAE','Mensualidades','Datos Financiación','Resultados Financieros']),
+      fsB.conn('Completar y validar datos'),
+      fsB.mod('Mod. Ofertas','2 — Para Validación','ofertas','active','ofertas'),
+      fsB.conn(''),
+      fsB.mod('Mod. Ofertas','3 — Validada','ofertas','active','ofertas'),
+      // ── RIESGOS ──
+      fsB.conn('Enviar a riesgos (CPP)'),
       fsB.mod('Mod. Riesgos','Pendiente de Sanción (CPP)','riesgos','active','riesgos'),
-      fsB.conn('Evaluar riesgo'),
+      fsB.conn('Evaluar riesgo crediticio'),
       fsB.branch('¿Resolución riesgo?',[
         {label:'2 — Aprobado',type:'yes',steps:[
-          fsB.conn(''),fsB.mod('Mod. Ofertas','4 — Enviado para Firma','ofertas','active','ofertas'),
+          fsB.conn(''),
+          fsB.mod('Mod. Ofertas','4 — Enviado para Firma','ofertas','active','ofertas'),
           fsB.conn(''),fsB.proc('Signaturit','api'),
           fsB.branch('¿Firmado?',[
-            {label:'5.1 — Firmado',type:'yes',steps:[fsB.conn(''),fsB.mod('Mod. Contrato','Activo','contrato','active','contrato'),fsB.conn(''),fsB.end('✅ Contrato firmado','success')]},
+            {label:'5.1 — Firmado',type:'yes',steps:[
+              fsB.conn(''),
+              fsB.mod('Mod. Contrato','Activo','contrato','active','contrato'),
+              fsB.conn('Solicitar disposición de fondos'),
+              fsB.mod('Disposición Financiera','Fondos habilitados sobre línea','disposicion','pending','disposicion',['Importe dispuesto','Disponible restante']),
+              fsB.conn('Reduce disponible en línea de crédito'),
+              fsB.end('↪️ Ver flujo Entregas (Flota · Facturas · Gestoría)','neutral')
+            ]},
             {label:'5.2 — No Firmado',type:'alt',steps:[fsB.conn(''),fsB.proc('Email seguimiento','email'),fsB.conn(''),fsB.end('⏳ Pendiente firma','neutral')]},
             {label:'5.3 — Anulado',type:'no',steps:[fsB.conn(''),fsB.end('❌ Oferta anulada','failure')]}
           ])
         ]},
         {label:'3 — Rechazado',type:'no',steps:[fsB.conn(''),fsB.end('❌ Riesgo rechazado','failure')]},
         {label:'4 — Con garantía',type:'alt',steps:[
-          fsB.conn('Negociar garantía'),fsB.mod('Mod. Ofertas','4 — Enviado para Firma','ofertas','active','ofertas'),
+          fsB.conn('Negociar garantía adicional'),
+          fsB.mod('Mod. Ofertas','4 — Enviado para Firma','ofertas','active','ofertas'),
           fsB.conn(''),fsB.proc('Signaturit','api'),fsB.conn(''),
-          fsB.mod('Mod. Contrato','Activo','contrato','active','contrato'),fsB.conn(''),fsB.end('✅ Con garantía adicional','success')
+          fsB.mod('Mod. Contrato','Activo','contrato','active','contrato'),
+          fsB.conn('Solicitar disposición de fondos'),
+          fsB.mod('Disposición Financiera','Fondos habilitados','disposicion','pending','disposicion'),
+          fsB.conn(''),fsB.end('↪️ Ver flujo Entregas','neutral')
         ]}
       ])
     ]

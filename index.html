@@ -1475,6 +1475,7 @@ const fsFlows = [
           // ── 6. ACTIVACIÓN
           fsB.conn('Formulario activación cliente'),
           fsB.proc('Formulario Cliente','process'),
+          fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
           fsB.conn(''),
           fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','pending','contrato'),
           fsB.conn('OCR + PIN por correo'),

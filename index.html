@@ -1473,7 +1473,8 @@ const fsFlows = [
             {steps:[fsB.mod('Mod. Contrato','5 — Pendiente de Entrega','contrato','pending','contrato')]}
           ]),
           // ── 6. ACTIVACIÓN
-          fsB.conn('Formulario activación cliente'),
+          fsB.sub('Datos logísticos a introducir antes del formulario',['Lugar de entrega','Fecha prevista de entrega']),
+          fsB.conn('Envío formulario al cliente con lugar y fecha'),
           fsB.proc('Formulario Cliente','process'),
           fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
           fsB.conn(''),
@@ -1486,7 +1487,6 @@ const fsFlows = [
             {label:'✓ Documentos OK',type:'yes',steps:[
               fsB.conn(''),
               fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
-              fsB.sub('Logística',['Fecha Prevista Entrega','Dirección y lugar de entrega']),
               fsB.conn(''),
               fsB.proc('Email logistica.operaciones','email'),
               fsB.conn(''),

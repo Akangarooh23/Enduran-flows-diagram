@@ -596,10 +596,6 @@ body {
 .mc-group:last-child { margin-right: 0; }
 .mc-cat-label { writing-mode: vertical-lr; transform: rotate(180deg); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; border-radius: 6px; padding: 10px 5px; white-space: nowrap; width: 22px; display: flex; align-items: center; justify-content: center; margin-top: 46px; margin-right: var(--gap); flex-shrink: 0; }
 .mc-modules { display: flex; gap: 0; align-items: flex-start; }
-@media (max-width: 768px) {
-  .mc-head { padding: 12px 14px; flex-direction: column; gap: 6px; align-items: flex-start; }
-}
-
 .fs-flowlink { display: inline-flex; align-items: center; gap: 5px; background: rgba(55,65,81,.07); border: 1.5px solid #374151; border-radius: 100px; padding: 5px 16px; font-size: 11px; font-weight: 700; color: #374151; cursor: pointer; transition: all .15s; }
 /* module colors */
 .fsm-proformas   { border-color: #7c3aed; } .fsm-proformas   .fs-mod-badge { background: #7c3aed; }
@@ -625,33 +621,66 @@ body {
 
 /* ── RESPONSIVE MOBILE ── */
 @media (max-width: 768px) {
-  /* Header */
-  .page-header { padding: 10px 14px; flex-wrap: wrap; gap: 6px; }
+  /* Reduce card width slightly so more fits in scroll view */
+  :root { --col-width: 175px; }
+
+  /* ── Header ── */
+  .page-header { padding: 10px 14px; flex-wrap: wrap; gap: 4px; }
   .page-header h1 { font-size: 14px; }
+  .page-header .subtitle { font-size: 10px; }
   .page-header .meta { font-size: 10px; }
-  .nav-links { display: none; }
 
-  /* Overview diagram — keep scrollable horizontally */
-  .diagram-wrapper { height: 44vh; min-height: 200px; overflow-x: auto; }
+  /* ── Toolbar — horizontal scroll, hide secondary elements ── */
+  .toolbar { padding: 6px 12px; gap: 6px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .toolbar-label { display: none; }
+  .status-filters { display: none; }
+  .toolbar > .sep { display: none; }
+  .toolbar > span { display: none; } /* hide hint text */
+  .sec-toggle { font-size: 10px; padding: 4px 8px; white-space: nowrap; flex-shrink: 0; }
 
-  /* Flows section header */
+  /* ── Architecture diagram ── */
+  .diagram-wrapper { height: 44vh; min-height: 200px; }
+
+  /* ── Legend — wrap items ── */
+  .legend { flex-wrap: wrap; gap: 8px 14px; padding: 10px 14px; }
+  .legend-footer { width: 100%; text-align: left; margin-top: 2px; }
+
+  /* ── Module catalog ── */
+  .mc-head { padding: 12px 14px; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .mc-head h2 { font-size: 14px; }
+  .mc-head p  { font-size: 10px; }
+  .mc-wrapper { padding: 16px 12px; }
+
+  /* ── Flows section header ── */
   .fs-section-head { padding: 12px 14px; flex-direction: column; gap: 6px; align-items: flex-start; }
-  .fs-tabs { padding: 8px 12px 0; gap: 3px; }
-  .fs-tab  { font-size: 10px; padding: 5px 10px; }
-  .fs-panels { padding: 16px 12px; }
+  .fs-section-head h2 { font-size: 14px; }
+
+  /* Tabs — scroll horizontally, no wrap, hide scrollbar ── */
+  .fs-tabs { padding: 8px 12px 0; gap: 4px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .fs-tabs::-webkit-scrollbar { display: none; }
+  .fs-tab  { font-size: 10px; padding: 5px 10px; white-space: nowrap; flex-shrink: 0; }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .toolbar { scrollbar-width: none; }
+
+  .fs-panels { padding: 14px 12px; }
   .fs-diagram { max-width: 100%; }
   .fs-node    { max-width: 100%; }
 
-  /* Stack branch columns vertically on mobile */
+  /* ── Flow branches — stack vertically ── */
   .fs-branches { flex-direction: column; gap: 0; padding: 0; }
-  .fs-branch   { width: 100%; flex: none; border-left: none !important; padding-left: 0 !important; padding-right: 0 !important; border-top: 1px dashed rgba(0,0,0,0.12); padding-top: 10px; margin-top: 4px; }
+  .fs-branch { width: 100%; flex: none; border-left: none !important; padding-left: 0 !important; padding-right: 0 !important; border-top: 1px dashed rgba(0,0,0,0.12); padding-top: 10px; margin-top: 4px; }
   .fs-branch:first-child { border-top: none; padding-top: 0; margin-top: 0; }
-  .fs-blabel   { margin-bottom: 8px; }
+  .fs-blabel { margin-bottom: 8px; }
 
-  /* Parallel paths — stack on mobile too */
+  /* ── Parallel paths — stack vertically ── */
   .fs-parallel { flex-direction: column; gap: 0; }
   .fs-par-col  { width: 100%; flex: none; border-top: 1px dashed rgba(0,0,0,0.08); padding-top: 8px; margin-top: 4px; }
   .fs-par-col:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+  /* ── Modal ── */
+  .modal { width: 96vw; max-height: 88vh; border-radius: 10px; }
+  .modal-header { padding: 14px 16px; }
+  .modal-body   { padding: 14px 16px; }
 }
 </style>
 </head>

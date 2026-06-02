@@ -1642,7 +1642,7 @@ const fsFlows = [
   {
     id:'recobros', title:'⚠️ Recobros', dotColor:'#dc2626',
     desc:'Gestión de impagos: emplazamientos progresivos (Burofax 1→4), expediente en gestión, vía demanda (deuda monetaria) y vía denuncia (recuperación del vehículo).',
-    badges:[{l:'Facturación ✅',c:'#0f766e'},{l:'Facturas Impagadas ✅',c:'#b91c1c'},{l:'Expedientes ✅',c:'#6d28d9'},{l:'Clientes Impagados ✅',c:'#1d4ed8'},{l:'ASNEF ✅',c:'#374151'}],
+    badges:[{l:'Facturación ✅',c:'#0f766e'},{l:'Facturas Impagadas ✅',c:'#b91c1c'},{l:'Expedientes ✅',c:'#6d28d9'},{l:'Clientes Impagados · vista',c:'#1d4ed8'},{l:'ASNEF ✅',c:'#374151'}],
     steps:[
       // ── 1. TRIGGER: BANCO DEVUELVE COBRO
       fsB.proc('Banco devuelve cobro de una factura','api'),
@@ -1658,10 +1658,8 @@ const fsFlows = [
           fsB.proc('Email 1 — Primer Emplazamiento de Pago','email'),
           fsB.sub('Burofax 1 · Importe = Total Deuda + FIC + FCAM',[]),
           fsB.conn('Se crea Expediente nuevo'),
-          fsB.par([
-            {steps:[fsB.mod('Expedientes','Nuevo · por matrícula','recobros','active','expedientes')]},
-            {steps:[fsB.mod('Clientes Impagados','Por cliente','recobros','active','clientes_impag')]}
-          ]),
+          fsB.mod('Expedientes','Nuevo · agrupado por contrato','recobros','active','expedientes'),
+          fsB.sub('Módulo Clientes Impagados',['Vista y análisis — muestra por cliente los expedientes abiertos y facturas impagadas · no es un paso del flujo']),
           fsB.conn('Dep. Recobros registra contacto y apunta nota'),
           fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
           fsB.sub('Estados iniciales',['Demanda: Reclamación Prejudicial','Denuncia: Pendiente de Recuperación']),

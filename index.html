@@ -1730,9 +1730,9 @@ const fsFlows = [
           // CADENA DE PRECIO: VNC → Precio Venta Sin IVA → Existencias
           fsB.mod('Precios VNC','VNC mes a mes · todos los vehículos de Flota','datos_fin','active','precios_vnc'),
           fsB.sub('Cálculo VNC mensual',['Amortización mensual = (Valor inicial a amortizar − VR) / plazo contrato','VNC mes N = Valor inicial − (Amortización mensual × N meses transcurridos)']),
-          fsB.conn('VNC del mes + margen APK'),
+          fsB.conn('VNC del mes + Margen Enduran'),
           fsB.mod('Precios Venta Sin IVA','Precio de venta mes a mes','contabilidad','active','precios_venta'),
-          fsB.sub('Cálculo precio venta',['Precio VNC del mes correspondiente','+ Margen APK','= Precio de Venta Sin IVA']),
+          fsB.sub('Cálculo precio venta',['Precio VNC del mes correspondiente','+ Margen Enduran','= Precio de Venta Sin IVA']),
           fsB.conn('Precio del mes recogido automáticamente'),
           fsB.mod('Existencias','Vehículo registrado para venta','vo','active','existencias'),
           fsB.sub('Datos registrados',['Datos del vehículo (matrícula · km · estado...)','Precio = Precios Venta Sin IVA del mes correspondiente']),

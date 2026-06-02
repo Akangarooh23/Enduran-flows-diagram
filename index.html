@@ -1718,26 +1718,35 @@ const fsFlows = [
   },
   {
     id:'venta_vo', title:'🏷️ Venta VO', dotColor:'#9ca3af',
-    desc:'Segunda vida del vehículo: valoración, portales, venta y transferencia DGT.',
-    badges:[{l:'❌ Pendiente desarrollo',c:'#9ca3af'}],
+    desc:'Segunda vida del vehículo devuelto: baja en Flota, cálculo de precio basado en VNC + margen, registro en Existencias y venta.',
+    badges:[{l:'Flota ✅',c:'#92400e'},{l:'Precios VNC ✅',c:'#0891b2'},{l:'Precios Venta Sin IVA ✅',c:'#0369a1'},{l:'Existencias ✅',c:'#b45309'},{l:'Stock ✅',c:'#6d28d9'}],
     steps:[
-      fsB.banner('Flujo pendiente de desarrollo. Estructura propuesta:'),
-      fsB.mod('Stock VO','Pendiente de valoración','vo','pending','stock_vo'),
-      fsB.conn('API Eurotax / Indicata'),fsB.proc('Valoración mercado VO','api'),
-      fsB.conn('¿Requiere acondicionamiento?'),
-      fsB.branch('Estado del vehículo',[
-        {label:'Preparación necesaria',type:'alt',steps:[fsB.conn('OT taller'),fsB.proc('Preparación estética/mecánica','process'),fsB.conn(''),fsB.mod('Stock VO','Listo para vender','vo','pending','stock_vo')]},
-        {label:'OK directo',type:'yes',steps:[fsB.conn(''),fsB.mod('Stock VO','Listo para vender','vo','pending','stock_vo')]}
-      ]),
-      fsB.conn('Publicación en portales'),fsB.proc('AutoScout · Coches.net · Wallapop Pro','api'),
-      fsB.conn('Lead interesado'),
-      fsB.mod('Gestión Comercial VO','Negociación','vo','pending','venta_vo'),
-      fsB.conn('Acuerdo precio'),
-      fsB.mod('Contrato Compraventa','Firmado','contrato','pending','venta_vo'),
-      fsB.conn(''),fsB.proc('Transferencia DGT','api'),
-      fsB.conn(''),fsB.mod('Mod. Facturación','Factura venta VO','facturacion','pending','fact_dev'),
-      fsB.conn(''),fsB.mod('Mod. Contabilidad','P&L por vehículo','contabilidad','pending','venta_vo'),
-      fsB.conn(''),fsB.end('✅ Venta cerrada','success')
+      // ── 1. ENTRADA: TRAS DEVOLUCIÓN Y LIQUIDACIÓN
+      fsB.mod('Mod. Flota','Baja del vehículo','carga','active','carga'),
+      fsB.sub('Vehículo devuelto y liquidado (flujo Devoluciones / Liquidaciones)',[]),
+      // ── 2. DESTINO DEL VEHÍCULO
+      fsB.branch('¿Destino?',[
+        {label:'Vender',type:'yes',steps:[
+          // CADENA DE PRECIO: VNC → Precio Venta Sin IVA → Existencias
+          fsB.mod('Precios VNC','VNC mes a mes · todos los vehículos de Flota','datos_fin','active','precios_vnc'),
+          fsB.sub('Cálculo VNC mensual',['Precio inicial a amortizar (del contrato + VR)','− Amortización acumulada mes a mes','= VNC del vehículo para ese mes']),
+          fsB.conn('VNC del mes + margen APK'),
+          fsB.mod('Precios Venta Sin IVA','Precio de venta mes a mes','contabilidad','active','precios_venta'),
+          fsB.sub('Cálculo precio venta',['Precio VNC del mes correspondiente','+ Margen APK','= Precio de Venta Sin IVA']),
+          fsB.conn('Precio del mes recogido automáticamente'),
+          fsB.mod('Existencias','Vehículo registrado para venta','vo','active','existencias'),
+          fsB.sub('Datos registrados',['Datos del vehículo (matrícula · km · estado...)','Precio = Precios Venta Sin IVA del mes correspondiente']),
+          fsB.conn('Venta realizada'),
+          fsB.mod('Existencias','Vendido','vo','active','existencias'),
+          fsB.conn(''),
+          fsB.end('✅ Vehículo vendido','success')
+        ]},
+        {label:'Realquilar',type:'alt',steps:[
+          fsB.mod('Stock','Vehículo disponible para realquiler','devolucion','active','stock'),
+          fsB.conn(''),
+          fsB.end('↪️ Gestión de realquiler','neutral')
+        ]}
+      ])
     ]
   }
 ];

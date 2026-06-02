@@ -592,9 +592,10 @@ body {
 .mc-head p  { color: #94a3b8; font-size: 11px; margin-top: 3px; }
 .mc-wrapper { overflow-x: auto; overflow-y: visible; padding: 24px 20px; }
 .mc-inner { display: flex; gap: 0; align-items: flex-start; min-width: max-content; }
-.mc-cat-col { display: flex; flex-direction: column; align-items: center; margin-right: var(--gap); flex-shrink: 0; }
-.mc-cat-spacer { height: 46px; flex-shrink: 0; }
-.mc-cat-label { writing-mode: vertical-lr; transform: rotate(180deg); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; border-radius: 6px; padding: 14px 5px; white-space: nowrap; width: 22px; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 60px; }
+.mc-group { display: flex; align-items: stretch; margin-right: 20px; flex-shrink: 0; }
+.mc-group:last-child { margin-right: 0; }
+.mc-cat-label { writing-mode: vertical-lr; transform: rotate(180deg); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; border-radius: 6px; padding: 10px 5px; white-space: nowrap; width: 22px; display: flex; align-items: center; justify-content: center; margin-top: 46px; margin-right: var(--gap); flex-shrink: 0; }
+.mc-modules { display: flex; gap: 0; align-items: flex-start; }
 @media (max-width: 768px) {
   .mc-head { padding: 12px 14px; flex-direction: column; gap: 6px; align-items: flex-start; }
 }
@@ -1414,10 +1415,19 @@ function renderModuleCatalog() {
   const prL = { 'quick-win': '⚡ Quick Win', 'core': '🧠 Core IA', 'diferencial': '🚀 Diferencial' };
 
   moduleGroups.forEach(grp => {
-    const catCol = document.createElement('div');
-    catCol.className = 'mc-cat-col';
-    catCol.innerHTML = `<div class="mc-cat-spacer"></div><div class="mc-cat-label" style="background:${grp.color}">${grp.label}</div>`;
-    container.appendChild(catCol);
+    const group = document.createElement('div');
+    group.className = 'mc-group';
+
+    const label = document.createElement('div');
+    label.className = 'mc-cat-label';
+    label.style.background = grp.color;
+    label.textContent = grp.label;
+    group.appendChild(label);
+
+    const modsDiv = document.createElement('div');
+    modsDiv.className = 'mc-modules';
+    group.appendChild(modsDiv);
+    container.appendChild(group);
 
     grp.modules.forEach(mod => {
       const col = document.createElement('div');
@@ -1465,7 +1475,7 @@ function renderModuleCatalog() {
         </div>
         ${apiHtml}${iaHtml}
       `;
-      container.appendChild(col);
+      modsDiv.appendChild(col);
     });
   });
 }

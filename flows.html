@@ -706,13 +706,6 @@ body {
   <button class="filter-btn api active" id="btn-api" onclick="toggleLayer('api')">APIs Externas</button>
   <button class="filter-btn ia  active" id="btn-ia"  onclick="toggleLayer('ia')">Agentes IA</button>
   <div class="sep"></div>
-  <span class="toolbar-label">Estado</span>
-  <div class="status-filters">
-    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot active"></span>Implementado (6)</span>
-    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot partial"></span>Parcial (2)</span>
-    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot pending"></span>Pendiente (2)</span>
-  </div>
-  <div class="sep"></div>
   <span style="font-size:11px;color:#64748b">Clic en cualquier tarjeta para ver detalles completos</span>
   <div class="sep"></div>
   <button class="sec-toggle" id="toggle-arch" onclick="toggleSection('sec-arch','toggle-arch')" title="Colapsar/Expandir">▼ Arquitectura</button>
@@ -750,10 +743,6 @@ body {
     <div class="legend-line dashed"></div>
     <span>Integración API</span>
   </div>
-  <div class="sep" style="height:16px;background:#e2e8f0;width:1px"></div>
-  <div class="legend-item"><span class="status-dot active"></span>Implementado</div>
-  <div class="legend-item"><span class="status-dot partial"></span>Parcial</div>
-  <div class="legend-item"><span class="status-dot pending"></span>Pendiente</div>
   <div class="legend-footer">Documento confidencial · Uso interno · ENDURAN</div>
 </div>
 </div><!-- /sec-arch -->
@@ -1377,7 +1366,6 @@ function renderDiagram() {
       <!-- ERP card row -->
       <div class="card-row" id="row-erp-${flow.id}">
         <div class="card erp" onclick="openModal('${flow.id}', 'erp')" title="${flow.erp.title}">
-          <div class="status-indicator ${statusClass}"></div>
           <div class="card-badge erp">ERP</div>
           <div class="card-title">${flow.erp.title}</div>
           <div class="card-fields">
@@ -1397,7 +1385,6 @@ function renderDiagram() {
       <!-- API card row -->
       <div class="card-row" id="row-api-${flow.id}">
         <div class="card api" onclick="openModal('${flow.id}', 'api')" title="${flow.api.name}">
-          <div class="status-indicator pending"></div>
           <div class="card-badge api">API</div>
           <div class="card-title">${flow.api.name}</div>
           <div class="card-fields">
@@ -1472,7 +1459,6 @@ function renderModuleCatalog() {
         </div>
         <div class="card-row">
           <div class="card api">
-            <div class="status-indicator pending"></div>
             <div class="card-badge api">API</div>
             <div class="card-title">${mod.api.name}</div>
             <div class="card-fields">${mod.api.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
@@ -1499,7 +1485,6 @@ function renderModuleCatalog() {
         <div class="col-header">${mod.title}</div>
         <div class="card-row">
           <div class="card ${eClass}">
-            <div class="status-indicator ${mod.status}"></div>
             <div class="card-badge ${eClass}">ERP</div>
             <div class="card-title">${mod.title}</div>
             <div class="card-fields">${mod.erpF.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>

@@ -1680,7 +1680,7 @@ const fsFlows = [
           fsB.proc('Email 3 — Tercer Emplazamiento de Pago','email'),
           fsB.sub('Burofax 3 = Burofax 2 + Liquidación Km y Daños',['Deuda = Facturas + FIC + FCAM + Vehículo','FIC y FCAM generados automáticamente','Contrato paralizado']),
           fsB.conn('Se suma al Expediente · contrato paralizado'),
-          fsB.sub('Expediente — estados iniciales tras resolución',['Estado Demanda → Contrato Resuelto → Con envío Burofax 1','Estado Denuncia → Pendiente de Recuperación · Email 3 solicita devolución del vehículo']),
+          fsB.sub('Cambio de estados al paralizar contrato',['Estado Demanda → Contrato Resuelto (con envío Burofax 1)','Estado Denuncia → Pendiente de Recuperación · Email 3 ya solicita devolución del vehículo']),
           fsB.conn('5 días sin cobro'),
           fsB.proc('Burofax 4 — Email certificado ASNEF','email'),
           fsB.sub('Burofax 4 — NO enviado por sistema · manual',['Email certificado enviado manualmente']),
@@ -1689,27 +1689,28 @@ const fsFlows = [
           fsB.conn('Dep. Recobros envía documentación al Abogado · Portal Documentos'),
           fsB.par([
             {steps:[
-              fsB.sub('ESTADO DEMANDA — Deuda Monetaria',['Cadena: Contrato Resuelto → Con envío Burofax 1 → En proceso de Demanda → Contrato Demandado → Recuperado']),
+              fsB.sub('ESTADO DEMANDA — Deuda Monetaria',['Cadena: Reclamación Prejudicial → Contrato Resuelto → En proceso de Demanda → Contrato Demandado → Deuda Recuperada']),
               fsB.conn('Dep. Recobros introduce Fecha Envío Demanda'),
               fsB.mod('Expedientes · Demanda','En proceso de Demanda','facturacion','active','expedientes'),
               fsB.conn('Abogado presenta · Dep. Recobros marca Fecha Presentación Demanda'),
               fsB.mod('Expedientes · Demanda','Contrato Demandado','facturacion','active','expedientes'),
-              fsB.conn('Todas las facturas con fecha de cobro'),
-              fsB.mod('Expedientes · Demanda','Recuperado','facturacion','active','expedientes'),
+              fsB.conn('Todas las facturas con Fecha de Cobro'),
+              fsB.mod('Expedientes · Demanda','Deuda Recuperada','facturacion','active','expedientes'),
               fsB.end('✅ Deuda Recuperada','success')
             ]},
             {steps:[
-              fsB.sub('ESTADO DENUNCIA — Recuperación Vehículo',['Cadena: Pendiente de Recuperación → En proceso de Denuncia → Vehículo Presentado → Recuperado']),
+              fsB.sub('ESTADO DENUNCIA — Recuperación Vehículo',['Cadena: Pendiente de Recuperación → En proceso de Denuncia → Vehículo Denunciado → Vehículo Recuperado','Atajo: si Fecha Devolución en Mod. Devoluciones → Vehículo Recuperado directamente']),
               fsB.conn('Dep. Recobros introduce Fecha Envío Denuncia'),
               fsB.mod('Expedientes · Denuncia','En proceso de Denuncia','devolucion','active','expedientes'),
               fsB.conn('Abogado responde · Dep. Recobros marca Fecha Presentación Denuncia'),
-              fsB.mod('Expedientes · Denuncia','Vehículo Presentado','devolucion','active','expedientes'),
-              fsB.conn('Vehículo devuelto · Dep. Recobros apunta Fecha Baja Requisitoria'),
-              fsB.mod('Expedientes · Denuncia','Recuperado','devolucion','active','expedientes'),
+              fsB.mod('Expedientes · Denuncia','Vehículo Denunciado','devolucion','active','expedientes'),
+              fsB.conn('Fecha Devolución aparece en Mod. Devoluciones'),
+              fsB.mod('Expedientes · Denuncia','Vehículo Recuperado','devolucion','active','expedientes'),
+              fsB.conn('Dep. Recobros introduce Fecha Baja Requisitoria'),
               fsB.end('✅ Vehículo Recuperado','success')
             ]}
           ]),
-          fsB.conn('Estado Demanda + Estado Denuncia = Recuperado'),
+          fsB.conn('Deuda Recuperada + Vehículo Recuperado'),
           fsB.mod('Expedientes','Cerrado — se oculta en módulo','recobros','active','expedientes'),
           fsB.conn(''),
           fsB.end('✅ Expediente cerrado · recuperación completada','success')

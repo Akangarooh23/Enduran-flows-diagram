@@ -3,293 +3,811 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ENDURAN — Flujos de Proceso</title>
+<title>ENDURAN — Proceso de Renting: Flujo Completo</title>
 <style>
 :root {
+  --erp-color: #1e3a5f;
+  --erp-bg: #dbeafe;
+  --erp-border: #3b82f6;
+  --api-color: #134e4a;
+  --api-bg: #ccfbf1;
+  --api-border: #14b8a6;
+  --ia-color: #78350f;
+  --ia-bg: #ffedd5;
+  --ia-border: #f97316;
+  --header-bg: #1a2744;
   --bg: #f0ede8;
-  --surface: #ffffff;
-  --border: #e2e8f0;
+  --card-bg: #ffffff;
   --text: #1e293b;
   --muted: #64748b;
-  --header: #1a2744;
-
-  /* Module colors */
-  --c-proformas:   #7c3aed;
-  --c-ofertas:     #1d4ed8;
-  --c-riesgos:     #374151;
-  --c-contrato:    #0f766e;
-  --c-pedidos:     #b91c1c;
-  --c-carga:       #92400e;
-  --c-entregas:    #a16207;
-  --c-seguros:     #be185d;
-  --c-facturacion: #15803d;
-  --c-devolucion:  #6d28d9;
-  --c-vo:          #b45309;
-  --c-contabilidad:#0369a1;
-  --c-api:         #0369a1;
-  --c-process:     #334155;
+  --arrow: #94a3b8;
+  --active: #16a34a;
+  --partial: #d97706;
+  --pending: #9ca3af;
+  --col-width: 210px;
+  --lane-label-w: 70px;
+  --gap: 12px;
 }
 
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* HEADER */
-.header { background:var(--header); color:#fff; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-.header h1 { font-size:18px; font-weight:700; }
-.header .subtitle { font-size:11px; color:#94a3b8; margin-top:2px; }
-.nav-back { font-size:12px; color:#93c5fd; text-decoration:none; display:flex; align-items:center; gap:6px; border:1px solid rgba(147,197,253,0.3); padding:5px 12px; border-radius:6px; transition:all 0.15s; }
-.nav-back:hover { background:rgba(147,197,253,0.1); }
-
-/* TABS */
-.tabs { background:#1e2a3e; border-bottom:1px solid #2d3a50; display:flex; gap:4px; padding:10px 24px 0; flex-shrink:0; overflow-x:auto; }
-.tab { padding:8px 18px; border-radius:8px 8px 0 0; border:1px solid transparent; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; color:#94a3b8; background:transparent; border-color:transparent; white-space:nowrap; }
-.tab:hover { color:#e2e8f0; }
-.tab.active { background:#f0ede8; color:var(--text); border-color:#e2e8f0; border-bottom-color:#f0ede8; }
-.tab .tab-icon { margin-right:6px; }
-.tab .tab-status { display:inline-block; width:7px; height:7px; border-radius:50%; margin-left:6px; }
-
-/* FLOW AREA */
-.flow-area { flex:1; overflow-y:auto; padding:36px 28px 56px; }
-.flow-panel { display:none; max-width:920px; margin:0 auto; }
-.flow-panel.active { display:block; }
-
-.flow-header { margin-bottom:48px; padding-bottom:24px; border-bottom:2px dashed var(--border); }
-.flow-header h2 { font-size:18px; font-weight:700; }
-.flow-header p { font-size:13px; color:var(--muted); margin-top:4px; }
-.flow-header .badges { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-.flow-badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:12px; border:1px solid; }
-
-/* FLOW DIAGRAM */
-.flow-diagram { display:flex; flex-direction:column; align-items:center; gap:0; }
-
-/* STEP NODE */
-.step-node { width:100%; max-width:480px; position:relative; }
-
-/* MODULE CARD */
-.module-card {
-  border-radius:10px; border:2px solid; padding:12px 16px;
-  background:var(--surface); cursor:pointer;
-  transition:transform 0.15s, box-shadow 0.15s;
-  position:relative;
+body {
+  font-family: 'Segoe UI', -apple-system, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
-.module-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.1); }
-.module-badge {
-  display:inline-flex; align-items:center; gap:5px;
-  font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px;
-  color:#fff; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;
+
+/* ── HEADER ── */
+.page-header {
+  background: var(--header-bg);
+  color: #ffffff;
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-.module-name { font-size:13px; font-weight:700; margin-bottom:3px; }
-.module-state { font-size:12px; color:var(--muted); }
-.module-status-dot { position:absolute; top:10px; right:10px; width:8px; height:8px; border-radius:50%; }
-.module-status-dot.active  { background:#16a34a; }
-.module-status-dot.partial { background:#d97706; }
-.module-status-dot.pending { background:#9ca3af; }
-.module-extra { margin-top:8px; display:flex; flex-wrap:wrap; gap:4px; }
-.module-extra-tag { font-size:10px; padding:2px 7px; border-radius:8px; background:rgba(0,0,0,0.05); color:var(--muted); }
+.page-header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+.page-header .subtitle { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+.page-header .meta { font-size: 11px; color: #64748b; text-align: right; }
+.page-header .meta strong { display: block; color: #94a3b8; font-size: 12px; }
 
-/* PROCESS NODE (oval) */
-.process-node {
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  background:#1e293b; color:#e2e8f0;
-  border-radius:100px; padding:8px 20px;
-  font-size:12px; font-weight:600;
-  cursor:pointer; transition:transform 0.15s;
-  align-self:center; min-width:160px; max-width:260px; width:fit-content; text-align:center;
+/* ── TOOLBAR ── */
+.toolbar {
+  background: #1e2a3e;
+  border-bottom: 1px solid #2d3a50;
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
-.process-node:hover { transform:scale(1.02); }
-.process-node.api { background:#0c4a6e; color:#7dd3fc; border:1px solid #0369a1; }
-.process-node.email { background:#1e3a1e; color:#86efac; }
-.process-node.ocr { background:#1c1917; color:#fde68a; }
-
-/* CONNECTOR */
-.connector { width:2px; height:24px; background:#94a3b8; margin:0 auto; position:relative; }
-.connector-label {
-  position:absolute; left:10px; top:50%; transform:translateY(-50%);
-  font-size:10px; color:var(--muted); white-space:nowrap; background:var(--bg);
-  padding:1px 6px; border-radius:4px; border:1px solid var(--border);
+.toolbar-label { font-size: 11px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 4px; }
+.filter-btn {
+  padding: 4px 12px; border-radius: 16px; border: 1px solid;
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  background: transparent;
 }
-.connector.dashed { background:repeating-linear-gradient(to bottom,#94a3b8 0,#94a3b8 4px,transparent 4px,transparent 8px); }
+.filter-btn.erp { border-color: var(--erp-border); color: #93c5fd; }
+.filter-btn.api { border-color: var(--api-border); color: #5eead4; }
+.filter-btn.ia  { border-color: var(--ia-border);  color: #fdba74; }
+.filter-btn.all { border-color: #475569; color: #94a3b8; }
+.filter-btn.active.erp { background: rgba(59,130,246,0.15); }
+.filter-btn.active.api { background: rgba(20,184,166,0.15); }
+.filter-btn.active.ia  { background: rgba(249,115,22,0.15); }
+.filter-btn.active.all { background: rgba(71,85,105,0.2); }
 
-/* DECISION DIAMOND */
-.decision-wrap { display:flex; flex-direction:column; align-items:center; width:100%; }
-.decision-diamond {
-  width:140px; height:50px; background:#1e293b; color:#f1f5f9;
-  clip-path:polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-  display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:700; text-align:center;
-  cursor:default;
+.sep { width: 1px; height: 20px; background: #2d3a50; margin: 0 4px; }
+.status-filters { display: flex; gap: 6px; margin-left: auto; }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.status-dot.active  { background: var(--active); }
+.status-dot.partial { background: var(--partial); }
+.status-dot.pending { background: var(--pending); }
+
+/* ── DIAGRAM WRAPPER ── */
+.diagram-wrapper {
+  height: 56vh;
+  min-height: 360px;
+  flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  padding: 24px 20px;
 }
-.decision-branches { display:flex; gap:16px; justify-content:center; width:100%; padding:0 8px; }
-.branch { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
-.branch:not(:first-child) { border-left: 1px dashed rgba(0,0,0,0.12); padding-left: 8px; }
-.branch:not(:last-child)  { padding-right: 8px; }
-.branch-label {
-  font-size:11px; font-weight:700; padding:3px 10px; border-radius:8px;
-  margin-bottom:0; text-align:center; white-space:nowrap;
+
+/* ── DIAGRAM ── */
+.diagram {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  min-width: max-content;
 }
-.branch-label.yes { background:rgba(22,163,74,0.1); color:#15803d; border:1px solid rgba(22,163,74,0.3); }
-.branch-label.no  { background:rgba(220,38,38,0.1);  color:#b91c1c; border:1px solid rgba(220,38,38,0.3); }
-.branch-label.alt { background:rgba(59,130,246,0.1);  color:#1d4ed8; border:1px solid rgba(59,130,246,0.3); }
 
-/* END NODE */
-.end-node {
-  display:flex; align-items:center; justify-content:center; gap:8px;
-  border-radius:100px; padding:8px 20px; font-size:12px; font-weight:700;
-  min-width:120px; border:2px solid;
+/* ── LANE LABELS ── */
+.lane-labels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  flex-shrink: 0;
+  padding-top: 38px; /* align with cards, after column headers */
+  margin-right: 12px;
 }
-.end-node.success { background:rgba(22,163,74,0.08); border-color:#16a34a; color:#15803d; }
-.end-node.failure { background:rgba(220,38,38,0.08); border-color:#dc2626; color:#b91c1c; }
-.end-node.neutral { background:rgba(100,116,139,0.08); border-color:#64748b; color:#475569; }
-
-/* SUBINFO BOX */
-.subinfo-box {
-  width:100%; background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.15);
-  border-radius:8px; padding:8px 12px; display:flex; flex-wrap:wrap; gap:6px;
-  align-items:center;
+.lane-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--lane-label-w);
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  writing-mode: vertical-lr;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  flex-shrink: 0;
 }
-.subinfo-label { font-size:10px; font-weight:700; color:#1d4ed8; margin-right:4px; text-transform:uppercase; letter-spacing:0.06em; }
-.subinfo-item { font-size:11px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.2); border-radius:6px; padding:2px 8px; color:#1d4ed8; font-weight:600; }
+.lane-label.erp { background: var(--erp-bg); color: var(--erp-color); border: 1px solid var(--erp-border); height: 200px; }
+.lane-label.api { background: var(--api-bg); color: var(--api-color); border: 1px solid var(--api-border); height: 130px; }
+.lane-label.ia  { background: var(--ia-bg);  color: var(--ia-color);  border: 1px solid var(--ia-border);  height: 130px; }
 
-/* PARALLEL PATHS (two modules side by side) */
-.parallel-wrap { display:flex; gap:12px; width:100%; justify-content:center; }
-.parallel-branch { display:flex; flex-direction:column; align-items:center; flex:1; min-width:0; }
-
-/* SECTION DIVIDER */
-.section-div {
-  width:100%; max-width:480px; display:flex; align-items:center; gap:10px;
-  margin:4px 0;
+/* ── COLUMNS AREA ── */
+.columns-area {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
 }
-.section-div .section-line { flex:1; height:1px; background:var(--border); }
-.section-div .section-text { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; white-space:nowrap; }
 
-/* MODULE COLORS applied via JS */
-.mod-lineas      { border-color:#0e7490;               }
-.mod-lineas      .module-badge { background:#0e7490;   }
-.mod-disposicion { border-color:#6b5a2e;               }
-.mod-disposicion .module-badge { background:#6b5a2e;   }
-.mod-datos_fin   { border-color:#0891b2;               }
-.mod-datos_fin   .module-badge { background:#0891b2;   }
-.mod-proformas   { border-color:var(--c-proformas);   }
-.mod-proformas   .module-badge { background:var(--c-proformas); }
-.mod-ofertas     { border-color:var(--c-ofertas);     }
-.mod-ofertas     .module-badge { background:var(--c-ofertas); }
-.mod-riesgos     { border-color:var(--c-riesgos);     }
-.mod-riesgos     .module-badge { background:var(--c-riesgos); }
-.mod-contrato    { border-color:var(--c-contrato);    }
-.mod-contrato    .module-badge { background:var(--c-contrato); }
-.mod-pedidos     { border-color:var(--c-pedidos);     }
-.mod-pedidos     .module-badge { background:var(--c-pedidos); }
-.mod-carga       { border-color:var(--c-carga);       }
-.mod-carga       .module-badge { background:var(--c-carga); }
-.mod-entregas    { border-color:var(--c-entregas);    }
-.mod-entregas    .module-badge { background:var(--c-entregas); }
-.mod-seguros     { border-color:var(--c-seguros);     }
-.mod-seguros     .module-badge { background:var(--c-seguros); }
-.mod-facturacion { border-color:var(--c-facturacion); }
-.mod-facturacion .module-badge { background:var(--c-facturacion); }
-.mod-devolucion  { border-color:var(--c-devolucion);  }
-.mod-devolucion  .module-badge { background:var(--c-devolucion); }
-.mod-vo          { border-color:var(--c-vo);          }
-.mod-vo          .module-badge { background:var(--c-vo); }
-.mod-contabilidad{ border-color:var(--c-contabilidad);}
-.mod-contabilidad.module-badge { background:var(--c-contabilidad); }
+/* ── COLUMN ── */
+.flow-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: opacity 0.2s;
+}
+.flow-column.dimmed { opacity: 0.25; }
 
-/* MODAL */
-.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
-.modal-overlay.open { display:flex; }
-.modal { background:#fff; border-radius:14px; width:520px; max-width:90vw; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); }
-.modal-head { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; background:#fff; border-radius:14px 14px 0 0; }
-.modal-head h2 { font-size:15px; font-weight:700; }
-.modal-close { width:28px; height:28px; border-radius:7px; border:1px solid var(--border); background:transparent; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; color:var(--muted); }
-.modal-close:hover { background:#fee2e2; color:#dc2626; border-color:#fca5a5; }
-.modal-body { padding:16px 20px; }
-.modal-section { margin-bottom:16px; }
-.modal-section-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:8px; }
-.modal-table-row { display:flex; align-items:center; gap:8px; padding:5px 10px; border-radius:6px; background:#f8fafc; border:1px solid var(--border); margin-bottom:4px; }
-.modal-table-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.modal-table-name { font-family:'Consolas',monospace; font-size:12px; flex:1; }
-.modal-table-fields { font-size:11px; color:var(--muted); }
-.modal-table-s { font-size:10px; padding:1px 6px; border-radius:8px; font-weight:600; }
-.modal-table-s.active  { background:rgba(22,163,74,0.1); color:#15803d; }
-.modal-table-s.partial { background:rgba(217,119,6,0.1); color:#b45309; }
-.modal-table-s.pending { background:rgba(156,163,175,0.1); color:#6b7280; }
-.modal-note { font-size:12px; color:#374151; line-height:1.6; padding:10px; background:#f8fafc; border-radius:8px; border:1px solid var(--border); }
-.pending-item { font-size:11px; color:#b91c1c; padding:5px 10px; background:rgba(239,68,68,0.05); border:1px solid rgba(239,68,68,0.15); border-radius:6px; margin-bottom:4px; }
+/* ── COLUMN HEADER ── */
+.col-header {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: var(--gap);
+  margin-right: var(--gap);
+  width: var(--col-width);
+  gap: 6px;
+  letter-spacing: -0.1px;
+}
+.col-header .step-num {
+  background: var(--header-bg);
+  color: #e2e8f0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-/* Legend */
-.legend { background:var(--surface); border-top:1px solid var(--border); padding:10px 24px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; flex-shrink:0; }
-.legend-item { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
-.legend-sq { width:12px; height:12px; border-radius:3px; border:2px solid; }
-.legend-dot { width:8px; height:8px; border-radius:50%; }
+/* ── CARD ROW (card + connector/arrow) ── */
+.card-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--gap);
+}
+
+/* ── CARD ── */
+.card {
+  width: var(--col-width);
+  border-radius: 10px;
+  border: 2px solid;
+  background: var(--card-bg);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+  flex-shrink: 0;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+  z-index: 10;
+}
+.card.erp { border-color: var(--erp-border); }
+.card.api { border-color: var(--api-border); }
+.card.ia  { border-color: var(--ia-border); }
+
+.card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.card-badge.erp { background: var(--erp-color); color: #ffffff; }
+.card-badge.api { background: var(--api-color); color: #ffffff; }
+.card-badge.ia  { background: var(--ia-color);  color: #ffffff; }
+
+.card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.card-field {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'Consolas', 'Courier New', monospace;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.card-field.table-name { color: #475569; font-weight: 600; }
+.card-field.note { color: #94a3b8; font-style: italic; font-family: inherit; }
+
+.status-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-indicator.active  { background: var(--active); }
+.status-indicator.partial { background: var(--partial); }
+.status-indicator.pending { background: var(--pending); }
+
+/* ── HORIZONTAL ARROW ── */
+.h-arrow {
+  display: flex;
+  align-items: center;
+  width: var(--gap);
+  flex-shrink: 0;
+  position: relative;
+}
+.h-arrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 4px;
+  height: 2px;
+  background: var(--arrow);
+}
+.h-arrow::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid var(--arrow);
+}
+.h-arrow.last { visibility: hidden; }
+
+/* ── VERTICAL CONNECTOR ── */
+.v-connector {
+  width: var(--col-width);
+  margin-right: var(--gap);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.v-line {
+  height: 18px;
+  width: 1.5px;
+}
+.v-line.api { background: repeating-linear-gradient(to bottom, var(--api-border) 0, var(--api-border) 4px, transparent 4px, transparent 8px); }
+.v-line.ia  { background: repeating-linear-gradient(to bottom, var(--ia-border) 0, var(--ia-border) 4px, transparent 4px, transparent 8px); }
+.v-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.v-dot.api { background: var(--api-border); }
+.v-dot.ia  { background: var(--ia-border); }
+
+/* ── PRIORITY BADGE (inside AI cards) ── */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+.priority-badge.quick-win { background: rgba(22,163,74,0.1); color: #15803d; border: 1px solid rgba(22,163,74,0.3); }
+.priority-badge.core      { background: rgba(99,102,241,0.1); color: #4338ca; border: 1px solid rgba(99,102,241,0.3); }
+.priority-badge.diferencial { background: rgba(234,88,12,0.1); color: #c2410c; border: 1px solid rgba(234,88,12,0.3); }
+
+/* ── LEGEND ── */
+.legend {
+  background: var(--card-bg);
+  border-top: 1px solid #e2e8f0;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+.legend-box {
+  width: 14px; height: 14px; border-radius: 3px; border: 2px solid; flex-shrink: 0;
+}
+.legend-box.erp { border-color: var(--erp-border); background: var(--erp-bg); }
+.legend-box.api { border-color: var(--api-border); background: var(--api-bg); }
+.legend-box.ia  { border-color: var(--ia-border);  background: var(--ia-bg); }
+.legend-arrow { display: flex; align-items: center; gap: 6px; }
+.legend-line {
+  width: 32px; height: 2px;
+}
+.legend-line.solid { background: var(--arrow); }
+.legend-line.dashed { background: repeating-linear-gradient(to right, var(--api-border) 0, var(--api-border) 5px, transparent 5px, transparent 9px); }
+.legend-sep { color: #e2e8f0; }
+.legend-footer { margin-left: auto; font-size: 10px; color: #cbd5e1; font-style: italic; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #ffffff;
+  border-radius: 14px;
+  width: 560px;
+  max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-radius: 14px 14px 0 0;
+  z-index: 1;
+}
+.modal-header h2 { font-size: 16px; font-weight: 700; color: var(--text); }
+.modal-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 5px; text-transform: uppercase; letter-spacing: 0.08em; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 7px; border: 1px solid #e2e8f0;
+  background: transparent; cursor: pointer; font-size: 16px; display: flex;
+  align-items: center; justify-content: center; color: var(--muted); flex-shrink: 0;
+}
+.modal-close:hover { background: #fee2e2; border-color: #fca5a5; color: #dc2626; }
+.modal-body { padding: 18px 22px; }
+
+.modal-section { margin-bottom: 18px; }
+.modal-section-title {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--muted); margin-bottom: 8px;
+}
+.modal-table-grid {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.modal-table-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 6px; background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+.modal-table-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.modal-table-name { font-family: 'Consolas', monospace; font-size: 12px; color: var(--text); flex: 1; }
+.modal-table-fields { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.modal-table-status { font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
+.modal-table-status.active  { background: rgba(22,163,74,0.1); color: #15803d; }
+.modal-table-status.partial { background: rgba(217,119,6,0.1);  color: #b45309; }
+.modal-table-status.pending { background: rgba(156,163,175,0.1); color: #6b7280; }
+
+.modal-api-card {
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--api-bg); border: 1px solid var(--api-border);
+  margin-bottom: 6px;
+}
+.modal-api-name { font-weight: 700; font-size: 13px; color: var(--api-color); }
+.modal-api-desc { font-size: 11px; color: #374151; margin-top: 3px; }
+.modal-api-trigger { font-size: 10px; color: #6b7280; margin-top: 3px; font-style: italic; }
+
+.modal-ai-card {
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--ia-bg); border: 1px solid var(--ia-border);
+  margin-bottom: 6px;
+}
+.modal-ai-name { font-weight: 700; font-size: 13px; color: var(--ia-color); }
+.modal-ai-tech { font-size: 11px; color: #374151; margin-top: 3px; }
+.modal-ai-benefit { font-size: 10px; color: #6b7280; margin-top: 3px; font-style: italic; }
+
+.modal-pending-list { display: flex; flex-direction: column; gap: 4px; }
+.modal-pending-item {
+  padding: 5px 10px; border-radius: 6px; font-size: 11px;
+  background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.15);
+  color: #b91c1c;
+}
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  margin-bottom: 16px;
+}
+.stat-box {
+  padding: 10px; border-radius: 8px; background: #f8fafc;
+  border: 1px solid #e2e8f0; text-align: center;
+}
+.stat-box .sv { font-size: 20px; font-weight: 700; color: var(--text); }
+.stat-box .sl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 2px; }
 
 /* scrollbar */
-.flow-area::-webkit-scrollbar { width:6px; }
-.flow-area::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
-.modal::-webkit-scrollbar { width:5px; }
-.modal::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:3px; }
-.tabs::-webkit-scrollbar { height:4px; }
-.tabs::-webkit-scrollbar-thumb { background:#475569; border-radius:2px; }
+.diagram-wrapper::-webkit-scrollbar { height: 8px; width: 8px; }
+.diagram-wrapper::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 4px; }
+.diagram-wrapper::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+.modal::-webkit-scrollbar { width: 6px; }
+.modal::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* highlight on filter */
+.card.highlighted { box-shadow: 0 0 0 3px #fbbf24; }
+
+/* ── FLOWS SECTION ── */
+.fs-section { background: #f8fafc; margin-top: 64px; border-top: 4px solid #1a2744; }
+.fs-section-divider {
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px; margin-bottom: -1px; position: relative; top: -1px;
+}
+.fs-section-divider::before,
+.fs-section-divider::after {
+  content: ''; flex: 1; height: 1px; background: #e2e8f0;
+}
+.fs-section-head {
+  background: #1a2744; padding: 20px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.fs-section-head h2 { color: #f1f5f9; font-size: 16px; font-weight: 700; }
+.fs-section-head p  { color: #94a3b8; font-size: 11px; margin-top: 3px; }
+.fs-tabs {
+  background: #1e2a3e; border-bottom: 1px solid #2d3a50;
+  display: flex; gap: 4px; padding: 10px 24px 0; overflow-x: auto;
+}
+.fs-tab {
+  padding: 7px 16px; border-radius: 8px 8px 0 0; border: 1px solid transparent;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+  color: #94a3b8; background: transparent; white-space: nowrap;
+}
+.fs-tab:hover { color: #e2e8f0; }
+.fs-tab.active { background: #f8fafc; color: #1e293b; border-color: #e2e8f0; border-bottom-color: #f8fafc; }
+.fs-tab .fs-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 6px; }
+.fs-panels { padding: 40px 24px 48px; overflow-x: auto; }
+.fs-panel { display: none; }
+.fs-panel.active { display: block; }
+.fs-flow-header { margin-bottom: 20px; max-width: 920px; margin-left: auto; margin-right: auto; }
+.fs-flow-header h3 { font-size: 16px; font-weight: 700; color: #1e293b; }
+.fs-flow-header p  { font-size: 12px; color: #64748b; margin-top: 3px; }
+.fs-badges { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+.fs-badge { font-size: 10px; font-weight: 600; padding: 2px 9px; border-radius: 10px; border: 1px solid; }
+.fs-diagram { display: flex; flex-direction: column; align-items: center; max-width: 920px; margin: 0 auto; gap: 0; }
+.fs-node { width: 100%; max-width: 480px; }
+/* module card */
+.fs-mod {
+  border-radius: 10px; border: 2px solid; padding: 11px 15px;
+  background: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative;
+}
+.fs-mod:hover { transform: translateY(-2px); box-shadow: 0 5px 18px rgba(0,0,0,0.1); }
+.fs-mod-badge { display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 4px; color: #fff; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; }
+.fs-mod-name  { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.fs-mod-state { font-size: 11px; color: #64748b; }
+.fs-mod-tags  { margin-top: 7px; display: flex; flex-wrap: wrap; gap: 4px; }
+.fs-mod-tag   { font-size: 10px; padding: 1px 6px; border-radius: 6px; background: rgba(0,0,0,0.05); color: #64748b; }
+.fs-dot-status { position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; }
+.fs-dot-status.active  { background: #16a34a; }
+.fs-dot-status.partial { background: #d97706; }
+.fs-dot-status.pending { background: #9ca3af; }
+/* connector */
+.fs-conn { width: 2px; height: 24px; background: #94a3b8; margin: 0 auto; position: relative; }
+.fs-conn-lbl { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 10px; color: #64748b; white-space: nowrap; background: #f8fafc; padding: 1px 5px; border-radius: 4px; border: 1px solid #e2e8f0; }
+/* process oval */
+.fs-proc {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  border-radius: 100px; padding: 7px 18px; font-size: 11px; font-weight: 600;
+  cursor: default; align-self: center; min-width: 140px; max-width: 260px; text-align: center;
+  width: fit-content;
+}
+.fs-proc.process { background: #1e293b; color: #e2e8f0; }
+.fs-proc.api     { background: #0c4a6e; color: #7dd3fc; border: 1px solid #0369a1; }
+.fs-proc.email   { background: #14532d; color: #86efac; }
+.fs-proc.ocr     { background: #1c1917; color: #fde68a; }
+/* decision + branches */
+.fs-diamond { width: 130px; height: 46px; background: #1e293b; color: #f1f5f9; clip-path: polygon(50% 0%,100% 50%,50% 100%,0% 50%); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; text-align: center; }
+.fs-branches { display: flex; gap: 14px; justify-content: center; width: 100%; padding: 0 6px; }
+.fs-branch   { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+.fs-branch:not(:first-child) { border-left: 1px dashed rgba(0,0,0,0.12); padding-left: 8px; }
+.fs-branch:not(:last-child)  { padding-right: 8px; }
+.fs-blabel   { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 8px; text-align: center; white-space: nowrap; }
+.fs-blabel.yes { background: rgba(22,163,74,.1); color: #15803d; border: 1px solid rgba(22,163,74,.3); }
+.fs-blabel.no  { background: rgba(220,38,38,.1); color: #b91c1c; border: 1px solid rgba(220,38,38,.3); }
+.fs-blabel.alt { background: rgba(59,130,246,.1); color: #1d4ed8; border: 1px solid rgba(59,130,246,.3); }
+/* parallel */
+.fs-parallel { display: flex; gap: 12px; width: 100%; justify-content: center; }
+.fs-par-col  { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; }
+/* subinfo */
+.fs-subinfo { width: 100%; max-width: 480px; background: rgba(59,130,246,.04); border: 1px solid rgba(59,130,246,.15); border-radius: 8px; padding: 7px 11px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.fs-subinfo-lbl  { font-size: 10px; font-weight: 700; color: #1d4ed8; text-transform: uppercase; letter-spacing: .06em; margin-right: 3px; }
+.fs-subinfo-item { font-size: 10px; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); border-radius: 5px; padding: 2px 7px; color: #1d4ed8; font-weight: 600; }
+/* end node */
+.fs-end { display: flex; align-items: center; justify-content: center; gap: 7px; border-radius: 100px; padding: 7px 18px; font-size: 12px; font-weight: 700; border: 2px solid; }
+.fs-end.success { background: rgba(22,163,74,.07); border-color: #16a34a; color: #15803d; }
+.fs-end.failure { background: rgba(220,38,38,.07); border-color: #dc2626; color: #b91c1c; }
+.fs-end.neutral { background: rgba(100,116,139,.07); border-color: #64748b; color: #475569; }
+/* pending banner */
+.fs-pending-banner { width: 100%; max-width: 480px; background: rgba(239,68,68,.05); border: 1px solid rgba(239,68,68,.2); border-radius: 8px; padding: 9px 13px; font-size: 12px; color: #b91c1c; display: flex; align-items: center; gap: 8px; }
+/* flow link shortcut */
+/* ── COLLAPSIBLE SECTIONS ── */
+.sec-content { overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1); }
+.sec-toggle {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 8px;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 11px;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+.sec-toggle:hover { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+
+/* ── MODULE CATALOG — pending card style ── */
+.card.mod-grey { border-color: #d1d5db; background: #f9fafb; }
+.card.mod-grey .card-badge { background: #9ca3af; color: #fff; }
+.card.mod-grey .card-title { color: #9ca3af; }
+.card.mod-grey .card-field  { color: #c4c9d4; }
+
+/* ── MODULE CATALOG SECTION ── */
+.mc-section { background: #f0ede8; border-top: 4px solid #2d3a50; }
+.mc-head { background: #1e2a3e; border-bottom: 1px solid #2d3a50; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; }
+.mc-head h2 { color: #f1f5f9; font-size: 16px; font-weight: 700; }
+.mc-head p  { color: #94a3b8; font-size: 11px; margin-top: 3px; }
+.mc-wrapper { overflow-x: auto; overflow-y: visible; padding: 24px 20px; }
+.mc-inner { display: flex; gap: 0; align-items: flex-start; min-width: max-content; }
+.mc-group { display: flex; align-items: stretch; margin-right: 20px; flex-shrink: 0; }
+.mc-group:last-child { margin-right: 0; }
+.mc-cat-label { writing-mode: vertical-lr; transform: rotate(180deg); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; border-radius: 6px; padding: 10px 5px; white-space: nowrap; width: 22px; display: flex; align-items: center; justify-content: center; margin-top: 46px; margin-right: var(--gap); flex-shrink: 0; }
+.mc-modules { display: flex; gap: 0; align-items: flex-start; }
+.fs-flowlink { display: inline-flex; align-items: center; gap: 5px; background: rgba(55,65,81,.07); border: 1.5px solid #374151; border-radius: 100px; padding: 5px 16px; font-size: 11px; font-weight: 700; color: #374151; cursor: pointer; transition: all .15s; }
+/* module colors */
+.fsm-proformas   { border-color: #7c3aed; } .fsm-proformas   .fs-mod-badge { background: #7c3aed; }
+.fsm-ofertas     { border-color: #1d4ed8; } .fsm-ofertas     .fs-mod-badge { background: #1d4ed8; }
+.fsm-riesgos     { border-color: #374151; } .fsm-riesgos     .fs-mod-badge { background: #374151; }
+.fsm-contrato    { border-color: #0f766e; } .fsm-contrato    .fs-mod-badge { background: #0f766e; }
+.fsm-pedidos     { border-color: #b91c1c; } .fsm-pedidos     .fs-mod-badge { background: #b91c1c; }
+.fsm-carga       { border-color: #92400e; } .fsm-carga       .fs-mod-badge { background: #92400e; }
+.fsm-entregas    { border-color: #a16207; } .fsm-entregas    .fs-mod-badge { background: #a16207; }
+.fsm-seguros     { border-color: #be185d; } .fsm-seguros     .fs-mod-badge { background: #be185d; }
+.fsm-facturacion { border-color: #15803d; } .fsm-facturacion .fs-mod-badge { background: #15803d; }
+.fsm-devolucion  { border-color: #6d28d9; } .fsm-devolucion  .fs-mod-badge { background: #6d28d9; }
+.fsm-vo          { border-color: #b45309; } .fsm-vo          .fs-mod-badge { background: #b45309; }
+.fsm-contabilidad{ border-color: #0369a1; } .fsm-contabilidad .fs-mod-badge { background: #0369a1; }
+.fsm-lineas      { border-color: #0e7490; } .fsm-lineas      .fs-mod-badge { background: #0e7490; }
+.fsm-disposicion { border-color: #6b5a2e; } .fsm-disposicion .fs-mod-badge { background: #6b5a2e; }
+.fsm-datos_fin   { border-color: #0891b2; } .fsm-datos_fin   .fs-mod-badge { background: #0891b2; }
+.fsm-mant        { border-color: #166534; } .fsm-mant        .fs-mod-badge { background: #166534; }
+.fsm-residuales  { border-color: #92400e; } .fsm-residuales  .fs-mod-badge { background: #78350f; }
+.fsm-gestoria    { border-color: #4338ca; } .fsm-gestoria    .fs-mod-badge { background: #4338ca; }
+.fs-tabs::-webkit-scrollbar { height: 3px; }
+.fs-tabs::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
 
 /* ── RESPONSIVE MOBILE ── */
 @media (max-width: 768px) {
-  .header { padding:10px 14px; flex-wrap:wrap; gap:6px; }
-  .header h1 { font-size:14px; }
-  .nav-back { display:none; }
+  /* Reduce card width slightly so more fits in scroll view */
+  :root { --col-width: 175px; }
 
-  .tabs { padding:8px 12px 0; gap:3px; }
-  .tab  { font-size:10px; padding:6px 10px; }
+  /* ── Header ── */
+  .page-header { padding: 10px 14px; flex-wrap: wrap; gap: 4px; }
+  .page-header h1 { font-size: 14px; }
+  .page-header .subtitle { font-size: 10px; }
+  .page-header .meta { font-size: 10px; }
 
-  .flow-area { padding:16px 12px; }
-  .flow-panel { max-width:100%; }
-  .step-node  { max-width:100%; }
+  /* ── Toolbar — horizontal scroll, hide secondary elements ── */
+  .toolbar { padding: 6px 12px; gap: 6px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; }
+  .toolbar-label { display: none; }
+  .status-filters { display: none; }
+  .toolbar > .sep { display: none; }
+  .toolbar > span { display: none; } /* hide hint text */
+  .sec-toggle { font-size: 10px; padding: 4px 8px; white-space: nowrap; flex-shrink: 0; }
 
-  /* Stack branch columns vertically */
-  .decision-branches { flex-direction:column; gap:0; padding:0; }
-  .branch { width:100%; flex:none; border-left:none !important; padding-left:0 !important; padding-right:0 !important; border-top:1px dashed rgba(0,0,0,0.12); padding-top:10px; margin-top:4px; }
-  .branch:first-child { border-top:none; padding-top:0; margin-top:0; }
-  .branch-label { margin-bottom:8px; }
+  /* ── Architecture diagram ── */
+  .diagram-wrapper { height: 44vh; min-height: 200px; }
 
-  /* Stack parallel paths */
-  .parallel-wrap { flex-direction:column; gap:0; }
-  .parallel-branch { width:100%; flex:none; border-top:1px dashed rgba(0,0,0,0.08); padding-top:8px; margin-top:4px; }
-  .parallel-branch:first-child { border-top:none; padding-top:0; margin-top:0; }
+  /* ── Legend — wrap items ── */
+  .legend { flex-wrap: wrap; gap: 8px 14px; padding: 10px 14px; }
+  .legend-footer { width: 100%; text-align: left; margin-top: 2px; }
 
-  .legend { padding:8px 12px; gap:8px; }
-  .legend-item[style*="margin-left:auto"] { margin-left:0 !important; width:100%; }
+  /* ── Module catalog ── */
+  .mc-head { padding: 12px 14px; flex-direction: column; gap: 8px; align-items: flex-start; }
+  .mc-head h2 { font-size: 14px; }
+  .mc-head p  { font-size: 10px; }
+  .mc-wrapper { padding: 16px 12px; }
+
+  /* ── Flows section header ── */
+  .fs-section-head { padding: 12px 14px; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .fs-section-head h2 { font-size: 14px; }
+
+  /* Tabs — scroll horizontally, no wrap, hide scrollbar ── */
+  .fs-tabs { padding: 8px 12px 0; gap: 4px; overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .fs-tabs::-webkit-scrollbar { display: none; }
+  .fs-tab  { font-size: 10px; padding: 5px 10px; white-space: nowrap; flex-shrink: 0; }
+  .toolbar::-webkit-scrollbar { display: none; }
+  .toolbar { scrollbar-width: none; }
+
+  .fs-panels { padding: 14px 12px; }
+  .fs-diagram { max-width: 100%; }
+  .fs-node    { max-width: 100%; }
+
+  /* ── Flow branches — stack vertically ── */
+  .fs-branches { flex-direction: column; gap: 0; padding: 0; }
+  .fs-branch { width: 100%; flex: none; border-left: none !important; padding-left: 0 !important; padding-right: 0 !important; border-top: 1px dashed rgba(0,0,0,0.12); padding-top: 10px; margin-top: 4px; }
+  .fs-branch:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  .fs-blabel { margin-bottom: 8px; }
+
+  /* ── Parallel paths — stack vertically ── */
+  .fs-parallel { flex-direction: column; gap: 0; }
+  .fs-par-col  { width: 100%; flex: none; border-top: 1px dashed rgba(0,0,0,0.08); padding-top: 8px; margin-top: 4px; }
+  .fs-par-col:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+
+  /* ── Modal ── */
+  .modal { width: 96vw; max-height: 88vh; border-radius: 10px; }
+  .modal-header { padding: 14px 16px; }
+  .modal-body   { padding: 14px 16px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
+<!-- HEADER -->
+<div class="page-header">
   <div>
-    <h1>ENDURAN — Flujos de Proceso</h1>
-    <div class="subtitle">Diagrama de estados y transiciones por flujo de negocio</div>
+    <h1>ENDURAN — Proceso de Renting: Flujo Completo</h1>
+    <div class="subtitle">De la oferta a la devolución · Todos los módulos, integraciones y agentes IA</div>
   </div>
-  <a class="nav-back" href="index.html">← Vista general</a>
+  <div class="meta">
+    <strong>Mayo 2026</strong>
+    Arquitectura orientativa
+  </div>
 </div>
 
-<div class="tabs" id="tabs"></div>
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span class="toolbar-label">Ver</span>
+  <button class="filter-btn all active" onclick="toggleLayer('all')">Todos</button>
+  <button class="filter-btn erp active" id="btn-erp" onclick="toggleLayer('erp')">Módulos ERP</button>
+  <button class="filter-btn api active" id="btn-api" onclick="toggleLayer('api')">APIs Externas</button>
+  <button class="filter-btn ia  active" id="btn-ia"  onclick="toggleLayer('ia')">Agentes IA</button>
+  <div class="sep"></div>
+  <span class="toolbar-label">Estado</span>
+  <div class="status-filters">
+    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot active"></span>Implementado (6)</span>
+    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot partial"></span>Parcial (2)</span>
+    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot pending"></span>Pendiente (2)</span>
+  </div>
+  <div class="sep"></div>
+  <span style="font-size:11px;color:#64748b">Clic en cualquier tarjeta para ver detalles completos</span>
+  <div class="sep"></div>
+  <button class="sec-toggle" id="toggle-arch" onclick="toggleSection('sec-arch','toggle-arch')" title="Colapsar/Expandir">▼ Arquitectura</button>
+</div>
 
-<div class="flow-area" id="flow-area"></div>
+<!-- DIAGRAM -->
+<div id="sec-arch" class="sec-content">
+<div class="diagram-wrapper">
+  <div class="diagram" id="diagram">
 
+    <!-- LANE LABELS -->
+    <div class="lane-labels">
+      <div class="lane-label erp">MÓDULO ERP</div>
+      <div class="lane-label api">API EXTERNA</div>
+      <div class="lane-label ia">AGENTE IA</div>
+    </div>
+
+    <!-- COLUMNS rendered by JS -->
+    <div class="columns-area" id="columns-area"></div>
+
+  </div>
+</div>
+
+<!-- LEGEND -->
 <div class="legend">
-  <div class="legend-item"><div class="legend-sq" style="border-color:#16a34a;background:rgba(22,163,74,0.1)"></div>Implementado</div>
-  <div class="legend-item"><div class="legend-sq" style="border-color:#d97706;background:rgba(217,119,6,0.1)"></div>Parcial</div>
-  <div class="legend-item"><div class="legend-sq" style="border-color:#9ca3af;background:rgba(156,163,175,0.1)"></div>Pendiente</div>
-  <div style="width:1px;height:16px;background:var(--border)"></div>
-  <div class="legend-item"><div style="width:32px;height:2px;background:#94a3b8"></div> Flujo</div>
-  <div class="legend-item"><div style="width:32px;height:2px;background:repeating-linear-gradient(to right,#94a3b8 0,#94a3b8 4px,transparent 4px,transparent 8px)"></div> Condicional</div>
-  <div style="width:1px;height:16px;background:var(--border)"></div>
-  <div class="legend-item" style="margin-left:auto;color:#94a3b8;font-size:11px;font-style:italic">Clic en cualquier tarjeta para ver detalles</div>
+  <div class="legend-item"><div class="legend-box erp"></div> Módulo ERP</div>
+  <div class="legend-item"><div class="legend-box api"></div> API externa</div>
+  <div class="legend-item"><div class="legend-box ia"></div>  Agente IA</div>
+  <div class="sep" style="height:16px;background:#e2e8f0;width:1px"></div>
+  <div class="legend-item legend-arrow">
+    <div class="legend-line solid"></div>
+    <span>Flujo principal</span>
+  </div>
+  <div class="legend-item legend-arrow">
+    <div class="legend-line dashed"></div>
+    <span>Integración API</span>
+  </div>
+  <div class="sep" style="height:16px;background:#e2e8f0;width:1px"></div>
+  <div class="legend-item"><span class="status-dot active"></span>Implementado</div>
+  <div class="legend-item"><span class="status-dot partial"></span>Parcial</div>
+  <div class="legend-item"><span class="status-dot pending"></span>Pendiente</div>
+  <div class="legend-footer">Documento confidencial · Uso interno · ENDURAN</div>
+</div>
+</div><!-- /sec-arch -->
+
+<!-- MODULE CATALOG SECTION -->
+<div class="mc-section">
+  <div class="mc-head">
+    <div>
+      <h2>Módulos del ERP — Vista por Módulo</h2>
+      <p>Todos los módulos individuales &nbsp;·&nbsp; API externa &nbsp;·&nbsp; Automatización IA &nbsp;·&nbsp; Desplázate horizontalmente para ver todos los módulos</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
+        10 áreas &nbsp;·&nbsp; 61 módulos
+      </div>
+      <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
+    </div>
+  </div>
+  <div id="sec-mc" class="sec-content">
+  <div class="mc-wrapper">
+    <div class="mc-inner" id="mc-columns-area"></div>
+  </div>
+  </div><!-- /sec-mc -->
+</div>
+
+<!-- FLOWS SECTION -->
+<div class="fs-section">
+  <div class="fs-section-head">
+    <div>
+      <h2>Flujos de Proceso Detallados</h2>
+      <p>Estados, transiciones y decisiones por flujo de negocio &nbsp;·&nbsp; Clic en cualquier tarjeta para ver detalles del módulo</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:11px;color:#475569;background:#1e2a3e;padding:4px 12px;border-radius:6px;border:1px solid #2d3a50;">
+        5 flujos &nbsp;·&nbsp; 20+ módulos
+      </div>
+      <button class="sec-toggle" id="toggle-flows" onclick="toggleSection('sec-flows','toggle-flows')" title="Colapsar/Expandir">▼ Flujos</button>
+    </div>
+  </div>
+  <div id="sec-flows" class="sec-content">
+    <div class="fs-tabs" id="fs-tabs"></div>
+    <div class="fs-panels" id="fs-panels"></div>
+  </div>
 </div>
 
 <!-- MODAL -->
-<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-  <div class="modal">
-    <div class="modal-head">
-      <h2 id="modal-title"></h2>
-      <button class="modal-close" onclick="closeModal()">×</button>
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="modal-badge" class="modal-badge"></span>
+        <h2 id="modal-title"></h2>
+      </div>
+      <button class="modal-close" onclick="closeModalDirect()">×</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
   </div>
@@ -297,781 +815,1510 @@ body { font-family:'Segoe UI',-apple-system,system-ui,sans-serif; background:var
 
 <script>
 // ══════════════════════════════════════════
-// FLOW DATA
+// DATA
 // ══════════════════════════════════════════
-
-const moduleDetails = {
-  proformas: {
-    tables: [
-      {name:'proformas_vn', fields:28, status:'active'},
-      {name:'proforma_opciones', fields:14, status:'active'},
-      {name:'proforma_packs', fields:12, status:'active'},
-      {name:'proforma_series', fields:10, status:'active'},
-      {name:'proforma_pool', fields:10, status:'active'},
-    ],
-    note:'Configuración del vehículo nuevo: modelo, opcionales, packs y series disponibles.'
-  },
-  ofertas: {
-    tables: [
-      {name:'ofertas', fields:35, status:'active'},
-      {name:'oferta_cuotas_servicios', fields:14, status:'active'},
-      {name:'oferta_resultados_financieros', fields:18, status:'active'},
-      {name:'estado_oferta', fields:6, status:'active'},
-      {name:'perfil_cotizacion', fields:20, status:'active'},
-    ],
-    note:'Ciclo de vida de la oferta con estados, cálculo de cuota y aprobación comercial.'
-  },
-  lineas_financiacion: {
-    tables: [
-      {name:'lineas_financiacion', fields:22, status:'pending'},
-      {name:'entidades_financieras', fields:14, status:'pending'},
-      {name:'perfiles_linea', fields:10, status:'pending'},
-    ],
-    note:'Líneas de crédito por entidad financiera para compra de flota. Controla el disponible total, el importe dispuesto y las condiciones por entidad.',
-    pending: ['Módulo completo pendiente de desarrollo', 'Control de disponible en tiempo real']
-  },
-  perfil_cotizacion_full: {
-    tables: [
-      {name:'perfil_cotizacion', fields:20, status:'active'},
-      {name:'requerimientos_perfil', fields:18, status:'active'},
-      {name:'peculiaridades_perfil', fields:14, status:'active'},
-      {name:'datos_financiacion', fields:22, status:'active'},
-    ],
-    note:'Módulo completo. Incluye datos del perfil, requerimientos (ej: Current Interest Rate Basis, concentración máxima por región/cliente) y peculiaridades que condicionan directamente la cotización de la oferta. Vinculado a una línea de financiación.'
-  },
-  disposicion_fin: {
-    tables: [
-      {name:'disposiciones_financieras', fields:18, status:'active'},
-    ],
-    note:'Módulo existente. Solicitud de fondos sobre una línea de crédito, firmada manualmente con la entidad financiera (no requiere Signaturit). Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Vinculación directa con flota ya implementada. Falta: campo que vincule la disposición con la línea de financiación.',
-    pending: ['Campo id_linea_financiacion en disposiciones_financieras']
-  },
-  datos_fin_mod: {
-    tables: [
-      {name:'datos_financiacion', fields:22, status:'active'},
-    ],
-    note:'Módulo existente. Contiene los datos de la disposición financiera prorrateados por el porcentaje de representación de cada vehículo. A diferencia de Disposiciones Financieras (nivel disposición), trabaja a nivel matrícula/vehículo. Ej: disposición 2M€ para 20 coches → 20 registros, uno por matrícula, con su importe prorrateado según el % que representa cada coche sobre el total de la disposición.'
-  },
-  perfil_financiacion: {
-    tables: [
-      {name:'perfil_cotizacion', fields:20, status:'active'},
-      {name:'datos_financiacion', fields:22, status:'active'},
-      {name:'disposiciones_financieras', fields:18, status:'active'},
-      {name:'oferta_resultados_financieros', fields:18, status:'active'},
-    ],
-    note:'Parámetros financieros de la oferta: TAE, mensualidades, disposiciones y resultados del modelo financiero.'
-  },
-  riesgos: {
-    tables: [
-      {name:'riesgos', fields:20, status:'active'},
-      {name:'estado_riesgo', fields:6, status:'active'},
-      {name:'clientes', fields:30, status:'active'},
-    ],
-    note:'Evaluación de riesgo crediticio del cliente. Estados: Pendiente CPP → Aprobado / Rechazado / Rechazado con garantía adicional.'
-  },
-  firma_digital: {
-    tables: [],
-    note:'Integración pendiente con Signaturit para firma electrónica avanzada. El contrato se envía para firma, el cliente firma digitalmente y se obtiene el PDF certificado con timestamp legal.',
-    pending: ['Integración API Signaturit', 'Webhook de estado de firma', 'Almacenamiento PDF firmado']
-  },
-  contrato: {
-    tables: [
-      {name:'contratos_renting', fields:38, status:'active'},
-      {name:'condiciones_contrato', fields:18, status:'active'},
-      {name:'documentos_contrato', fields:12, status:'active'},
-      {name:'garantias', fields:15, status:'pending'},
-      {name:'cesiones_contrato', fields:10, status:'pending'},
-    ],
-    note:'Contrato principal de renting con condiciones económicas y flujo de estados.'
-  },
-  pedidos: {
-    tables: [
-      {name:'vehiculos', fields:45, status:'active'},
-      {name:'pedidos_vehiculo', fields:18, status:'pending'},
-      {name:'equipamientos', fields:10, status:'pending'},
-    ],
-    note:'Gestión del pedido del vehículo al proveedor OEM y seguimiento hasta matriculación.',
-    pending: ['Tabla pedidos_vehiculo', 'Integración API proveedor OEM', 'Estado de seguimiento del pedido']
-  },
-  carga_pedidos: {
-    tables: [
-      {name:'vehiculos', fields:45, status:'active'},
-      {name:'flota', fields:20, status:'active'},
-    ],
-    note:'Carga de datos de matrícula y bastidor en el contrato una vez el vehículo está matriculado.'
-  },
-  entregas: {
-    tables: [
-      {name:'entregas', fields:20, status:'active'},
-      {name:'actas_entrega', fields:16, status:'active'},
-      {name:'encuesta_satisfaccion', fields:12, status:'active'},
-    ],
-    note:'Acto formal de entrega del vehículo con acta fotográfica, km inicial y firma del cliente.'
-  },
-  seguros: {
-    tables: [
-      {name:'polizas_seguro', fields:24, status:'pending'},
-    ],
-    note:'Gestión de la póliza de seguro vinculada al vehículo. Integración con AFFINITY para alta de póliza y envío de documentación.',
-    pending: ['Módulo pólizas de seguro', 'Integración API AFFINITY', 'Solicitud de documentos Excel/Atlas']
-  },
-  validacion_anticipos: {
-    tables: [
-      {name:'contratos_renting', fields:38, status:'active'},
-      {name:'datos_financiacion', fields:22, status:'active'},
-    ],
-    note:'Validación del anticipo pagado por el cliente antes de proceder a la firma definitiva del contrato.'
-  },
-  ocr_activacion: {
-    tables: [
-      {name:'documentos_contrato', fields:12, status:'active'},
-    ],
-    note:'Proceso OCR para extraer y validar documentación del cliente. Si es correcta, activa el contrato y envía PIN de acceso. Si hay incidencias, notifica al cliente y proveedores.',
-    pending: ['Integración servicio OCR', 'Envío automático PIN por correo', 'Workflow de incidencias']
-  },
-  devoluciones: {
-    tables: [
-      {name:'devoluciones', fields:18, status:'pending'},
-      {name:'actas_devolucion', fields:20, status:'pending'},
-      {name:'peritaciones', fields:15, status:'pending'},
-      {name:'cargos_devolucion', fields:12, status:'pending'},
-    ],
-    note:'Proceso completo de devolución del vehículo al fin del contrato.',
-    pending: ['Módulo completo pendiente de desarrollo']
-  },
-  cierres: {
-    tables: [
-      {name:'cierres_contrato', fields:16, status:'pending'},
-      {name:'ofertas_renovacion', fields:14, status:'pending'},
-    ],
-    note:'Cierre formal del contrato con liquidación final, P&L por vehículo y propuesta de renovación.',
-    pending: ['Módulo completo pendiente de desarrollo']
-  },
-  recobros: {
-    tables: [
-      {name:'impagos', fields:14, status:'pending'},
-    ],
-    note:'Gestión de impagos y proceso de recobro: amistoso, extrajudicial y judicial.',
-    pending: ['Módulo impagos', 'Workflow de recobro por segmentos', 'Integración agencia de recobro']
-  },
-  clientes_impagados: {
-    tables: [
-      {name:'clientes_impagados', fields:14, status:'pending'},
-      {name:'historial_impagos', fields:10, status:'pending'},
-    ],
-    note:'Registro de clientes con facturas vencidas y seguimiento del estado de mora por tramos.',
-    pending: ['Módulo completo pendiente de desarrollo']
-  },
-  facturas_impagadas: {
-    tables: [
-      {name:'facturas_clientes', fields:28, status:'partial'},
-      {name:'impagos', fields:14, status:'pending'},
-    ],
-    note:'Control de facturas vencidas sin cobro: días de mora, importe pendiente y gestiones realizadas.',
-    pending: ['Tabla impagos', 'Workflow de escalado automático']
-  },
-  asnef_entry: {
-    tables: [
-      {name:'ficheros_asnef', fields:12, status:'pending'},
-    ],
-    note:'Declaración en ASNEF/EQUIFAX de clientes morosos. Alta y baja automatizable al cobro.',
-    pending: ['Integración API ASNEF/EQUIFAX', 'Proceso de baja automática al cobro']
-  },
-  expedientes_jud: {
-    tables: [
-      {name:'expedientes_judiciales', fields:18, status:'pending'},
-    ],
-    note:'Apertura y seguimiento de expedientes judiciales o extrajudiciales para recobro. Coordinación con gestoría externa.',
-    pending: ['Módulo completo pendiente de desarrollo', 'Integración gestoría de recobros']
-  },
-  stock_vo: {
-    tables: [
-      {name:'vehiculos_segunda_mano', fields:18, status:'pending'},
-    ],
-    note:'Stock de vehículos de ocasión disponibles para venta tras devolución.',
-    pending: ['Módulo completo pendiente']
-  },
-  venta_vo: {
-    tables: [
-      {name:'ventas_segunda_mano', fields:16, status:'pending'},
-    ],
-    note:'Proceso de venta de vehículo de ocasión: valoración, portales, contrato y transferencia DGT.',
-    pending: ['Módulo completo pendiente', 'Integración Eurotax/Indicata', 'Integración AutoScout/Coches.net', 'Integración DGT transferencia']
-  },
-  facturacion_devolucion: {
-    tables: [
-      {name:'facturas_clientes', fields:28, status:'partial'},
-      {name:'cuotas_contrato', fields:14, status:'pending'},
-      {name:'cobros', fields:16, status:'pending'},
-    ],
-    note:'Facturación final del contrato incluyendo penalizaciones por daños o exceso de km.',
-    pending: ['Factura de cierre automática', 'Cargos por daños y exceso km']
-  }
-};
-
-// ── FLOWS DEFINITION ──
 const flows = [
-  // ══════════════════════════════
-  // FLUJO 1: FINANCIACIÓN Y COMPRA
-  // ══════════════════════════════
   {
-    id: 'financiacion',
-    title: 'Financiación y Compra',
-    icon: '💰',
-    statusColor: '#16a34a',
-    description: 'Desde la configuración del vehículo hasta la firma del contrato. Incluye cálculo financiero, evaluación de riesgo y firma digital.',
-    badges: [
-      {label:'Líneas de Financiación ❌', color:'#0e7490'},
-      {label:'Perfil de Cotización ✅', color:'#1d4ed8'},
-      {label:'Disposiciones Financieras ✅', color:'#6b5a2e'},
-      {label:'Datos de Financiación ✅', color:'#0891b2'},
-    ],
-    render: renderFinanciacion
+    id: 'oferta',
+    number: '1',
+    title: 'Oferta / Configurador',
+    erp: {
+      status: 'active',
+      title: 'Configurador VN',
+      description: 'Configuración y cotización del vehículo de renting: modelos, opcionales, cálculo de cuota y valor residual pactado.',
+      tables: [
+        { name: 'ofertas',                    fields: 35, status: 'active' },
+        { name: 'oferta_cuotas_servicios',     fields: 14, status: 'active' },
+        { name: 'oferta_resultados_financieros',fields: 18, status: 'active' },
+        { name: 'proformas_vn',               fields: 28, status: 'active' },
+        { name: 'proforma_opciones',          fields: 14, status: 'active' },
+        { name: 'proforma_packs',             fields: 12, status: 'active' },
+        { name: 'proforma_pool',              fields: 10, status: 'active' },
+        { name: 'perfil_cotizacion',          fields: 20, status: 'active' },
+        { name: 'costes_sustitucion',         fields: 14, status: 'active' },
+        { name: 'residuales',                 fields: 12, status: 'active' },
+      ],
+      preview: ['OFERTA · VEHICULO_CONFIG', 'Pricing · Proformas', 'Cuota financiera base', 'Valor residual pactado'],
+      pending: []
+    },
+    api: {
+      name: 'API Jato',
+      description: 'Catálogo de vehículos con modelos disponibles, PVPs oficiales, códigos Jato, opciones de equipamiento, valores residuales y plazos de entrega.',
+      trigger: 'Al configurar el vehículo en la oferta',
+      fields: ['Modelos · PVP · Código Jato', 'Opciones · Residuales · Plazo'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Scoring de propuesta',
+      description: 'Optimiza el precio de la propuesta para maximizar la tasa de conversión y sugiere la configuración de vehículo más adecuada para el perfil del cliente.',
+      technique: 'ML regresión + Recomendador',
+      benefit: 'Precio óptimo conversión · Config. óptima sugerida',
+      priority: 'quick-win',
+      preview: ['Precio óptimo conversión', 'Sugiere config. óptima']
+    }
   },
-  // ══════════════════════════════
-  // FLUJO 2: ENTREGAS
-  // ══════════════════════════════
   {
-    id: 'entregas',
-    title: 'Entregas',
-    icon: '🚗',
-    statusColor: '#d97706',
-    description: 'Desde la matrícula del vehículo hasta la entrega física al cliente. Incluye seguros, activación por OCR y notificaciones logísticas.',
-    badges: [
-      {label:'Mod. Pedidos', color:'#b91c1c'},
-      {label:'Mod. Entregas', color:'#a16207'},
-      {label:'Seguros AFFINITY', color:'#be185d'},
-      {label:'OCR Activación', color:'#374151'},
-    ],
-    render: renderEntregas
+    id: 'scoring',
+    number: '2',
+    title: 'Scoring / Riesgo',
+    erp: {
+      status: 'active',
+      title: 'Análisis de riesgo',
+      description: 'Gestión de clientes, evaluación de riesgo crediticio, límites de aprobación y scoring de cartera.',
+      tables: [
+        { name: 'clientes',           fields: 30, status: 'active' },
+        { name: 'contactos_cliente',  fields: 16, status: 'active' },
+        { name: 'tipologia_cliente',  fields:  8, status: 'active' },
+        { name: 'riesgos',            fields: 20, status: 'active' },
+        { name: 'estado_riesgo',      fields:  6, status: 'active' },
+        { name: 'leads',              fields: 20, status: 'pending' },
+      ],
+      preview: ['CLIENTE · SCORING_HIST', 'RIESGO_PERFIL', 'Límites · Scoring cartera', 'Aprobación automática'],
+      pending: ['Módulo de leads / oportunidades entrantes', 'Integración scoring automático externo']
+    },
+    api: {
+      name: 'API Bureau Crediticio',
+      description: 'Consulta de riesgo crediticio del cliente en bureaus externos. Devuelve nivel de endeudamiento, score externo y posibles incidencias (RAI).',
+      trigger: 'Antes de aprobar la cotización',
+      fields: ['INCOFISA · AIS · EQUIFAX · ASNEF', 'Score externo'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Predicción de impago',
+      description: 'Modelo de clasificación que predice la probabilidad de impago futuro basándose en variables conductuales, historial y señales externas. Activa alertas tempranas antes del vencimiento.',
+      technique: 'ML clasificación (XGBoost / LightGBM)',
+      benefit: 'Reducir tasa de impago, acción preventiva automatizada',
+      priority: 'core',
+      preview: ['Variables conductoras', 'Alertas tempranas']
+    }
   },
-  // ══════════════════════════════
-  // FLUJO 3: DEVOLUCIONES
-  // ══════════════════════════════
   {
-    id: 'devoluciones',
-    title: 'Devoluciones',
-    icon: '↩️',
-    statusColor: '#9ca3af',
-    description: 'Fin de vida del contrato: devolución del vehículo, peritación, cargos y liquidación final.',
-    badges: [
-      {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
-    ],
-    render: renderDevoluciones
+    id: 'contrato',
+    number: '3',
+    title: 'Contrato',
+    erp: {
+      status: 'active',
+      title: 'ERP: Contrato',
+      description: 'Contrato principal de renting con condiciones económicas, flujo de aprobación y documentación legal.',
+      tables: [
+        { name: 'contratos_renting',    fields: 38, status: 'active' },
+        { name: 'condiciones_contrato', fields: 18, status: 'active' },
+        { name: 'documentos_contrato',  fields: 12, status: 'active' },
+        { name: 'garantias',            fields: 15, status: 'pending' },
+        { name: 'cesiones_contrato',    fields: 10, status: 'pending' },
+        { name: 'renovaciones',         fields: 12, status: 'pending' },
+      ],
+      preview: ['CONTRATO · COND · FINAN', 'VALOR_RESIDUAL', 'Cuota · Plazo · VR', 'Flujo de aprobación'],
+      pending: ['Garantías y avales', 'Cesiones de contrato a terceros', 'Módulo de renovaciones y prórrogas']
+    },
+    api: {
+      name: 'API Firma Digital',
+      description: 'Envío del contrato para firma electrónica avanzada. Retorna estado de firma, hash del documento y timestamp legal certificado.',
+      trigger: 'Al enviar contrato para firma',
+      fields: ['Signaturit · DocuSign', 'Timestamp legal'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Extracción contratos',
+      description: 'OCR inteligente que extrae automáticamente las condiciones clave de contratos recibidos en PDF. Detecta cláusulas anómalas o condiciones fuera de rango.',
+      technique: 'OCR + NLP (LLM extracción de entidades)',
+      benefit: 'Eliminación entrada manual · Detección de anomalías contractuales',
+      priority: 'quick-win',
+      preview: ['OCR inteligente', 'Detección de anomalías']
+    }
   },
-  // ══════════════════════════════
-  // FLUJO 4: RECOBROS
-  // ══════════════════════════════
   {
-    id: 'recobros',
-    title: 'Recobros',
-    icon: '⚠️',
-    statusColor: '#dc2626',
-    description: 'Gestión de impagos: proceso amistoso, inscripción en ASNEF y procedimiento judicial.',
-    badges: [
-      {label:'Clientes Impagados', color:'#b91c1c'},
-      {label:'ASNEF', color:'#374151'},
-      {label:'Expedientes', color:'#6d28d9'},
-      {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
-    ],
-    render: renderRecobros
+    id: 'entrega',
+    number: '4',
+    title: 'Pedido / Entrega',
+    erp: {
+      status: 'active',
+      title: 'ERP: Pedido & Entrega',
+      description: 'Gestión del pedido al proveedor, matriculación del vehículo y acto formal de entrega al cliente con acta fotográfica.',
+      tables: [
+        { name: 'vehiculos',          fields: 45, status: 'active' },
+        { name: 'flota',              fields: 20, status: 'active' },
+        { name: 'entregas',           fields: 20, status: 'active' },
+        { name: 'actas_entrega',      fields: 16, status: 'active' },
+        { name: 'encuesta_satisfaccion', fields: 12, status: 'active' },
+        { name: 'pedidos_vehiculo',   fields: 18, status: 'pending' },
+        { name: 'equipamientos',      fields: 10, status: 'pending' },
+      ],
+      preview: ['PEDIDO · VEHICULO', 'MATRICULA · ENTREGA_LOG', 'Orden de compra', 'Activación contrato'],
+      pending: ['Pedidos de compra al proveedor OEM', 'Equipamiento por vehículo']
+    },
+    api: {
+      name: 'API DGT / Registro',
+      description: 'Consulta y notificación a la DGT para verificar y actualizar titularidad, datos de matriculación, ficha técnica e ITV del vehículo.',
+      trigger: 'Alta del vehículo y transferencia de titularidad',
+      fields: ['Matrícula · Bastidor', 'Titularidad · ITV'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Predicción de plazos',
+      description: 'Modela la demanda de vehículos para anticipar retrasos en entrega según stock OEM y situación logística. Genera alertas automáticas al equipo comercial.',
+      technique: 'Series temporales + Demand forecasting',
+      benefit: 'Gestión proactiva de expectativas con el cliente',
+      priority: 'core',
+      preview: ['Demand forecasting', 'Alertas OEM · Stock']
+    }
   },
-  // ══════════════════════════════
-  // FLUJO 5: VENTA VO
-  // ══════════════════════════════
   {
-    id: 'venta_vo',
-    title: 'Venta VO',
-    icon: '🏷️',
-    statusColor: '#9ca3af',
-    description: 'Segunda vida del vehículo: valoración, preparación, publicación en portales, venta y transferencia DGT.',
-    badges: [
-      {label:'❌ Pendiente de desarrollo', color:'#9ca3af'},
-    ],
-    render: renderVentaVO
+    id: 'facturacion',
+    number: '5',
+    title: 'Facturación / Cuotas',
+    erp: {
+      status: 'partial',
+      title: 'ERP: Facturación',
+      description: 'Emisión de facturas, gestión de cuotas recurrentes mensuales, domiciliación bancaria SEPA y control de impagos.',
+      tables: [
+        { name: 'gestoria_facturas',        fields: 20, status: 'active' },
+        { name: 'gestoria_lineas',          fields: 14, status: 'active' },
+        { name: 'datos_financiacion',       fields: 22, status: 'active' },
+        { name: 'disposiciones_financieras',fields: 18, status: 'active' },
+        { name: 'facturas_clientes',        fields: 28, status: 'partial' },
+        { name: 'cuotas_contrato',          fields: 14, status: 'pending' },
+        { name: 'cobros',                   fields: 16, status: 'pending' },
+        { name: 'remesas',                  fields: 12, status: 'pending' },
+        { name: 'impagos',                  fields: 14, status: 'pending' },
+      ],
+      preview: ['FACTURA · RECIBO', 'LIQUIDACION', 'Domiciliación · IVA', 'Control de impagos'],
+      pending: ['Cuotas recurrentes por contrato', 'Cobros y conciliación bancaria', 'Remesas SEPA', 'Gestión de impagos y recobro']
+    },
+    api: {
+      name: 'API Banca / SEPA',
+      description: 'Conexión bancaria PSD2 para envío de remesas de domiciliación, confirmación de cobros y gestión de devoluciones SEPA.',
+      trigger: 'Cierre mensual — generación de remesa',
+      fields: ['Domiciliaciones', 'Devoluciones · Concil.'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Impagos en cartera',
+      description: 'Detección temprana de clientes con alta probabilidad de impago en el próximo ciclo. Activa flujos de recobro automatizados por segmento de riesgo.',
+      technique: 'ML clasificación + Reglas de negocio',
+      benefit: 'Reducción de morosidad · Recobro automatizado por segmento',
+      priority: 'core',
+      preview: ['Early warning', 'Recobro automatizado']
+    }
+  },
+  {
+    id: 'mantenimiento',
+    number: '6',
+    title: 'Flota / Mantenimiento',
+    erp: {
+      status: 'partial',
+      title: 'ERP: Gestión de flota',
+      description: 'Planes de mantenimiento preventivo por modelo y km, gestión de siniestros, pólizas de seguro y vehículos de sustitución.',
+      tables: [
+        { name: 'planes_mantenimiento',         fields: 20, status: 'active' },
+        { name: 'plan_mantenimiento_costes',     fields: 14, status: 'active' },
+        { name: 'plan_mantenimiento_cuadricula', fields: 12, status: 'active' },
+        { name: 'mantenimiento_operaciones',     fields: 14, status: 'active' },
+        { name: 'redes_mantenimiento',           fields: 12, status: 'active' },
+        { name: 'ordenes_trabajo',               fields: 22, status: 'pending' },
+        { name: 'talleres',                      fields: 20, status: 'pending' },
+        { name: 'polizas_seguro',                fields: 24, status: 'pending' },
+        { name: 'siniestros',                    fields: 28, status: 'pending' },
+      ],
+      preview: ['FLOTA · MANT_PLAN', 'SINIESTRO · SEGURO_POL', 'Revisiones · Averías', 'Veh. sustitución'],
+      pending: ['Órdenes de trabajo correctivas', 'Ficha de talleres externos', 'Pólizas de seguro', 'Gestión de siniestros completa']
+    },
+    api: {
+      name: 'API Aseg. / Talleres',
+      description: 'Integración con aseguradoras para apertura de partes y tramitación, y con talleres de la red para solicitar presupuestos y activar órdenes de reparación.',
+      trigger: 'Apertura de siniestro u OT correctiva',
+      fields: ['Partes · Presupuestos', 'OR · Reparación'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Mantenimiento predic.',
+      description: 'Analiza datos de telemática GPS (km, temperatura de motor, aceleración brusca, frenadas) para predecir averías antes de que ocurran y programar mantenimiento óptimo.',
+      technique: 'Series temporales + Anomaly detection (datos GPS)',
+      benefit: 'Reducir averías imprevistas · Optimizar agenda de talleres',
+      priority: 'core',
+      preview: ['Telemática · Alertas', 'Costes previstos']
+    }
+  },
+  {
+    id: 'residual',
+    number: '7',
+    title: 'Valor Residual / Remarketing',
+    erp: {
+      status: 'pending',
+      title: 'ERP: VR & Remarketing',
+      description: 'Gestión del fin de contrato: devolución del vehículo, peritación, liquidación, cálculo del P&L real por vehículo y venta de vehículo de ocasión.',
+      tables: [
+        { name: 'residuales',           fields: 12, status: 'active' },
+        { name: 'devoluciones',         fields: 18, status: 'pending' },
+        { name: 'actas_devolucion',     fields: 20, status: 'pending' },
+        { name: 'peritaciones',         fields: 15, status: 'pending' },
+        { name: 'cierres_contrato',     fields: 16, status: 'pending' },
+        { name: 'vehiculos_segunda_mano',fields:18, status: 'pending' },
+        { name: 'ventas_segunda_mano',  fields: 16, status: 'pending' },
+      ],
+      preview: ['VR_PREVISTO · VR_REAL', 'DEVOLUCION', 'Tasación · Venta VO', 'P&L por vehículo'],
+      pending: ['Devoluciones y actas', 'Peritaciones', 'Cierres de contrato', 'Stock VO y ventas']
+    },
+    api: {
+      name: 'API Eurotax / Indicata',
+      description: 'Consulta de valor de mercado real del vehículo de ocasión para calcular el P&L al cierre del contrato y fijar precio de venta en portales VO.',
+      trigger: 'Apertura expediente de devolución / fin de contrato',
+      fields: ['Valor mercado VO', 'Retasación · Tendencia'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Predicción VR',
+      description: 'Modelo dinámico que ajusta el valor residual pactado con el valor real estimado al cierre, incorporando señales de mercado en tiempo real y km reales del GPS.',
+      technique: 'ML regresión + señales de mercado + GPS',
+      benefit: 'Reducir pérdidas por desviación VR · Pricing VO óptimo',
+      priority: 'diferencial',
+      preview: ['Modelo dinámico', 'Tasación · Señales mercado']
+    }
+  },
+  {
+    id: 'reporting',
+    number: '8',
+    title: 'Reporting / BI',
+    erp: {
+      status: 'pending',
+      title: 'ERP: Business Intelligence',
+      description: 'Vista consolidada de la cartera, métricas financieras por contrato y vehículo, análisis de mora, concentración y resultados del período.',
+      tables: [
+        { name: 'asientos_contables', fields: 20, status: 'pending' },
+        { name: 'plan_cuentas',       fields: 12, status: 'pending' },
+        { name: 'centros_coste',      fields:  8, status: 'pending' },
+        { name: 'kpi_contrato',       fields: 15, status: 'pending' },
+        { name: 'kpi_flota_snapshot', fields: 12, status: 'pending' },
+      ],
+      preview: ['VR_SNAPSHOT · CARTERA_VIEW', 'Resultado mes', 'Mora · Concentración', 'KPIs por contrato'],
+      pending: ['Módulo contabilidad completo', 'Dashboard KPIs en tiempo real', 'Cierre contable automático']
+    },
+    api: {
+      name: 'API / Conector BI',
+      description: 'Conector hacia herramientas de Business Intelligence (Power BI / Tableau) y/o data warehouse corporativo para análisis avanzado fuera del ERP.',
+      trigger: 'Cierre de período / bajo demanda',
+      fields: ['Power BI · Tableau', 'Data warehouse'],
+      status: 'pending'
+    },
+    ia: {
+      name: 'IA: Insights automáticos',
+      description: 'Generación automática de narrativos en lenguaje natural sobre los KPIs del período: desviaciones, benchmarks, anomalías y recomendaciones de gestión.',
+      technique: 'LLM + análisis estadístico + Anomaly detection',
+      benefit: 'Reduce tiempo de análisis · Democratiza el acceso a insights',
+      priority: 'diferencial',
+      preview: ['Narrativos generados', 'Anomalías · Benchmark']
+    }
   }
 ];
 
 // ══════════════════════════════════════════
-// RENDERERS
+// MODULE CATALOG DATA
 // ══════════════════════════════════════════
-
-function renderFinanciacion(container) {
-  const steps = [
-    // 1 · LÍNEAS DE FINANCIACIÓN + PERFIL
-    parallel([
-      { label:'', steps:[
-        mod('Líneas de Financiación', 'Disponible por entidad financiera', 'lineas', 'pending', 'lineas_financiacion', ['Entidad', 'Disponible total', 'Condiciones'])
-      ]},
-      { label:'', steps:[
-        mod('Perfil de Cotización', 'Datos · Requerimientos · Peculiaridades', 'ofertas', 'active', 'perfil_cotizacion_full', ['Requerimientos', 'Peculiaridades cotización', 'Datos financieros'])
-      ]}
-    ]),
-    // 2 · DISPOSICIÓN FINANCIERA
-    conn('Solicitar disposición de fondos'),
-    mod('Disposición Financiera', 'Fondos habilitados sobre línea', 'disposicion', 'active', 'disposicion_fin', ['Importe dispuesto', 'Disponible restante', '⚠️ Falta campo → línea']),
-    subinfo('Firma manual con entidad financiera', ['No requiere Signaturit', 'Reduce disponible en línea']),
-    // 3 · FLOTA
-    conn('Vehículos registrados en flota y vinculados a disposición'),
-    mod('Mod. Flota', 'Vehículos vinculados a disposición', 'carga', 'active', 'carga_pedidos', ['Matrícula', 'Bastidor', 'Nº disposición']),
-    // 4 · DATOS DE FINANCIACIÓN (por vehículo)
-    conn('Prorrateo por % de representación de cada vehículo'),
-    mod('Datos de Financiación', 'Datos prorrateados por matrícula', 'datos_fin', 'active', 'datos_fin_mod', ['% Representación', 'Importe prorrateado', 'Por matrícula']),
-    // FIN
-    conn(''),
-    endNode('↪️ Ver flujo Entregas (Facturas · Gestoría)', 'neutral')
-  ];
-  renderSteps(container, steps);
-}
-
-function renderEntregas(container) {
-  const steps = [
-    mod('Mod. Contrato', '4 — Pendiente de Matrícula', 'contrato', 'active', 'contrato'),
-    conn('Carga de matrícula a contrato'),
-    parallel([
-      {
-        label: '', steps: [
-          mod('Mod. Pedidos', '1 — Pendiente de Matrícula', 'pedidos', 'pending', 'pedidos'),
-          conn(''),
-          mod('Mod. Carga Pedidos', 'En proceso', 'carga', 'active', 'carga_pedidos'),
-        ]
-      },
-      {
-        label: '', steps: [
-          mod('Mod. Seguros', 'Alta de póliza', 'seguros', 'pending', 'seguros'),
-          conn('AFFINITY'),
-          proc('Email + Excel Atlas', 'email'),
-        ]
-      }
-    ]),
-    conn('Vehículo matriculado'),
-    mod('Mod. Pedidos', '2 — Matriculado', 'pedidos', 'pending', 'pedidos'),
-    conn(''),
-    parallel([
-      { label:'', steps: [
-        mod('Mod. Entregas', '1 — Vehículo Matriculado', 'entregas', 'active', 'entregas'),
-      ]},
-      { label:'', steps: [
-        mod('Mod. Contrato', '5 — Pendiente de Entrega', 'contrato', 'active', 'contrato'),
-      ]}
-    ]),
-    conn('Formulario de activación cliente'),
-    proc('Formulario Cliente', 'process'),
-    conn(''),
-    mod('Mod. Contrato', '6 — Pendiente de Activación', 'contrato', 'active', 'contrato'),
-    conn('OCR + PIN por correo'),
-    proc('OCR + Email PIN', 'ocr'),
-    conn('¿Documentación OK?'),
-    branch('¿Documentación válida?', [
-      {
-        label: '✓ Documentos OK', type: 'yes',
-        steps: [
-          conn(''),
-          mod('Mod. Contrato', '7 — Activo', 'contrato', 'active', 'contrato'),
-          conn('Fijar fecha y lugar de entrega'),
-          subinfo('Logística', ['Fecha Prevista Entrega', 'Dirección y lugar de entrega']),
-          conn(''),
-          proc('Email logistica.operaciones', 'email'),
-          conn(''),
-          mod('Mod. Entregas', '2 — Puesta a Disposición', 'entregas', 'active', 'entregas'),
-          conn('Entrega física'),
-          branch('¿Resultado entrega?', [
-            { label: '3 — Entregado', type: 'yes', steps: [
-              conn(''),
-              proc('Email confirmación', 'email'),
-              conn(''),
-              endNode('✅ Contrato activo', 'success')
-            ]},
-            { label: '4 — No Entregado', type: 'no', steps: [
-              conn(''),
-              endNode('⏳ Gestión pendiente', 'neutral')
-            ]}
-          ])
-        ]
-      },
-      {
-        label: '✗ Incidencia docs', type: 'no',
-        steps: [
-          conn(''),
-          proc('Email cliente + proveedores', 'email'),
-          conn(''),
-          endNode('⏳ Pendiente subsanar', 'neutral')
-        ]
-      }
-    ])
-  ];
-  renderSteps(container, steps);
-}
-
-function renderDevoluciones(container) {
-  const steps = [
-    pendingBanner('Este flujo está pendiente de desarrollo. La estructura propuesta es:'),
-    mod('Mod. Contrato', 'Activo — Próximo a vencer', 'contrato', 'pending', 'contrato'),
-    conn('Aviso automático 60 días antes'),
-    proc('Email aviso fin de contrato', 'email'),
-    conn('Cliente confirma devolución'),
-    mod('Mod. Entregas', 'Devolución iniciada', 'entregas', 'pending', 'devoluciones'),
-    conn('Acta de devolución'),
-    proc('Fotos + km + estado vehículo', 'process'),
-    conn(''),
-    mod('Mod. Devoluciones', 'Peritación en curso', 'devolucion', 'pending', 'devoluciones'),
-    conn('Resultado peritación'),
-    branch('¿Daños o exceso km?', [
-      {
-        label: 'Sí — Cargos extra', type: 'no',
-        steps: [
-          conn('Calcular penalizaciones'),
-          mod('Mod. Facturación', 'Factura cargos', 'facturacion', 'pending', 'facturacion_devolucion'),
-          conn('Cobro'),
-          branch('¿Pagado?', [
-            { label: '✓ Pagado', type: 'yes', steps: [
-              conn(''),
-              mod('Mod. Contrato', 'Cerrado', 'contrato', 'pending', 'cierres'),
-              conn(''), endNode('✅ Cierre con cargos', 'success')
-            ]},
-            { label: '✗ Impago', type: 'no', steps: [
-              conn(''),
-              endNode('↪️ Ver flujo Recobros', 'neutral')
-            ]}
-          ])
-        ]
-      },
-      {
-        label: 'No — Sin cargos', type: 'yes',
-        steps: [
-          conn(''),
-          mod('Mod. Facturación', 'Liquidación sin cargos', 'facturacion', 'pending', 'facturacion_devolucion'),
-          conn(''),
-          mod('Mod. Contrato', 'Cerrado', 'contrato', 'pending', 'cierres'),
-          conn(''),
-          endNode('✅ Cierre limpio', 'success')
-        ]
-      }
-    ])
-  ];
-  renderSteps(container, steps);
-}
-
-function renderRecobros(container) {
-  const steps = [
-    pendingBanner('Este flujo está pendiente de desarrollo. La estructura propuesta es:'),
-    parallel([
-      { label:'', steps:[ mod('Clientes Impagados', 'Registro de mora', 'riesgos', 'pending', 'clientes_impagados') ]},
-      { label:'', steps:[ mod('Facturas Impagadas', 'Deuda activa', 'facturacion', 'pending', 'facturas_impagadas') ]}
-    ]),
-    conn(''),
-    proc('Email aviso + llamada comercial', 'email'),
-    conn('¿Responde en 15 días?'),
-    branch('Gestión amistosa', [
-      {
-        label: '✓ Pago acordado', type: 'yes',
-        steps: [
-          conn(''),
-          mod('Facturas Impagadas', 'Cobro recibido', 'facturacion', 'pending', 'facturas_impagadas'),
-          conn(''),
-          endNode('✅ Impago resuelto', 'success')
-        ]
-      },
-      {
-        label: '✗ Sin respuesta', type: 'no',
-        steps: [
-          conn('Notificación ASNEF'),
-          mod('ASNEF', 'Cliente declarado moroso', 'riesgos', 'pending', 'asnef_entry'),
-          conn('Gestión extrajudicial'),
-          branch('¿Acuerdo extrajudicial?', [
-            { label: '✓ Pago acordado', type: 'yes', steps: [
-              conn(''),
-              proc('Baja ASNEF', 'email'),
-              conn(''),
-              endNode('✅ Resuelto extrajudicial', 'success')
-            ]},
-            { label: '✗ Sin acuerdo', type: 'no', steps: [
-              conn(''),
-              mod('Expedientes', 'Apertura expediente judicial', 'devolucion', 'pending', 'expedientes_jud'),
-              conn(''),
-              endNode('⚖️ Proceso judicial', 'failure')
-            ]}
-          ])
-        ]
-      }
-    ])
-  ];
-  renderSteps(container, steps);
-}
-
-function renderVentaVO(container) {
-  const steps = [
-    pendingBanner('Este flujo está pendiente de desarrollo. La estructura propuesta es:'),
-    mod('Stock VO', 'Pendiente de valoración', 'vo', 'pending', 'stock_vo'),
-    conn('Consulta API Eurotax / Indicata'),
-    proc('Valoración mercado VO', 'api'),
-    conn('¿Requiere acondicionamiento?'),
-    branch('Estado del vehículo', [
-      {
-        label: 'Requiere preparación', type: 'alt',
-        steps: [
-          conn('OT taller'),
-          proc('Preparación estética/mecánica', 'process'),
-          conn(''),
-          mod('Stock VO', 'Listo para vender', 'vo', 'pending', 'stock_vo'),
-        ]
-      },
-      {
-        label: 'OK directo', type: 'yes',
-        steps: [
-          conn(''),
-          mod('Stock VO', 'Listo para vender', 'vo', 'pending', 'stock_vo'),
-        ]
-      }
-    ]),
-    conn('Publicación en portales'),
-    proc('AutoScout · Coches.net · Wallapop Pro', 'api'),
-    conn('Lead interesado'),
-    mod('Gestión Comercial VO', 'Negociación', 'vo', 'pending', 'venta_vo'),
-    conn('Acuerdo precio'),
-    mod('Contrato Compraventa', 'Firmado', 'contrato', 'pending', 'venta_vo'),
-    conn(''),
-    proc('Transferencia DGT', 'api'),
-    conn(''),
-    mod('Mod. Facturación', 'Factura venta VO', 'facturacion', 'pending', 'facturacion_devolucion'),
-    conn(''),
-    mod('Mod. Contabilidad', 'P&L por vehículo', 'contabilidad', 'pending', 'venta_vo'),
-    conn(''),
-    endNode('✅ Venta cerrada', 'success')
-  ];
-  renderSteps(container, steps);
-}
+const moduleGroups = [
+  { label: 'Gestión de Cotización', color: '#1e3a5f', modules: [
+    { title: 'Oferta',              status: 'active',
+      erpF: ['Cotización · Cuota · Residual', 'Estados: Borrador → Firmada'],
+      api: { name: 'API Jato', f: ['Modelos · PVP · Código Jato', 'Opciones · Residuales · Plazo'] },
+      ia:  { title: 'Scoring propuesta', pr: 'quick-win', f: ['Precio óptimo conversión', 'Config. sugerida por perfil'] } },
+    { title: 'Oferta Resumen',      status: 'active',
+      erpF: ['Vista consolidada de ofertas', 'Filtros por estado · cliente · KPIs'],
+      api: null, ia: null },
+    { title: 'Perfil Cotización',   status: 'active',
+      erpF: ['Parámetros de cotización por perfil', 'Requerimientos · Peculiaridades'],
+      api: null, ia: null },
+    { title: 'Listado Residual',    status: 'partial',
+      erpF: ['VR por código Jato · plazo · km', '⚠️ Manual temporal → pendiente API'],
+      api: { name: 'API Eurotax / Jato', f: ['VR mercado · Tendencia', 'Por modelo · antigüedad'] },
+      ia:  { title: 'Predicción VR', pr: 'diferencial', f: ['Modelo dinámico', 'Señales mercado'] } },
+    { title: 'Leads',               status: 'pending',
+      erpF: ['Oportunidades comerciales entrantes', 'Canal · Origen · Estado'],
+      api: null,
+      ia:  { title: 'Scoring lead', pr: 'quick-win', f: ['Prob. conversión', 'Perfil cliente'] } },
+    { title: 'Campañas',            status: 'pending',
+      erpF: ['Condiciones especiales fabricante', 'Período · Modelos · Descuento'],
+      api: null, ia: null },
+  ]},
+  { label: 'Gestión de Renting', color: '#1e3a5f', modules: [
+    { title: 'Riesgos',             status: 'active',
+      erpF: ['Estados CPP: 1-Pend. Sanción · 2-Aprobada', '3-Con Garantía · 4-Rechazada'],
+      api: { name: 'CPP (INCOFISA · AIS · EQUIFAX · ASNEF)', f: ['Score crediticio · Comportamiento', 'ASNEF · Impagados'] },
+      ia:  { title: 'Predicción de impago', pr: 'core', f: ['Variables conductoras', 'Alertas tempranas'] } },
+    { title: 'Contratos',           status: 'active',
+      erpF: ['Contrato principal de renting', 'Condiciones · Documentos · Firma'],
+      api: { name: 'API Firma Digital', f: ['Signaturit · DocuSign', 'Timestamp legal certificado'] },
+      ia:  { title: 'Extracción contratos', pr: 'quick-win', f: ['OCR inteligente', 'Detección anomalías'] } },
+    { title: 'Entregas',            status: 'active',
+      erpF: ['Acta entrega · Fotos · Km', 'Encuesta satisfacción NPS'],
+      api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
+      ia:  { title: 'Detección daños en acta', pr: 'core', f: ['Computer Vision fotos', 'Clasificación automática daños'] } },
+    { title: 'Pedidos',             status: 'pending',
+      erpF: ['Pedido a proveedor OEM', 'Estado · Plazo · Matrícula pendiente'],
+      api: { name: 'API Jato / Proveedor', f: ['Disponibilidad · PVP', 'Plazo entrega OEM'] },
+      ia:  { title: 'Predicción de plazos', pr: 'core', f: ['Demand forecasting', 'Alertas stock OEM'] } },
+    { title: 'Carga Datos Pedidos', status: 'pending',
+      erpF: ['Carga matrícula · bastidor', 'Vinculación pedido → contrato'],
+      api: null, ia: null },
+    { title: 'Devolución',          status: 'pending',
+      erpF: ['Proceso de devolución al fin contrato', 'Acta devolución · Peritación'],
+      api: null, ia: { title: 'Predicción estado vehículo', pr: 'core', f: ['Cargos esperados · Daños', 'Basado en km GPS · historial mant.'] } },
+    { title: 'Recalculos',          status: 'pending',
+      erpF: ['Recálculo de condiciones', 'Km · Cuota · Servicios ajustados'],
+      api: null, ia: null },
+    { title: 'Subrogaciones',       status: 'pending',
+      erpF: ['Cambio de arrendatario', 'Condiciones cedidas · Aprobación'],
+      api: null, ia: null },
+    { title: 'Cancelaciones',       status: 'pending',
+      erpF: ['Rescisión anticipada de contrato', 'Liquidación · Penalización'],
+      api: null, ia: { title: 'Predicción rescisión anticipada', pr: 'core', f: ['Km reales vs pactados · pagos', 'Acción preventiva de retención'] } },
+    { title: 'Propuestas Recalc/Subr', status: 'pending',
+      erpF: ['Propuestas de recálculo/subrogación', 'Estado · Aprobación pendiente'],
+      api: null, ia: null },
+  ]},
+  { label: 'Gestión de Flota', color: '#134e4a', modules: [
+    { title: 'Flota',               status: 'active',
+      erpF: ['Vehículos en cartera activa', 'Matrícula · Contrato · Estado'],
+      api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
+      ia:  { title: 'Optimización flota', pr: 'core', f: ['Asignación vehículo óptimo', 'Pred. depreciación por modelo'] } },
+    { title: 'Líneas de Financiación', status: 'pending',
+      erpF: ['Líneas de crédito por entidad financiera', 'Disponible total · Condiciones · Perfiles'],
+      api: { name: 'API Banca / PSD2', f: ['Condiciones de línea', 'Disponible en tiempo real'] },
+      ia: null },
+    { title: 'Disposiciones Financieras', status: 'active',
+      erpF: ['Fondos dispuestos sobre línea de crédito', 'Capital dispuesto · Disponible restante'],
+      api: { name: 'API Banca / PSD2', f: ['Disposiciones activas', 'Amortizaciones bancarias'] },
+      ia: null },
+    { title: 'Datos Financiación',  status: 'active',
+      erpF: ['Condiciones por matrícula', '% Representación · Importe prorrateado'],
+      api: null, ia: null },
+    { title: 'Proformas VN',        status: 'active',
+      erpF: ['Configuración vehículo nuevo', 'Modelo · Opcionales · Packs'],
+      api: { name: 'API Jato / Proveedor', f: ['Catálogo · PVP', 'Opciones · Disponibilidad'] },
+      ia: null },
+    { title: 'Pool',                status: 'active',
+      erpF: ['Vehículos de sustitución disponibles', 'Disponibilidad · Asignación'],
+      api: null, ia: null },
+    { title: 'Gestoría',            status: 'active',
+      erpF: ['Facturas de gestoría por vehículo', 'Vincula: Flota → Pedido → Contrato'],
+      api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
+      ia: null },
+    { title: 'Planes de Mantenimiento', status: 'active',
+      erpF: ['Preventivo por modelo y km', 'Costes · Cuadrícula · Periodos'],
+      api: { name: 'API TecAlliance', f: ['Catálogo piezas · Referencias', 'Manuales técnicos · Tiempos OR'] },
+      ia:  { title: 'Mantenimiento predictivo', pr: 'core', f: ['Telemática · Alertas', 'Costes previstos'] } },
+    { title: 'Alquiler Flota',      status: 'pending',
+      erpF: ['Alquiler de vehículos de flota', 'Disponibilidad · Tarifas · Período'],
+      api: null, ia: null },
+    { title: 'Existencias',         status: 'pending',
+      erpF: ['Stock VO disponible para venta', 'Precio venta · Estado · Canal'],
+      api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Retasación · Tendencia'] },
+      ia:  { title: 'Predicción VR', pr: 'diferencial', f: ['Modelo dinámico', 'Señales mercado'] } },
+    { title: 'Amortizaciones',      status: 'pending',
+      erpF: ['Amortización mensual automática por vehículo', '(V. inicial a amortizar − VR) ÷ meses contrato'],
+      api: null, ia: { title: 'Ajuste dinámico amortización', pr: 'diferencial', f: ['VNC real vs mercado · alerta', 'Mejora pricing próximas ofertas'] } },
+    { title: 'Precios VNC',         status: 'pending',
+      erpF: ['Valor neto contable por vehículo', 'Precio inicial − amortizaciones acumuladas'],
+      api: null, ia: null },
+    { title: 'Precio Venta (sin IVA)', status: 'pending',
+      erpF: ['Precio VO propuesto sin IVA', 'VNC + Margen Enduran'],
+      api: null, ia: { title: 'Optimización precio VO', pr: 'diferencial', f: ['Precio óptimo', 'Análisis competencia'] } },
+    { title: 'Stock',               status: 'pending',
+      erpF: ['Stock total de vehículos', 'Estado · Ubicación · Disponibilidad'],
+      api: null, ia: null },
+    { title: 'Stock Alquiler',      status: 'pending',
+      erpF: ['Stock disponible para alquiler', 'Categoría · Disponibilidad · Km'],
+      api: null, ia: null },
+    { title: 'Comisión',            status: 'pending',
+      erpF: ['Comisiones comerciales', 'Por contrato · Comercial · Importe'],
+      api: null, ia: null },
+  ]},
+  { label: 'Facturación', color: '#7c2d12', modules: [
+    { title: 'Facturación Clientes', status: 'active',
+      erpF: ['Facturas emitidas al cliente', 'Cuotas · Servicios · Venta VO'],
+      api: { name: 'API Banca / SEPA', f: ['Domiciliaciones', 'Devoluciones · Conciliación'] },
+      ia:  { title: 'Impagos en cartera', pr: 'core', f: ['Early warning', 'Recobro automatizado'] } },
+    { title: 'Fact. Proveedores',   status: 'active',
+      erpF: ['Facturas recibidas de proveedores', 'Taller · Seguro · Gestoría'],
+      api: { name: 'API AEAT — SII', f: ['Envío SII', 'Validación NIF'] },
+      ia:  { title: 'OCR facturas proveedor', pr: 'quick-win', f: ['Extracción automática', 'Detección duplicados'] } },
+    { title: 'Validación Anticipos', status: 'pending',
+      erpF: ['Verificación cobro de anticipos', 'Antes de matriculación del vehículo'],
+      api: null, ia: null },
+    { title: 'Proformas',           status: 'pending',
+      erpF: ['Proformas de venta', 'Precio · Descuento · Cliente'],
+      api: null, ia: null },
+  ]},
+  { label: 'Recobros', color: '#7f1d1d', modules: [
+    { title: 'Facturas Impagadas',  status: 'pending',
+      erpF: ['Facturas vencidas sin cobro', 'Contrato · Importe · Días mora'],
+      api: null, ia: { title: 'Early warning impago', pr: 'core', f: ['Prob. impago', 'Segmento de riesgo'] } },
+    { title: 'Expedientes',         status: 'pending',
+      erpF: ['Agrupación de impagados por matrícula', 'Estado Demanda · Estado Denuncia'],
+      api: null, ia: { title: 'Priorización de expedientes', pr: 'core', f: ['Scoring prob. cobro exitoso', 'Gestión por orden de impacto'] } },
+    { title: 'Clientes Impagados',  status: 'pending',
+      erpF: ['Vista analítica por cliente', 'Total deuda · Expedientes abiertos'],
+      api: null, ia: { title: 'Scoring cliente moroso', pr: 'core', f: ['Perfil de riesgo', 'Recobro automatizado'] } },
+    { title: 'ASNEF',               status: 'pending',
+      erpF: ['Registro de deudas en fichero ASNEF', 'Alta · Baja · Consulta por cliente'],
+      api: { name: 'ASNEF Fichero Impagados', f: ['Registro · Consulta', 'Alta · Baja deudas'] },
+      ia: null },
+  ]},
+  { label: 'Venta VO', color: '#78350f', modules: [
+    { title: 'Liquidación',         status: 'pending',
+      erpF: ['Liquidación fin de contrato', 'Exceso km · Daños · Regularizaciones'],
+      api: null, ia: null },
+    { title: 'Vehículos Retirados', status: 'pending',
+      erpF: ['Vehículos devueltos pendientes', 'Peritación · Estado · Destino'],
+      api: null, ia: null },
+    { title: 'Vehículos VO (Manual)', status: 'pending',
+      erpF: ['Stock VO disponible en venta', 'Precio · Canal comercial · Estado'],
+      api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Benchmark competencia'] },
+      ia:  { title: 'Optimización precio VO', pr: 'diferencial', f: ['Precio óptimo', 'Tiempo venta estimado'] } },
+  ]},
+  { label: 'Servicios', color: '#4c1d95', modules: [
+    { title: 'Seguros',             status: 'pending',
+      erpF: ['Pólizas de seguro de flota', 'Coberturas · Primas · Vigencia'],
+      api: { name: 'API Aseguradora (Affinity)', f: ['Póliza · Cobertura', 'Siniestro · Prima'] },
+      ia: null },
+    { title: 'Siniestros Affinity', status: 'pending',
+      erpF: ['Partes de siniestro Affinity', 'Estado · Liquidación · Taller'],
+      api: { name: 'API Aseguradora Affinity', f: ['Parte · Estado', 'Liquidación siniestro'] },
+      ia: null },
+    { title: 'Multas',              status: 'pending',
+      erpF: ['Notificaciones de multas DGT', 'Conductor · Traslado · Pago'],
+      api: { name: 'API Proveedor Gestión Multas', f: ['Notificaciones · Traslado', 'Pago · Alegaciones'] },
+      ia:  { title: 'Detección conductores de riesgo', pr: 'core', f: ['Patrón multas por conductor', 'Alerta gestor de flota'] } },
+    { title: 'Autorizaciones',      status: 'pending',
+      erpF: ['Autorizaciones de trabajos/servicios', 'Taller · Proveedor · Importe'],
+      api: null, ia: { title: 'Auto-aprobación bajo umbral', pr: 'quick-win', f: ['Aprobación automática · reglas', 'Escala solo casos complejos'] } },
+    { title: 'Alquiler',            status: 'pending',
+      erpF: ['Servicios de alquiler', 'Disponibilidad · Tarifas · Período'],
+      api: null, ia: null },
+    { title: 'Peritaciones',        status: 'pending',
+      erpF: ['Informes de peritación de vehículos', 'Daños · Valoración · Estado'],
+      api: null, ia: { title: 'Detección daños CV', pr: 'core', f: ['Computer Vision fotos', 'Valoración automática'] } },
+    { title: 'Informe Conceptos',   status: 'pending',
+      erpF: ['Informes por conceptos de servicio', 'Agrupación · Análisis · Exportación'],
+      api: null, ia: null },
+  ]},
+  { label: 'Contabilidad', color: '#1e3a5f', modules: [
+    { title: 'Fact. Contabilizada Cliente', status: 'pending',
+      erpF: ['Asientos de facturas cliente', 'Cuenta · Importe · Período'],
+      api: { name: 'API AEAT — SII', f: ['Envío SII', 'Libro registros IVA'] },
+      ia: null },
+    { title: 'Efectos Cliente',     status: 'pending',
+      erpF: ['Efectos pendientes de cobro', 'Vencimiento · IBAN · Estado'],
+      api: { name: 'API Banca / SEPA', f: ['Remesas domiciliación', 'Estado de cobro'] },
+      ia: null },
+    { title: 'Remesa Efectos Cliente', status: 'pending',
+      erpF: ['Remesas mensuales de cuotas', 'Banco · Importe total · Estado'],
+      api: { name: 'API Banca / SEPA', f: ['Fichero SEPA D96A', 'Confirmación banco'] },
+      ia: null },
+    { title: 'Efectos Cliente Contab.', status: 'pending',
+      erpF: ['Efectos cliente contabilizados', 'Asientos generados automáticamente'],
+      api: null, ia: null },
+    { title: 'Fact. Contabilizada Pvee', status: 'pending',
+      erpF: ['Asientos de facturas proveedor', 'Cuenta · Importe · IVA soportado'],
+      api: { name: 'API AEAT — SII', f: ['Envío SII', 'Libro facturas recibidas'] },
+      ia: null },
+    { title: 'Efectos Pvee',        status: 'pending',
+      erpF: ['Efectos a pagar proveedores', 'Vencimiento · Importe · IBAN'],
+      api: null, ia: null },
+    { title: 'Remesa Efectos Pvee', status: 'pending',
+      erpF: ['Pagos a proveedores', 'Fichero SEPA · Banco · Estado'],
+      api: { name: 'API Banca / SEPA', f: ['Fichero pago SEPA', 'Confirmación banco'] },
+      ia: null },
+    { title: 'Efectos Pvee Contab.', status: 'pending',
+      erpF: ['Efectos proveedor contabilizados', 'Asientos generados automáticamente'],
+      api: null, ia: null },
+  ]},
+  { label: 'Cuadro de Mando', color: '#1e3a5f', modules: [
+    { title: 'ECB',                 status: 'pending',
+      erpF: ['Estado de cartera · KPIs', 'Concentración · Mora'],
+      api: { name: 'API / Conector BI', f: ['Power BI · Tableau', 'Data warehouse'] },
+      ia:  { title: 'Predicción mora cartera', pr: 'core', f: ['Early warning mora', 'Concentración riesgo'] } },
+    { title: 'Manuales',            status: 'pending',
+      erpF: ['Informes manuales y exportaciones', 'Formatos Excel · PDF'],
+      api: null, ia: null },
+  ]},
+  { label: 'Terceros', color: '#1e3a5f', modules: [
+    { title: 'Clientes',            status: 'active',
+      erpF: ['CRM: Empresas y personas físicas', 'Contactos · Direcciones · Tipología'],
+      api: { name: 'KYC / AML', f: ['Verificación de identidad', 'Sanciones · RAI'] },
+      ia:  { title: 'Predicción churn', pr: 'diferencial', f: ['LTV scoring', 'Retención proactiva'] } },
+    { title: 'Proveedores',         status: 'active',
+      erpF: ['Catálogo de proveedores activos', 'CIF · IBAN · Categoría · Red'],
+      api: null, ia: null },
+  ]},
+];
 
 // ══════════════════════════════════════════
-// STEP BUILDERS
+// RENDER
 // ══════════════════════════════════════════
-function mod(name, state, cssClass, status, detailKey, tags=[]) {
-  return { type:'module', name, state, cssClass, status, detailKey, tags };
-}
-function conn(label='') { return { type:'connector', label }; }
-function proc(label, style='process') { return { type:'process', label, style }; }
-function branch(label, paths) { return { type:'branch', label, paths }; }
-function parallel(paths) { return { type:'parallel', paths }; }
-function subinfo(label, items) { return { type:'subinfo', label, items }; }
-function endNode(label, style) { return { type:'end', label, style }; }
-function pendingBanner(text) { return { type:'pending_banner', text }; }
+function renderDiagram() {
+  const container = document.getElementById('columns-area');
+  container.innerHTML = '';
 
-// ══════════════════════════════════════════
-// RENDER ENGINE
-// ══════════════════════════════════════════
-function renderSteps(container, steps) {
-  const wrap = document.createElement('div');
-  wrap.className = 'flow-diagram';
-  steps.forEach(s => {
-    const el = renderStep(s);
-    if (el) wrap.appendChild(el);
-  });
-  container.appendChild(wrap);
-}
-
-function renderStep(s) {
-  switch(s.type) {
-    case 'module':      return renderModule(s);
-    case 'connector':   return renderConnector(s);
-    case 'process':     return renderProcess(s);
-    case 'branch':      return renderBranch(s);
-    case 'parallel':    return renderParallel(s);
-    case 'subinfo':     return renderSubinfo(s);
-    case 'end':         return renderEnd(s);
-    case 'pending_banner': return renderPendingBanner(s);
-    default: return null;
-  }
-}
-
-function renderModule(s) {
-  const wrap = document.createElement('div');
-  wrap.className = 'step-node';
-  const statusDotColor = {active:'#16a34a', partial:'#d97706', pending:'#9ca3af'}[s.status];
-
-  wrap.innerHTML = `
-    <div class="module-card mod-${s.cssClass}" onclick="openModal('${s.detailKey}','${s.name} — ${s.state}')">
-      <div class="module-status-dot ${s.status}"></div>
-      <div class="module-badge">${s.name}</div>
-      <div class="module-name">${s.state}</div>
-      ${s.tags.length ? `<div class="module-extra">${s.tags.map(t=>`<span class="module-extra-tag">${t}</span>`).join('')}</div>` : ''}
-    </div>`;
-  return wrap;
-}
-
-function renderConnector(s) {
-  const div = document.createElement('div');
-  div.style.cssText = 'width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;position:relative;';
-  div.innerHTML = `<div class="connector" style="position:relative">${s.label ? `<span class="connector-label">${s.label}</span>` : ''}</div>`;
-  return div;
-}
-
-function renderProcess(s) {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'width:100%;max-width:480px;display:flex;justify-content:center;';
-  wrap.innerHTML = `<div class="process-node ${s.style}" onclick="openModal(null,'${s.label}','${s.label}')">${s.label}</div>`;
-  return wrap;
-}
-
-function renderBranch(s) {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'width:100%;';
-  const diamond = document.createElement('div');
-  diamond.style.cssText = 'display:flex;flex-direction:column;align-items:center;';
-  diamond.innerHTML = `<div class="connector"></div>
-    <div class="decision-diamond"><span>${s.label}</span></div>
-    <div class="connector" style="background:transparent"></div>`;
-  wrap.appendChild(diamond);
-
-  const branchRow = document.createElement('div');
-  branchRow.className = 'decision-branches';
-
-  s.paths.forEach(path => {
+  flows.forEach((flow, i) => {
+    const isLast = i === flows.length - 1;
     const col = document.createElement('div');
-    col.className = 'branch';
-    const labelDiv = document.createElement('div');
-    labelDiv.className = `branch-label ${path.type}`;
-    labelDiv.textContent = path.label;
-    col.appendChild(labelDiv);
-    path.steps.forEach(st => {
-      const el = renderStep(st);
-      if (el) { el.style.maxWidth = '100%'; col.appendChild(el); }
-    });
-    branchRow.appendChild(col);
+    col.className = 'flow-column';
+    col.id = `col-${flow.id}`;
+
+    const statusClass = flow.erp.status;
+    const statusLabel = { active: 'Implementado', partial: 'Parcial', pending: 'Pendiente' }[statusClass];
+
+    col.innerHTML = `
+      <!-- Column header -->
+      <div class="col-header">
+        <span class="step-num">${flow.number}</span>
+        ${flow.title}
+      </div>
+
+      <!-- ERP card row -->
+      <div class="card-row" id="row-erp-${flow.id}">
+        <div class="card erp" onclick="openModal('${flow.id}', 'erp')" title="${flow.erp.title}">
+          <div class="status-indicator ${statusClass}"></div>
+          <div class="card-badge erp">ERP</div>
+          <div class="card-title">${flow.erp.title}</div>
+          <div class="card-fields">
+            ${flow.erp.preview.map(f => `<div class="card-field">${f}</div>`).join('')}
+          </div>
+        </div>
+        <div class="h-arrow ${isLast ? 'last' : ''}"></div>
+      </div>
+
+      <!-- V connector API -->
+      <div class="v-connector" id="row-api-conn-${flow.id}">
+        <div class="v-line api"></div>
+        <div class="v-dot api"></div>
+        <div class="v-line api"></div>
+      </div>
+
+      <!-- API card row -->
+      <div class="card-row" id="row-api-${flow.id}">
+        <div class="card api" onclick="openModal('${flow.id}', 'api')" title="${flow.api.name}">
+          <div class="status-indicator pending"></div>
+          <div class="card-badge api">API</div>
+          <div class="card-title">${flow.api.name}</div>
+          <div class="card-fields">
+            ${flow.api.fields.map(f => `<div class="card-field">${f}</div>`).join('')}
+          </div>
+        </div>
+        <div class="h-arrow last"></div>
+      </div>
+
+      <!-- V connector IA -->
+      <div class="v-connector" id="row-ia-conn-${flow.id}">
+        <div class="v-line ia"></div>
+        <div class="v-dot ia"></div>
+        <div class="v-line ia"></div>
+      </div>
+
+      <!-- IA card row -->
+      <div class="card-row" id="row-ia-${flow.id}">
+        <div class="card ia" onclick="openModal('${flow.id}', 'ia')" title="${flow.ia.name}">
+          <div class="card-badge ia">IA</div>
+          <div class="card-title">${flow.ia.name.replace('IA: ', '')}</div>
+          <div class="card-fields">
+            ${flow.ia.preview.map(f => `<div class="card-field">${f}</div>`).join('')}
+          </div>
+          <div class="priority-badge ${flow.ia.priority}">
+            ${ {
+              'quick-win':    '⚡ Quick Win',
+              'core':         '🧠 Core IA',
+              'diferencial':  '🚀 Diferencial'
+            }[flow.ia.priority] }
+          </div>
+        </div>
+        <div class="h-arrow last"></div>
+      </div>
+    `;
+
+    container.appendChild(col);
   });
-
-  wrap.appendChild(branchRow);
-  return wrap;
-}
-
-function renderParallel(s) {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'width:100%;';
-  const row = document.createElement('div');
-  row.className = 'parallel-wrap';
-  s.paths.forEach(path => {
-    const col = document.createElement('div');
-    col.className = 'parallel-branch';
-    path.steps.forEach(st => {
-      const el = renderStep(st);
-      if (el) { el.style.maxWidth = '100%'; col.appendChild(el); }
-    });
-    row.appendChild(col);
-  });
-  wrap.appendChild(row);
-  return wrap;
-}
-
-function renderSubinfo(s) {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'width:100%;max-width:480px;';
-  wrap.innerHTML = `<div class="subinfo-box">
-    <span class="subinfo-label">${s.label}</span>
-    ${s.items.map(i=>`<span class="subinfo-item">${i}</span>`).join('')}
-  </div>`;
-  return wrap;
-}
-
-function renderEnd(s) {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'width:100%;max-width:480px;display:flex;justify-content:center;';
-  wrap.innerHTML = `<div class="end-node ${s.style}">${s.label}</div>`;
-  return wrap;
-}
-
-function renderPendingBanner(s) {
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'width:100%;max-width:480px;margin-bottom:16px;';
-  wrap.innerHTML = `<div style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#b91c1c;display:flex;align-items:center;gap:8px;">
-    <span style="font-size:16px">⚠️</span><span>${s.text}</span>
-  </div>`;
-  return wrap;
 }
 
 // ══════════════════════════════════════════
-// TABS + PANELS
+// MODULE CATALOG RENDER
 // ══════════════════════════════════════════
-function buildUI() {
-  const tabsEl  = document.getElementById('tabs');
-  const areaEl  = document.getElementById('flow-area');
+function renderModuleCatalog() {
+  const container = document.getElementById('mc-columns-area');
+  if (!container) return;
+  container.innerHTML = '';
+  const prL = { 'quick-win': '⚡ Quick Win', 'core': '🧠 Core IA', 'diferencial': '🚀 Diferencial' };
 
-  flows.forEach((f, i) => {
-    // Tab
-    const tab = document.createElement('div');
-    tab.className = 'tab' + (i===0?' active':'');
-    tab.id = `tab-${f.id}`;
-    tab.innerHTML = `<span class="tab-icon">${f.icon}</span>${f.title}<span class="tab-status" style="background:${f.statusColor}"></span>`;
-    tab.onclick = () => switchTab(f.id);
-    tabsEl.appendChild(tab);
+  moduleGroups.forEach(grp => {
+    const group = document.createElement('div');
+    group.className = 'mc-group';
 
-    // Panel
-    const panel = document.createElement('div');
-    panel.className = 'flow-panel' + (i===0?' active':'');
-    panel.id = `panel-${f.id}`;
+    const label = document.createElement('div');
+    label.className = 'mc-cat-label';
+    label.style.background = grp.color;
+    label.textContent = grp.label;
+    group.appendChild(label);
 
-    const header = document.createElement('div');
-    header.className = 'flow-header';
-    header.innerHTML = `
-      <h2>${f.icon} ${f.title}</h2>
-      <p>${f.description}</p>
-      <div class="badges">${f.badges.map(b=>`<span class="flow-badge" style="border-color:${b.color};color:${b.color};background:${b.color}15">${b.label}</span>`).join('')}</div>`;
-    panel.appendChild(header);
+    const modsDiv = document.createElement('div');
+    modsDiv.className = 'mc-modules';
+    group.appendChild(modsDiv);
+    container.appendChild(group);
 
-    const diagramWrap = document.createElement('div');
-    f.render(diagramWrap);
-    panel.appendChild(diagramWrap);
-    areaEl.appendChild(panel);
+    grp.modules.forEach(mod => {
+      const col = document.createElement('div');
+      col.className = 'flow-column';
+
+      const apiHtml = mod.api ? `
+        <div class="v-connector">
+          <div class="v-line api"></div><div class="v-dot api"></div><div class="v-line api"></div>
+        </div>
+        <div class="card-row">
+          <div class="card api">
+            <div class="status-indicator pending"></div>
+            <div class="card-badge api">API</div>
+            <div class="card-title">${mod.api.name}</div>
+            <div class="card-fields">${mod.api.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+          </div>
+          <div class="h-arrow last"></div>
+        </div>` : '';
+
+      const iaHtml = mod.ia ? `
+        <div class="v-connector">
+          <div class="v-line ia"></div><div class="v-dot ia"></div><div class="v-line ia"></div>
+        </div>
+        <div class="card-row">
+          <div class="card ia">
+            <div class="card-badge ia">IA</div>
+            <div class="card-title">${mod.ia.title}</div>
+            <div class="card-fields">${mod.ia.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+            <div class="priority-badge ${mod.ia.pr}">${prL[mod.ia.pr]}</div>
+          </div>
+          <div class="h-arrow last"></div>
+        </div>` : '';
+
+      const eClass = (mod.status === 'active' || mod.status === 'partial') ? 'erp' : 'mod-grey';
+      col.innerHTML = `
+        <div class="col-header">${mod.title}</div>
+        <div class="card-row">
+          <div class="card ${eClass}">
+            <div class="status-indicator ${mod.status}"></div>
+            <div class="card-badge ${eClass}">ERP</div>
+            <div class="card-title">${mod.title}</div>
+            <div class="card-fields">${mod.erpF.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+          </div>
+          <div class="h-arrow last"></div>
+        </div>
+        ${apiHtml}${iaHtml}
+      `;
+      modsDiv.appendChild(col);
+    });
   });
-}
-
-function switchTab(id) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.flow-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`tab-${id}`).classList.add('active');
-  document.getElementById(`panel-${id}`).classList.add('active');
 }
 
 // ══════════════════════════════════════════
 // MODAL
 // ══════════════════════════════════════════
-function openModal(key, title) {
-  const d = key ? moduleDetails[key] : null;
-  document.getElementById('modal-title').textContent = title;
-  const body = document.getElementById('modal-body');
+function openModal(flowId, type) {
+  const flow = flows.find(f => f.id === flowId);
+  if (!flow) return;
 
-  if (!d) {
-    body.innerHTML = `<div class="modal-note">Nodo de proceso interno — sin tabla de base de datos asociada.</div>`;
-  } else {
-    const active  = (d.tables||[]).filter(t=>t.status==='active').length;
-    const pending = (d.tables||[]).filter(t=>t.status==='pending').length;
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const badge   = document.getElementById('modal-badge');
+  const body    = document.getElementById('modal-body');
+
+  if (type === 'erp') {
+    const d = flow.erp;
+    const statusLabel = { active: '✅ Implementado', partial: '🔶 Parcial', pending: '❌ Pendiente' }[d.status];
+    const activeT  = d.tables.filter(t => t.status === 'active').length;
+    const partialT = d.tables.filter(t => t.status === 'partial').length;
+    const pendingT = d.tables.filter(t => t.status === 'pending').length;
+    const totalF   = d.tables.reduce((s, t) => s + t.fields, 0);
+
+    badge.textContent = 'Módulo ERP';
+    badge.className = 'modal-badge';
+    badge.style.cssText = `background:${getComputedStyle(document.documentElement).getPropertyValue('--erp-color')};color:#fff`;
+    title.textContent = d.title;
+
     body.innerHTML = `
-      ${d.note ? `<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px">${d.note}</p>` : ''}
-      ${d.tables && d.tables.length > 0 ? `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="font-size:13px;font-weight:600;color:${d.status==='active'?'#15803d':d.status==='partial'?'#b45309':'#6b7280'}">${statusLabel}</span>
+        <span style="font-size:12px;color:#94a3b8">· Flujo: ${flow.number}. ${flow.title}</span>
+      </div>
+      <p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px">${d.description}</p>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="sv">${d.tables.length}</div><div class="sl">Tablas</div></div>
+        <div class="stat-box"><div class="sv">~${totalF}</div><div class="sl">Campos</div></div>
+        <div class="stat-box"><div class="sv" style="color:#15803d">${activeT}</div><div class="sl">Implementadas</div></div>
+        <div class="stat-box"><div class="sv" style="color:#6b7280">${pendingT}</div><div class="sl">Pendientes</div></div>
+      </div>
       <div class="modal-section">
-        <div class="modal-section-title">Tablas (${active} activas · ${pending} pendientes)</div>
-        ${d.tables.map(t=>`
-          <div class="modal-table-row">
-            <div class="modal-table-dot" style="background:${t.status==='active'?'#16a34a':t.status==='partial'?'#d97706':'#9ca3af'}"></div>
-            <span class="modal-table-name">${t.name}</span>
-            <span class="modal-table-fields">~${t.fields} campos</span>
-            <span class="modal-table-s ${t.status}">${{active:'Activa',partial:'Parcial',pending:'Pendiente'}[t.status]}</span>
-          </div>`).join('')}
-      </div>` : ''}
-      ${d.pending && d.pending.length ? `
+        <div class="modal-section-title">Tablas de la base de datos</div>
+        <div class="modal-table-grid">
+          ${d.tables.map(t => `
+            <div class="modal-table-row">
+              <div class="modal-table-dot" style="background:${t.status==='active'?'#16a34a':t.status==='partial'?'#d97706':'#9ca3af'}"></div>
+              <span class="modal-table-name">${t.name}</span>
+              <span class="modal-table-fields">~${t.fields} campos</span>
+              <span class="modal-table-status ${t.status}">${{active:'Activa',partial:'Parcial',pending:'Pendiente'}[t.status]}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ${d.pending.length > 0 ? `
       <div class="modal-section">
         <div class="modal-section-title">Pendiente de desarrollo</div>
-        ${d.pending.map(p=>`<div class="pending-item">⏳ ${p}</div>`).join('')}
+        <div class="modal-pending-list">
+          ${d.pending.map(p => `<div class="modal-pending-item">⏳ ${p}</div>`).join('')}
+        </div>
       </div>` : ''}
     `;
+
+  } else if (type === 'api') {
+    const d = flow.api;
+    badge.textContent = 'API Externa';
+    badge.style.cssText = `background:#134e4a;color:#fff`;
+    title.textContent = d.name;
+
+    body.innerHTML = `
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:3px 10px;font-size:11px;font-weight:600;color:#dc2626;margin-bottom:14px">
+        ❌ Pendiente de integración
+      </div>
+      <p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px">${d.description}</p>
+      <div class="modal-section">
+        <div class="modal-section-title">Datos que suministra</div>
+        <div class="modal-api-card">
+          <div class="modal-api-name">🔌 ${d.name}</div>
+          <div class="modal-api-desc">${d.fields.join(' · ')}</div>
+          <div class="modal-api-trigger">Trigger: ${d.trigger}</div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Flujo de integración</div>
+        <div style="background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;color:#374151;line-height:1.8;border:1px solid #e2e8f0">
+          <strong>ERP</strong> → Solicita datos → <strong>${d.name}</strong><br>
+          <strong>${d.name}</strong> → Respuesta JSON/XML → <strong>ERP</strong><br>
+          <span style="color:#6b7280">Trigger: ${d.trigger}</span>
+        </div>
+      </div>
+    `;
+
+  } else if (type === 'ia') {
+    const d = flow.ia;
+    const pl = { 'quick-win': '⚡ Quick Win', 'core': '🧠 Core IA', 'diferencial': '🚀 Diferencial' }[d.priority];
+    badge.textContent = 'Agente IA';
+    badge.style.cssText = `background:#78350f;color:#fff`;
+    title.textContent = d.name.replace('IA: ', '');
+
+    body.innerHTML = `
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <span class="priority-badge ${d.priority}" style="font-size:11px;padding:4px 10px">${pl}</span>
+      </div>
+      <p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:16px">${d.description}</p>
+      <div class="modal-section">
+        <div class="modal-ai-card">
+          <div class="modal-ai-name">🤖 ${d.name}</div>
+          <div class="modal-ai-tech">Técnica: ${d.technique}</div>
+          <div class="modal-ai-benefit">→ ${d.benefit}</div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Datos de entrada (features)</div>
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:12px;font-size:12px;color:#374151;line-height:1.8">
+          ${getAIInputs(flow.id)}
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title">Integración en el ERP</div>
+        <div style="background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;color:#374151;line-height:1.8;border:1px solid #e2e8f0">
+          Módulo ERP: <strong>${flow.erp.title}</strong><br>
+          Punto de activación: <strong>${getAITrigger(flow.id)}</strong>
+        </div>
+      </div>
+    `;
+  }
+
+  overlay.classList.add('open');
+}
+
+function getAIInputs(flowId) {
+  const inputs = {
+    oferta:       'Historial de conversiones · Perfil cliente · Configuración del vehículo · Residual pactado',
+    scoring:      'Score CPP (INCOFISA · AIS · EQUIFAX) · Historial de pagos · Sector/tamaño empresa · Variables macroeconómicas',
+    contrato:     'Documento PDF del contrato · Condiciones económicas · Cláusulas especiales',
+    entrega:      'Histórico de pedidos OEM · Stock actual · Estacionalidad · Plazos históricos',
+    facturacion:  'Historial cobros · Perfil riesgo · Días de retraso anteriores · Score crediticio',
+    mantenimiento:'Datos GPS (km, temperatura, acelerometría) · Histórico mantenimientos · Modelo vehículo',
+    residual:     'VR pactado · Km reales GPS · Mercado VO (Eurotax) · Estado en devolución · Año/modelo',
+    reporting:    'KPIs del ERP · Series históricas · Benchmarks del sector · Anomalías detectadas'
+  };
+  return inputs[flowId] || 'Datos del módulo ERP correspondiente';
+}
+
+function getAITrigger(flowId) {
+  const triggers = {
+    oferta:       'Al finalizar configuración de oferta',
+    scoring:      'Al evaluar riesgo del cliente',
+    contrato:     'Al adjuntar documento PDF al contrato',
+    entrega:      'Al confirmar el pedido al proveedor',
+    facturacion:  '5 días antes del vencimiento de cuota',
+    mantenimiento:'Continuo — webhooks de telemática GPS',
+    residual:     'Al abrir expediente de fin de contrato',
+    reporting:    'Cierre de mes / bajo demanda'
+  };
+  return triggers[flowId] || 'Evento de negocio relevante';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+function closeModalDirect() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// ESC key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('modal-overlay').classList.remove('open');
+});
+
+// ══════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════
+let layerState = { erp: true, api: true, ia: true };
+
+function toggleLayer(layer) {
+  if (layer === 'all') {
+    layerState = { erp: true, api: true, ia: true };
+    ['erp','api','ia'].forEach(l => {
+      document.getElementById(`btn-${l}`).classList.add('active');
+    });
+  } else {
+    layerState[layer] = !layerState[layer];
+    document.getElementById(`btn-${layer}`).classList.toggle('active', layerState[layer]);
+  }
+  applyLayerFilter();
+}
+
+function applyLayerFilter() {
+  flows.forEach(flow => {
+    const erpCard = document.querySelector(`#row-erp-${flow.id} .card`);
+    const apiRow  = document.getElementById(`row-api-${flow.id}`);
+    const apiConn = document.getElementById(`row-api-conn-${flow.id}`);
+    const iaRow   = document.getElementById(`row-ia-${flow.id}`);
+    const iaConn  = document.getElementById(`row-ia-conn-${flow.id}`);
+
+    if (erpCard) erpCard.closest('.card-row').style.opacity = layerState.erp ? '1' : '0.15';
+    if (apiRow)  { apiRow.style.opacity = layerState.api ? '1' : '0.15'; }
+    if (apiConn) { apiConn.style.opacity = layerState.api ? '1' : '0.15'; }
+    if (iaRow)   { iaRow.style.opacity  = layerState.ia  ? '1' : '0.15'; }
+    if (iaConn)  { iaConn.style.opacity = layerState.ia  ? '1' : '0.15'; }
+  });
+}
+
+// ══════════════════════════════════════════
+// COLLAPSIBLE SECTIONS
+// ══════════════════════════════════════════
+function toggleSection(contentId, btnId) {
+  const el  = document.getElementById(contentId);
+  const btn = document.getElementById(btnId);
+  const label = btn.textContent.split(' ').slice(1).join(' '); // preserve label text
+  if (el.dataset.open === 'false') {
+    // expand
+    el.dataset.open = 'true';
+    el.style.maxHeight = el.scrollHeight + 'px';
+    btn.textContent = '▼ ' + label;
+    el.addEventListener('transitionend', () => { el.style.maxHeight = ''; }, {once:true});
+  } else {
+    // collapse
+    el.style.maxHeight = el.scrollHeight + 'px';
+    el.dataset.open = 'false';
+    requestAnimationFrame(() => { el.style.maxHeight = '0px'; });
+    btn.textContent = '▶ ' + label;
+  }
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderDiagram();
+renderModuleCatalog();
+
+// ══════════════════════════════════════════
+// FLOWS SECTION
+// ══════════════════════════════════════════
+const fsModuleDetails = {
+  mant_plan:   { tables:[{name:'planes_mantenimiento',fields:20,status:'active'},{name:'plan_mantenimiento_costes',fields:14,status:'active'},{name:'plan_mantenimiento_cuadricula',fields:12,status:'active'}], note:'Plan de mantenimiento vinculado a la proforma. Debe estar asociado antes de crear la oferta. Define costes preventivos por km y modelo.' },
+  residuales:  { tables:[{name:'residuales',fields:12,status:'active'}], note:'Listado manual de valores residuales por código Jato. Prerrequisito para crear oferta: el Jato de la proforma debe tener registro aquí. Módulo temporal — será reemplazado por integración API con EUROTAX.', pending:['Integración API EUROTAX (reemplaza este módulo)'] },
+  proformas:   { tables:[{name:'proformas_vn',fields:28,status:'active'},{name:'proforma_opciones',fields:14,status:'active'},{name:'proforma_packs',fields:12,status:'active'},{name:'proforma_pool',fields:10,status:'active'}], note:'Configuración del vehículo nuevo: modelo, opcionales, packs y series.' },
+  ofertas:     { tables:[{name:'ofertas',fields:35,status:'active'},{name:'oferta_cuotas_servicios',fields:14,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'},{name:'perfil_cotizacion',fields:20,status:'active'}], note:'Ciclo de vida de la oferta con estados, cálculo de cuota y aprobación comercial.' },
+  lineas_fin:  { tables:[{name:'lineas_financiacion',fields:22,status:'pending'},{name:'entidades_financieras',fields:14,status:'pending'},{name:'perfiles_linea',fields:10,status:'pending'}], note:'Líneas de crédito por entidad financiera para compra de flota. Controla el disponible total, el importe dispuesto en cada momento y las condiciones asociadas a cada entidad.', pending:['Módulo completo pendiente de desarrollo','Control de disponible en tiempo real'] },
+  perfil_cot:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'requerimientos_perfil',fields:18,status:'active'},{name:'peculiaridades_perfil',fields:14,status:'active'},{name:'datos_financiacion',fields:22,status:'active'}], note:'Módulo completo. Incluye: datos del perfil, requerimientos (ej: Current Interest Rate Basis, concentración máxima por región/cliente) y peculiaridades que condicionan directamente la cotización de la oferta. Vinculado a una línea de financiación.' },
+  disposicion: { tables:[{name:'disposiciones_financieras',fields:18,status:'active'}], note:'Módulo existente. Solicitud de fondos sobre una línea de crédito firmada manualmente con la entidad. Reduce el disponible de la línea. Ej: línea 15M€ → disposición 2M€ → disponible restante 13M€. Vinculación directa con flota ya implementada. Falta: campo que vincule la disposición con la línea de financiación (módulo Líneas de Financiación pendiente de crear).', pending:['Campo id_linea_financiacion en disposiciones_financieras'] },
+  datos_fin:   { tables:[{name:'datos_financiacion',fields:22,status:'active'}], note:'Módulo existente. Contiene los datos de la disposición financiera prorrateados por el porcentaje de representación de cada vehículo en el total de la disposición. A diferencia de Disposiciones Financieras (nivel disposición), este módulo trabaja a nivel matrícula/vehículo. Ej: disposición 2M€ para 20 coches → datos_financiacion tiene 20 registros, uno por matrícula, con su importe prorrateado según el % que representa cada coche sobre el total.' },
+  perfil_fin:  { tables:[{name:'perfil_cotizacion',fields:20,status:'active'},{name:'datos_financiacion',fields:22,status:'active'},{name:'disposiciones_financieras',fields:18,status:'active'},{name:'oferta_resultados_financieros',fields:18,status:'active'}], note:'Parámetros financieros: TAE, mensualidades, disposiciones y resultados del modelo financiero.' },
+  riesgos:     { tables:[{name:'riesgos',fields:20,status:'active'},{name:'estado_riesgo',fields:6,status:'active'},{name:'clientes',fields:30,status:'active'}], note:'Evaluación de riesgo crediticio. Estados: Pendiente CPP → Aprobado / Rechazado / Con garantía.' },
+  firma:       { tables:[], note:'Integración pendiente con Signaturit. El contrato se envía para firma electrónica avanzada y se obtiene PDF certificado.', pending:['Integración API Signaturit','Webhook de estado de firma','Almacenamiento PDF firmado'] },
+  contrato:    { tables:[{name:'contratos_renting',fields:38,status:'active'},{name:'condiciones_contrato',fields:18,status:'active'},{name:'documentos_contrato',fields:12,status:'active'},{name:'garantias',fields:15,status:'pending'}], note:'Contrato principal de renting. Estados implementados: Pendiente de Firma · Enviada para Firma · Firmada · Paralizada · Anulada. Pendientes de crear: 4-Pendiente de Matrícula · 5-Pendiente de Entrega · 6-Pendiente de Activación · 7-Activo.', pending:['Estado 4: Pendiente de Matrícula','Estado 5: Pendiente de Entrega','Estado 6: Pendiente de Activación','Estado 7: Activo'] },
+  anticipos:   { tables:[], note:'Verificación de cobro de anticipos del cliente antes de proceder con la matriculación. Módulo pendiente de desarrollo.', pending:['Módulo completo pendiente de desarrollo','Workflow de validación de anticipo'] },
+  gestoria:    { tables:[{name:'gestoria_facturas',fields:20,status:'active'},{name:'gestoria_lineas',fields:14,status:'active'}], note:'Registro de gastos de gestoría por vehículo. Al introducir el gasto y la matrícula, el sistema vincula automáticamente: Gestoría → Flota → Pedido → Contrato. Esta vinculación activa la transición del contrato a "Pendiente de Entrega".' },
+  pedidos:     { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'pedidos_vehiculo',fields:18,status:'pending'},{name:'equipamientos',fields:10,status:'pending'}], note:'Pedido del vehículo al proveedor OEM y seguimiento hasta matriculación.', pending:['Tabla pedidos_vehiculo','Integración API proveedor OEM'] },
+  carga:       { tables:[{name:'vehiculos',fields:45,status:'active'},{name:'flota',fields:20,status:'active'}], note:'Carga del número de matrícula y bastidor en el contrato una vez matriculado.' },
+  entregas:    { tables:[{name:'entregas',fields:20,status:'active'},{name:'actas_entrega',fields:16,status:'active'},{name:'encuesta_satisfaccion',fields:12,status:'active'}], note:'Módulo de entregas. Estados implementados: 1-Pendiente de Matrícula · 2-Vehículo Matrículado (nota: tilde en ú en código). Pendientes: 3-Puesta a Disposición · 4-Entregado · 5-No Entregado.', pending:['Estado: Puesta a Disposición','Estado: Entregado','Estado: No Entregado'] },
+  seguros:     { tables:[{name:'polizas_seguro',fields:24,status:'pending'}], note:'Gestión de póliza vinculada al vehículo. Integración con AFFINITY.', pending:['Módulo pólizas de seguro','Integración API AFFINITY','Solicitud documentos Excel/Atlas'] },
+  ocr:         { tables:[{name:'documentos_contrato',fields:12,status:'active'}], note:'OCR para validar documentación del cliente. Si es correcta activa el contrato y envía PIN.', pending:['Integración servicio OCR','Envío automático PIN','Workflow de incidencias'] },
+  devoluciones:{ tables:[{name:'devoluciones',fields:18,status:'pending'},{name:'actas_devolucion',fields:20,status:'pending'},{name:'peritaciones',fields:15,status:'pending'},{name:'cargos_devolucion',fields:12,status:'pending'}], note:'Proceso de devolución del vehículo al fin del contrato.', pending:['Módulo completo pendiente'] },
+  cierres:     { tables:[{name:'cierres_contrato',fields:16,status:'pending'},{name:'ofertas_renovacion',fields:14,status:'pending'}], note:'Cierre formal con liquidación final y P&L por vehículo.', pending:['Módulo completo pendiente'] },
+  recobros:    { tables:[{name:'impagos',fields:14,status:'pending'}], note:'Gestión de impagos: amistoso, extrajudicial y judicial.', pending:['Módulo impagos','Workflow de recobro','Integración agencia de recobro'] },
+  stock_vo:    { tables:[{name:'vehiculos_segunda_mano',fields:18,status:'pending'}], note:'Stock de vehículos VO disponibles tras devolución.', pending:['Módulo completo pendiente'] },
+  venta_vo:    { tables:[{name:'ventas_segunda_mano',fields:16,status:'pending'}], note:'Venta VO: valoración, portales, contrato y transferencia DGT.', pending:['Módulo completo pendiente','Integración Eurotax/Indicata','Integración AutoScout/Coches.net','Integración DGT transferencia'] },
+  fact_dev:       { tables:[{name:'facturas_clientes',fields:28,status:'partial'},{name:'cuotas_contrato',fields:14,status:'pending'},{name:'cobros',fields:16,status:'pending'}], note:'Factura final del contrato con penalizaciones por daños o exceso de km.', pending:['Factura de cierre automática','Cargos por daños/exceso km'] },
+  clientes_impag: { tables:[{name:'clientes_impagados',fields:14,status:'pending'},{name:'historial_impagos',fields:10,status:'pending'}], note:'Registro de clientes con facturas vencidas y seguimiento del estado de mora por tramos.', pending:['Módulo completo pendiente de desarrollo'] },
+  facturas_impag: { tables:[{name:'facturas_clientes',fields:28,status:'partial'},{name:'impagos',fields:14,status:'pending'}], note:'Control de facturas vencidas sin cobro: días de mora, importe pendiente y gestiones realizadas.', pending:['Tabla impagos','Workflow de escalado automático'] },
+  asnef:          { tables:[{name:'ficheros_asnef',fields:12,status:'pending'}], note:'Declaración en ASNEF/EQUIFAX de clientes morosos. Alta y baja automatizable al cobro.', pending:['Integración API ASNEF/EQUIFAX','Proceso de baja automática al cobro'] },
+  expedientes:    { tables:[{name:'expedientes_judiciales',fields:18,status:'pending'}], note:'Apertura y seguimiento de expedientes judiciales o extrajudiciales para recobro. Coordinación con gestoría externa.', pending:['Módulo completo pendiente de desarrollo','Integración gestoría de recobros'] },
+};
+
+// Step builders
+const fsB = {
+  mod: (name, state, css, status, key, tags=[]) => ({type:'module',name,state,css,status,key,tags}),
+  conn: (label='') => ({type:'conn',label}),
+  proc: (label, style='process') => ({type:'proc',label,style}),
+  branch: (label, paths) => ({type:'branch',label,paths}),
+  par: (paths) => ({type:'par',paths}),
+  sub: (label, items) => ({type:'sub',label,items}),
+  end: (label, style) => ({type:'end',label,style}),
+  banner: (text) => ({type:'banner',text}),
+  link: (flowId, label) => ({type:'flowlink', flowId, label}),
+};
+
+const fsFlows = [
+  {
+    id:'financiacion', title:'💰 Financiación y Compra', dotColor:'#16a34a',
+    desc:'Líneas de crédito, perfiles de cotización, disposiciones financieras y datos prorrateados por vehículo.',
+    badges:[{l:'Líneas de Financiación ❌',c:'#0e7490'},{l:'Perfil de Cotización ✅',c:'#1d4ed8'},{l:'Disposiciones Financieras ✅',c:'#6b5a2e'},{l:'Datos de Financiación ✅',c:'#0891b2'}],
+    steps:[
+      // 1 · LÍNEAS DE FINANCIACIÓN + PERFIL (background)
+      fsB.par([
+        {steps:[
+          fsB.mod('Líneas de Financiación','Disponible por entidad financiera','lineas','pending','lineas_fin',['Entidad','Disponible total','Condiciones'])
+        ]},
+        {steps:[
+          fsB.mod('Perfil de Cotización','Datos · Requerimientos · Peculiaridades','ofertas','active','perfil_cot',['Requerimientos','Peculiaridades cotización','Datos financieros'])
+        ]}
+      ]),
+      // 2 · DISPOSICIÓN FINANCIERA
+      fsB.conn('Solicitar disposición de fondos'),
+      fsB.mod('Disposición Financiera','Fondos habilitados sobre línea','disposicion','active','disposicion',['Importe dispuesto','Disponible restante','⚠️ Falta campo → línea']),
+      fsB.sub('Firma manual con entidad financiera',['No requiere Signaturit','Reduce disponible en línea']),
+      // 3 · FLOTA
+      fsB.conn('Vehículos registrados en flota y vinculados a disposición'),
+      fsB.mod('Mod. Flota','Vehículos vinculados a disposición','carga','active','carga',['Matrícula','Bastidor','Nº disposición']),
+      // 4 · DATOS DE FINANCIACIÓN (por vehículo)
+      fsB.conn('Prorrateo por % de representación de cada vehículo'),
+      fsB.mod('Datos de Financiación','Datos prorrateados por matrícula','datos_fin','active','datos_fin',['% Representación','Importe prorrateado','Por matrícula']),
+      // FIN
+      fsB.conn(''),
+      fsB.end('↪️ Ver flujo Entregas (Facturas · Gestoría)','neutral')
+    ]
+  },
+  {
+    id:'entregas', title:'🚗 Entregas', dotColor:'#d97706',
+    desc:'Flujo completo: proforma VN → oferta → riesgos → contrato → matrícula → activación → entrega al cliente.',
+    badges:[{l:'Proformas ✅',c:'#7c3aed'},{l:'Mantenimientos ✅',c:'#166534'},{l:'Residuales ⚠️',c:'#78350f'},{l:'Ofertas ✅',c:'#1d4ed8'},{l:'Riesgos ✅',c:'#374151'},{l:'Contratos ✅',c:'#0f766e'},{l:'Pedidos ❌',c:'#b91c1c'},{l:'Entregas ✅',c:'#a16207'}],
+    steps:[
+      // ── 1. PROFORMA VN
+      fsB.mod('Mod. Proformas VN','Configuración vehículo nuevo','proformas','active','proformas',['Modelo','Opcionales','Packs']),
+      // ── PREREQUISITOS para crear oferta
+      fsB.conn('Verificar prerequisitos para crear oferta'),
+      fsB.par([
+        {steps:[
+          fsB.mod('Mod. Mantenimientos','Plan vinculado a proforma','mant','active','mant_plan',['Costes por km','Cuadrícula preventiva'])
+        ]},
+        {steps:[
+          fsB.mod('Listado Residuales','Código Jato registrado','residuales','partial','residuales',['⚠️ Manual · temporal','Pendiente → API EUROTAX'])
+        ]}
+      ]),
+      fsB.conn('Prerequisitos OK → crear oferta borrador'),
+      // ── 2. OFERTA (flujo lineal, salidas alternativas en nota)
+      fsB.mod('Mod. Ofertas','1 — Borrador','ofertas','active','ofertas'),
+      fsB.conn('Revisión y cotización'),
+      fsB.mod('Mod. Ofertas','2 — Para Validación','ofertas','active','ofertas'),
+      fsB.conn(''),
+      fsB.mod('Mod. Ofertas','3 — Validada','ofertas','active','ofertas'),
+      fsB.conn('Envío a cliente para firma'),
+      fsB.mod('Mod. Ofertas','4 — Enviada para Firma','ofertas','active','ofertas'),
+      fsB.proc('Signaturit','firma'),
+      fsB.mod('Mod. Ofertas','5 — Firmada','ofertas','active','ofertas'),
+      fsB.sub('Salida alternativa',['Si no firma → oferta Anulada (fin del proceso)']),
+      // ── 3. RIESGOS CPP
+      fsB.conn('Análisis de riesgo crediticio'),
+      fsB.mod('Mod. Riesgos','1 — Pendiente de Sanción','riesgos','active','riesgos'),
+      fsB.proc('Aprobación CPP','process'),
+      fsB.link('riesgos_cpp','Ver proceso completo Riesgos CPP'),
+      fsB.branch('Resultado riesgo CPP',[
+        {label:'2 — Aprobada',type:'yes',steps:[
+          fsB.mod('Mod. Riesgos','2 — Aprobada','riesgos','active','riesgos'),
+          fsB.end('↓ Continúa al Contrato','neutral')
+        ]},
+        {label:'3 — Con Garantía',type:'alt',steps:[
+          fsB.mod('Mod. Riesgos','3 — Con Incremento de Garantía','riesgos','active','riesgos'),
+          fsB.sub('Requiere garantía adicional',['Si el cliente la aporta → continúa al Contrato','Si no se aporta → sin contrato']),
+          fsB.end('↪️ Continúa con condición','neutral')
+        ]},
+        {label:'4 — Rechazada',type:'no',steps:[
+          fsB.mod('Mod. Riesgos','4 — Rechazada','riesgos','active','riesgos'),
+          fsB.end('❌ Sin contrato','failure')
+        ]}
+      ]),
+      // ── 4. CONTRATO FIRMA (camino Aprobada / Con Garantía)
+      fsB.conn('→ Crear contrato'),
+      fsB.mod('Mod. Contrato','1 — Pendiente de Firma','contrato','active','contrato'),
+      fsB.conn(''),
+      fsB.mod('Mod. Contrato','2 — Enviada para Firma','contrato','active','contrato'),
+      fsB.proc('Signaturit','firma'),
+      fsB.branch('¿Firma contrato?',[
+        {label:'3 — Firmado',type:'yes',steps:[
+          fsB.conn(''),
+          fsB.proc('Email admon@','email'),
+          fsB.conn(''),
+          fsB.mod('Anticipos','Validación anticipo','contrato','pending','anticipos'),
+          fsB.conn(''),
+          fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','pending','contrato'),
+          fsB.sub('❌ Estados 4–7 pendientes',['Actuales: Pendiente Firma · Enviada Firma · Firmada · Paralizada · Anulada']),
+          // ── 5. PEDIDO DE COMPRA
+          fsB.conn('Se genera pedido de compra según proforma'),
+          fsB.mod('Mod. Pedidos','1 — Pedido creado','pedidos','pending','pedidos'),
+          fsB.conn('Concesionario entrega vehículos'),
+          // ── Alta en Flota con bastidor (sin matrícula aún)
+          fsB.mod('Mod. Flota','Alta bastidor — sin matrícula','carga','active','carga'),
+          fsB.conn('Alta bastidor genera solicitud automática'),
+          fsB.proc('Solicitud matrícula → Gestoría','email'),
+          // ── Parallel: Gestoría (matrícula) + Seguros
+          fsB.par([
+            {steps:[
+              fsB.mod('Mod. Gestoría','Gasto gestoría + matrícula','gestoria','active','gestoria')
+            ]},
+            {steps:[
+              fsB.mod('Mod. Seguros','Alta de póliza','seguros','pending','seguros'),
+              fsB.conn('AFFINITY'),
+              fsB.proc('Email + Excel Atlas','email')
+            ]}
+          ]),
+          fsB.conn('Gestoría vincula: Flota → Pedido → Contrato'),
+          fsB.mod('Mod. Pedidos','2 — Matriculado','pedidos','pending','pedidos'),
+          fsB.conn(''),
+          fsB.par([
+            {steps:[fsB.mod('Mod. Entregas','Vehículo Matrículado ✓','entregas','active','entregas')]},
+            {steps:[fsB.mod('Mod. Contrato','5 — Pendiente de Entrega','contrato','pending','contrato')]}
+          ]),
+          // ── EMAIL LOGÍSTICA: coordinar entrega
+          fsB.conn('Email a logística para coordinar entrega'),
+          fsB.proc('Email logistica.operaciones','email'),
+          fsB.sub('Datos a rellenar en Mod. Entregas',['Proveedor / quien entrega el vehículo','Lugar y dirección de entrega','Fecha prevista de entrega']),
+          fsB.conn('Campos rellenados en Entregas'),
+          // ── PUESTA A DISPOSICIÓN + PENDIENTE DE ACTIVACIÓN
+          fsB.par([
+            {steps:[fsB.mod('Mod. Entregas','2 — Puesta a Disposición','entregas','pending','entregas')]},
+            {steps:[fsB.mod('Mod. Contrato','6 — Pendiente de Activación','contrato','pending','contrato')]}
+          ]),
+          // ── FORMULARIO CLIENTE (con lugar y fecha ya definidos)
+          fsB.conn('Formulario al cliente con lugar y fecha de entrega'),
+          fsB.proc('Formulario Cliente','process'),
+          fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
+          // ── HOJA DE ENTREGA VÍA SIGNATURIT OCR
+          fsB.conn('En fecha prevista de entrega'),
+          fsB.proc('Hoja de entrega → Signaturit OCR → Concesionario/Campa','firma'),
+          fsB.sub('Proceso de verificación en el acto de entrega',[
+            '1 · Entregador abre email Signaturit',
+            '2 · Sistema envía código 4 cifras automáticamente al cliente (quien recoge)',
+            '3 · Cliente da el código al entregador → se abre la hoja',
+            '4 · Entregador rellena los campos y envía la hoja firmada'
+          ]),
+          fsB.branch('¿Entrega realizada?',[
+            {label:'✓ Hoja enviada',type:'yes',steps:[
+              fsB.conn('Hoja guardada en Mod. Entregas'),
+              fsB.par([
+                {steps:[fsB.mod('Mod. Entregas','3 — Entregado','entregas','pending','entregas')]},
+                {steps:[fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato')]}
+              ]),
+              fsB.conn(''),
+              fsB.end('✅ Contrato activo · entrega completada','success')
+            ]},
+            {label:'✗ No Entregado',type:'no',steps:[
+              fsB.conn(''),
+              fsB.mod('Mod. Entregas','4 — No Entregado','entregas','pending','entregas'),
+              fsB.conn(''),
+              fsB.end('⏳ Gestión pendiente','neutral')
+            ]}
+          ])
+        ]},
+        {label:'✗ Anulado',type:'no',steps:[fsB.end('❌ Contrato anulado','failure')]}
+      ])
+    ]
+  },
+  {
+    id:'riesgos_cpp', title:'🔍 Riesgos (CPP)', dotColor:'#374151',
+    desc:'Admisión de Riesgos en la Customer Profile Platform (CPP). Proceso externo al ERP con tres screenings: INCOFISA → Score Financiero (AIS / EQUIFAX) → ASNEF.',
+    badges:[{l:'INCOFISA',c:'#374151'},{l:'AIS · P.Física',c:'#1d4ed8'},{l:'EQUIFAX · P.Jurídica',c:'#dc2626'},{l:'ASNEF',c:'#6d28d9'},{l:'Riesgos ERP ✅',c:'#374151'}],
+    steps:[
+      // ── 1. ENTRADA + DECISOR
+      fsB.mod('Mod. Ofertas','5 — Firmada','ofertas','active','ofertas'),
+      fsB.conn('Solicitud de admisión de riesgos'),
+      fsB.sub('Decisor según Riesgos Totales del Cliente (cuotas activas + en admisión)',[
+        'P. Física / Autónomo → ≤ 30k€: Automático · 30-200k€: Risk Manager · > 200k€: Risk Committee',
+        'P. Jurídica → ≤ 40k€: Automático · 40-200k€: Risk Manager · > 200k€: Risk Committee'
+      ]),
+      // ── 2. DOCUMENTACIÓN → K → CPP
+      fsB.conn('RS recopila documentación y carga en K → CPP'),
+      fsB.proc('K → CPP (Customer Profile Platform)','process'),
+      fsB.par([
+        {steps:[fsB.sub('Docs P. Física / Autónomo',['DNI + Permiso conducir','Cert. titularidad cuenta bancaria','P.Física: IRPF + 2 últimas nóminas','Autónomo: IRPF + IVA anual + trimestres en curso'])]},
+        {steps:[fsB.sub('Docs P. Jurídica',['Tarjeta NIF + DNI representante','Escrituras constitución y apoderamiento','Cert. titularidad cuenta bancaria','IS 2 últimos años + IVA anual + trimestres'])]}
+      ]),
+      fsB.mod('Mod. Riesgos','1 — Pendiente de Sanción','riesgos','active','riesgos'),
+      // ── 3. SCREENING 1: INCOFISA
+      fsB.conn('Screening 1 — Score de Comportamiento'),
+      fsB.proc('INCOFISA Score Digital','api'),
+      fsB.par([
+        {steps:[fsB.sub('P. Física / Autónomo',['Score ≤ 43 → Aprobada · prosigue al S2','Score > 43 → Rechazada'])]},
+        {steps:[fsB.sub('P. Jurídica',['Score ≤ 79 → Aprobada · prosigue al S2','Score > 79 → Rechazada','Consulta administrador: ≤ 43 OK · > 43 En estudio'])]}
+      ]),
+      // ── 4. SCREENING 2: SCORE FINANCIERO (AIS / EQUIFAX)
+      fsB.conn('Screening 2 — Score Financiero (si Aprobada en S1)'),
+      fsB.par([
+        {steps:[
+          fsB.proc('AIS — P. Física / Autónomo','api'),
+          fsB.sub('Filtros previos → En estudio si aplica',['Desempleado / Estudiante / Hogar','CP Canarias · Ceuta · Melilla · Baleares','>75 años con plazo del contrato > 24 meses','Nacionalidad fuera de la UE']),
+          fsB.sub('Intención de pago',['Ratio ≤ 2,4 → Aceptada','Ratio > 2,4 → En estudio']),
+          fsB.sub('Capacidad de pago',['Ingresos disp. ≥ 2 cuotas → OK · 1-2c → Estudio · < 1c → Denegada','Endeudamiento ≤ 0,8 → OK · 0,8–0,9 → Estudio · > 0,9 → Rechazada'])
+        ]},
+        {steps:[
+          fsB.proc('EQUIFAX — P. Jurídica','api'),
+          fsB.sub('Intención de pago — Peers',['Score 4–10 → Aceptada','Score 1–3 → Rechazada']),
+          fsB.sub('Filtros capacidad de pago',['Fondos Propios < 0 → Rechazada · ≥ 0 → prosigue','PyG < 0 → En estudio · ≥ 0 → prosigue']),
+          fsB.sub('Ratios masas + generación caja (según CNAE)',['45/49/77 Motor y Transp.: liquidez ≥ 0,8 · solvencia ≥ 1 · endeud. ≤ 3,5','41/68 Inmob. y Const.: liquidez ≥ 1,2 · solvencia ≥ 1,3 · endeud. ≤ 3','Resto CNAEs: liquidez ≥ 1 · solvencia ≥ 1 · endeud. ≤ 3'])
+        ]}
+      ]),
+      // ── 5. SCREENING 3: ASNEF
+      fsB.conn('Screening 3 — Comprobación Impagados (si Aprobada en S2)'),
+      fsB.proc('ASNEF Fichero Impagados','api'),
+      fsB.sub('Criterios ASNEF',[
+        'P. Física / Autónomo: sin impagados o ≤ 300€ servicios no financieros → Aceptada · resto → Rechazada',
+        'P. Jurídica: sin impagados o ≤ 0,1% de ingresos servicios no financieros → Aceptada · resto → Rechazada'
+      ]),
+      // ── 6. SANCIÓN FINAL
+      fsB.conn('Sanción final — RS/RM comunica resultado a Comercial'),
+      fsB.branch('Sanción final',[
+        {label:'2 — Aprobada',type:'yes',steps:[
+          fsB.mod('Mod. Riesgos','2 — Aprobada','riesgos','active','riesgos'),
+          fsB.conn(''),
+          fsB.end('↪️ Continúa al Contrato','neutral')
+        ]},
+        {label:'⚠️ En Estudio',type:'alt',steps:[
+          fsB.sub('Evaluación RM / RC',['Análisis cualitativo y cuantitativo','Riesgo avalista + grupo empresarial (P.Jurídica)','RM puede elevar operación al Risk Committee']),
+          fsB.end('↪️ Resolución → Aprobada / Garantía / Rechazada','neutral')
+        ]},
+        {label:'3 — Con Garantía',type:'alt',steps:[
+          fsB.mod('Mod. Riesgos','3 — Con Incremento de Garantía','riesgos','active','riesgos'),
+          fsB.sub('Nueva oferta con garantías',['Avales / avalistas firmados antes del contrato','Se genera y firma nueva oferta con las garantías establecidas']),
+          fsB.end('↪️ Nueva oferta','neutral')
+        ]},
+        {label:'4 — Rechazada',type:'no',steps:[
+          fsB.mod('Mod. Riesgos','4 — Rechazada','riesgos','active','riesgos'),
+          fsB.conn(''),
+          fsB.end('❌ Rechazo comunicado a Comercial','failure')
+        ]}
+      ])
+    ]
+  },
+  {
+    id:'devoluciones', title:'↩️ Devoluciones / Liquidaciones', dotColor:'#7c3aed',
+    desc:'Fin de vida del contrato: comunicación de vencimiento, coordinación de devolución, peritación y liquidación final.',
+    badges:[{l:'Contratos ✅',c:'#0f766e'},{l:'Entregas ✅',c:'#a16207'},{l:'OTP Devoluciones',c:'#374151'},{l:'❌ Módulo pendiente desarrollo',c:'#9ca3af'}],
+    steps:[
+      // ── 1. INICIO: CONTRATO ACTIVO
+      fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
+      fsB.conn('En el momento de la entrega del vehículo'),
+      fsB.proc('Encuesta Entregas','email'),
+      // ── 2. EMAIL PASAR POR TALLER (acción manual)
+      fsB.conn(''),
+      fsB.proc('Email pasar por Taller','email'),
+      fsB.sub('Acción manual',['Lo deben ejecutar con un botón desde el módulo']),
+      // ── 3. EMAIL VENCIMIENTO (60 días antes — Renting Cerrado)
+      fsB.conn('60 días antes del vencimiento · solo Renting Cerrado'),
+      fsB.proc('Email Vencimiento','email'),
+      fsB.sub('Opciones del cliente',['Devolver el vehículo','Contratar Nuevo Renting → indicar si quiere transporte por coste adicional']),
+      // ── 4. COORDINACIÓN CON ANDRÉS
+      fsB.conn('Coordinación de la devolución'),
+      fsB.proc('Email a Postventa','email'),
+      fsB.par([
+        {steps:[fsB.sub('Email con indicaciones al cliente',['Fecha Prevista de Devolución','Lugar de Devolución','Proveedor de Devolución'])]},
+        {steps:[fsB.sub('OTP Devoluciones',['Con los datos de Andrés se manda la OTP','Se recogen datos para liquidación y Stock'])]}
+      ]),
+      // ── 5. DEVOLUCIÓN REALIZADA
+      fsB.conn('Vehículo devuelto'),
+      fsB.par([
+        {steps:[fsB.proc('Email Tras Devolución','email')]},
+        {steps:[fsB.proc('Email Solicitud Peritación','email')]},
+        {steps:[fsB.proc('Encuesta Devoluciones','process')]}
+      ]),
+      fsB.conn(''),
+      fsB.sub('Datos iniciales tras devolución',['Solo KM y Días — fórmula de KM pendiente de actualizar']),
+      // ── 6. PERITACIÓN REGISTRADA
+      fsB.conn('Una vez registrada la peritación'),
+      fsB.par([
+        {steps:[fsB.proc('Email Liquidaciones','email')]},
+        {steps:[fsB.sub('Datos de peritación',['KM','Días','Daños de Peritación'])]}
+      ]),
+      fsB.conn(''),
+      fsB.end('✅ Liquidación completada','success')
+    ]
+  },
+  {
+    id:'recobros', title:'⚠️ Recobros', dotColor:'#dc2626',
+    desc:'Gestión de impagos: emplazamientos progresivos (Burofax 1→4), expediente en gestión, vía demanda (deuda monetaria) y vía denuncia (recuperación del vehículo).',
+    badges:[{l:'Facturación ✅',c:'#0f766e'},{l:'Facturas Impagadas ✅',c:'#b91c1c'},{l:'Expedientes ✅',c:'#6d28d9'},{l:'Clientes Impagados · vista',c:'#1d4ed8'},{l:'ASNEF ✅',c:'#374151'}],
+    steps:[
+      // ── 1. TRIGGER: BANCO DEVUELVE COBRO
+      fsB.proc('Banco devuelve cobro de una factura','api'),
+      fsB.conn(''),
+      fsB.mod('Mod. Facturación Clientes','Factura marcada como no pagada','facturacion','active','facturacion'),
+      fsB.conn('Botón "Pasar a Recobro"'),
+      fsB.mod('Facturas Impagadas','Factura impagada registrada','recobros','active','facturas_impag'),
+      fsB.sub('⚠️ Pendiente',['Recepción automática de devolución desde banco']),
+      // ── 2. BRANCH: ¿QUÉ FACTURA ES DEL CONTRATO?
+      fsB.branch('¿Nº factura impagada?',[
+        {label:'1ª Factura',type:'alt',steps:[
+          fsB.conn('Email automático'),
+          fsB.proc('Email 1 — Primer Emplazamiento de Pago','email'),
+          fsB.sub('Burofax 1 · Importe = Total Deuda + FIC + FCAM',[]),
+          fsB.conn('Se crea Expediente nuevo'),
+          fsB.mod('Expedientes','Nuevo · agrupado por contrato','recobros','active','expedientes'),
+          fsB.sub('Módulo Clientes Impagados',['Vista y análisis — muestra por cliente los expedientes abiertos y facturas impagadas · no es un paso del flujo']),
+          fsB.conn('Dep. Recobros registra contacto y apunta nota'),
+          fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
+          fsB.sub('Estados iniciales',['Demanda: Reclamación Prejudicial','Denuncia: Pendiente de Recuperación']),
+          fsB.end('⏳ Pendiente pago o nueva factura impagada','neutral')
+        ]},
+        {label:'2ª Factura',type:'alt',steps:[
+          fsB.conn('Email automático'),
+          fsB.proc('Email 2 — Segundo Emplazamiento de Pago','email'),
+          fsB.sub('Burofax 2 = Burofax 1 + Uso no Retribuido',['Total deuda acumulada (facturas 1 + 2)']),
+          fsB.conn('Se suma al Expediente abierto'),
+          fsB.mod('Expedientes','En Gestión','recobros','active','expedientes'),
+          fsB.end('⏳ Pendiente pago o nueva factura impagada','neutral')
+        ]},
+        {label:'3ª Factura — Escalada',type:'no',steps:[
+          fsB.conn('Email automático'),
+          fsB.proc('Email 3 — Tercer Emplazamiento de Pago','email'),
+          fsB.sub('Burofax 3 = Burofax 2 + Liquidación Km y Daños',['Deuda = Facturas + FIC + FCAM + Vehículo','FIC y FCAM generados automáticamente','Contrato paralizado']),
+          fsB.conn('Se suma al Expediente · contrato paralizado'),
+          fsB.sub('Cambio de estados al paralizar contrato',['Estado Demanda → Contrato Resuelto (con envío Burofax 1)','Estado Denuncia → Pendiente de Recuperación · Email 3 ya solicita devolución del vehículo']),
+          fsB.conn('5 días sin cobro'),
+          fsB.proc('Burofax 4 — Email certificado ASNEF','email'),
+          fsB.sub('Burofax 4 — NO enviado por sistema · manual',['Email certificado enviado manualmente']),
+          fsB.conn('Sin cobro — inscripción en fichero'),
+          fsB.mod('ASNEF','Deuda registrada por cliente','recobros','active','asnef'),
+          fsB.conn('Dep. Recobros envía documentación al Abogado · Portal Documentos'),
+          fsB.par([
+            {steps:[
+              fsB.sub('ESTADO DEMANDA — Deuda Monetaria',['Cadena: Reclamación Prejudicial → Contrato Resuelto → En proceso de Demanda → Contrato Demandado → Deuda Recuperada']),
+              fsB.conn('Dep. Recobros introduce Fecha Envío Demanda'),
+              fsB.mod('Expedientes · Demanda','En proceso de Demanda','facturacion','active','expedientes'),
+              fsB.conn('Abogado presenta · Dep. Recobros marca Fecha Presentación Demanda'),
+              fsB.mod('Expedientes · Demanda','Contrato Demandado','facturacion','active','expedientes'),
+              fsB.conn('Todas las facturas con Fecha de Cobro'),
+              fsB.mod('Expedientes · Demanda','Deuda Recuperada','facturacion','active','expedientes'),
+              fsB.end('✅ Deuda Recuperada','success')
+            ]},
+            {steps:[
+              fsB.sub('ESTADO DENUNCIA — Recuperación Vehículo',['Cadena: Pendiente de Recuperación → En proceso de Denuncia → Vehículo Denunciado → Vehículo Recuperado','Atajo: si Fecha Devolución en Mod. Devoluciones → Vehículo Recuperado directamente']),
+              fsB.conn('Dep. Recobros introduce Fecha Envío Denuncia'),
+              fsB.mod('Expedientes · Denuncia','En proceso de Denuncia','devolucion','active','expedientes'),
+              fsB.conn('Abogado responde · Dep. Recobros marca Fecha Presentación Denuncia'),
+              fsB.mod('Expedientes · Denuncia','Vehículo Denunciado','devolucion','active','expedientes'),
+              fsB.conn('Fecha Devolución aparece en Mod. Devoluciones'),
+              fsB.mod('Expedientes · Denuncia','Vehículo Recuperado','devolucion','active','expedientes'),
+              fsB.conn('Dep. Recobros introduce Fecha Baja Requisitoria'),
+              fsB.end('✅ Vehículo Recuperado','success')
+            ]}
+          ]),
+          fsB.conn('Deuda Recuperada + Vehículo Recuperado'),
+          fsB.mod('Expedientes','Cerrado — se oculta en módulo','recobros','active','expedientes'),
+          fsB.conn(''),
+          fsB.end('✅ Expediente cerrado · recuperación completada','success')
+        ]}
+      ])
+    ]
+  },
+  {
+    id:'venta_vo', title:'🏷️ Venta VO', dotColor:'#9ca3af',
+    desc:'Segunda vida del vehículo devuelto: baja en Flota, cálculo de precio basado en VNC + margen, registro en Existencias y venta.',
+    badges:[{l:'Flota ✅',c:'#92400e'},{l:'Amortizaciones ✅',c:'#0e7490'},{l:'Precios VNC ✅',c:'#0891b2'},{l:'Precios Venta Sin IVA ✅',c:'#0369a1'},{l:'Existencias ✅',c:'#b45309'},{l:'Stock ✅',c:'#6d28d9'}],
+    steps:[
+      // ── 1. ENTRADA: TRAS DEVOLUCIÓN Y LIQUIDACIÓN
+      fsB.mod('Mod. Flota','Baja del vehículo','carga','active','carga'),
+      fsB.sub('Vehículo devuelto y liquidado (flujo Devoluciones / Liquidaciones)',[]),
+      // ── 2. DESTINO DEL VEHÍCULO
+      fsB.branch('¿Destino?',[
+        {label:'Vender',type:'yes',steps:[
+          // CADENA DE PRECIO: Amortizaciones → VNC → Precio Venta Sin IVA → Existencias
+          fsB.mod('Amortizaciones','Importe mensual por coche · automático','lineas','active','amortizaciones'),
+          fsB.sub('Cálculo automático mes a mes',['Amortización mensual = (Valor inicial a amortizar − VR) / plazo contrato','Se genera automáticamente para cada vehículo de Flota']),
+          fsB.conn('Importes de amortización → Precios VNC'),
+          fsB.mod('Precios VNC','VNC mes a mes · todos los vehículos de Flota','datos_fin','active','precios_vnc'),
+          fsB.sub('Cálculo VNC',['VNC mes N = Precio Inicial − amortizaciones acumuladas del Mod. Amortizaciones']),
+          fsB.conn('VNC del mes + Margen Enduran'),
+          fsB.mod('Precios Venta Sin IVA','Precio de venta mes a mes','contabilidad','active','precios_venta'),
+          fsB.sub('Cálculo precio venta',['Precio VNC del mes correspondiente','+ Margen Enduran','= Precio de Venta Sin IVA']),
+          fsB.conn('Precio del mes recogido automáticamente'),
+          fsB.mod('Existencias','Vehículo registrado para venta','vo','active','existencias'),
+          fsB.sub('Datos registrados',['Datos del vehículo (matrícula · km · estado...)','Precio = Precios Venta Sin IVA del mes correspondiente']),
+          fsB.conn('Venta realizada — se genera factura'),
+          fsB.mod('Mod. Facturación Clientes','Factura venta VO','facturacion','active','facturacion'),
+          fsB.conn('Al generarse la factura → Existencias se marca como Vendido'),
+          fsB.mod('Existencias','Vendido','vo','active','existencias'),
+          fsB.conn(''),
+          fsB.end('✅ Vehículo vendido y facturado','success')
+        ]},
+        {label:'Realquilar',type:'alt',steps:[
+          fsB.mod('Stock','Vehículo disponible para realquiler','devolucion','active','stock'),
+          fsB.conn(''),
+          fsB.end('↪️ Gestión de realquiler','neutral')
+        ]}
+      ])
+    ]
+  }
+];
+
+function fsRenderStep(s) {
+  switch(s.type) {
+    case 'module': {
+      const w = document.createElement('div'); w.className = 'fs-node';
+      w.innerHTML = `<div class="fs-mod fsm-${s.css}" onclick="fsOpenModal('${s.key}','${s.name} — ${s.state}')">
+        <div class="fs-dot-status ${s.status}"></div>
+        <div class="fs-mod-badge">${s.name}</div>
+        <div class="fs-mod-name">${s.state}</div>
+        ${s.tags.length?`<div class="fs-mod-tags">${s.tags.map(t=>`<span class="fs-mod-tag">${t}</span>`).join('')}</div>`:''}
+      </div>`; return w;
+    }
+    case 'conn': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;flex-direction:column;align-items:center;';
+      w.innerHTML=`<div class="fs-conn">${s.label?`<span class="fs-conn-lbl">${s.label}</span>`:''}</div>`; return w;
+    }
+    case 'proc': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;justify-content:center;';
+      w.innerHTML=`<div class="fs-proc ${s.style}">${s.label}</div>`; return w;
+    }
+    case 'branch': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;';
+      const top = document.createElement('div'); top.style.cssText='display:flex;flex-direction:column;align-items:center;';
+      top.innerHTML=`<div class="fs-conn"></div><div class="fs-diamond"><span>${s.label}</span></div><div class="fs-conn" style="background:transparent"></div>`;
+      w.appendChild(top);
+      const row = document.createElement('div'); row.className='fs-branches';
+      s.paths.forEach(p => {
+        const col = document.createElement('div'); col.className='fs-branch';
+        col.innerHTML=`<div class="fs-blabel ${p.type}">${p.label}</div>`;
+        p.steps.forEach(st => { const el=fsRenderStep(st); if(el){el.style.maxWidth='100%';col.appendChild(el);} });
+        row.appendChild(col);
+      });
+      w.appendChild(row); return w;
+    }
+    case 'par': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;';
+      const row = document.createElement('div'); row.className='fs-parallel';
+      s.paths.forEach(p => {
+        const col = document.createElement('div'); col.className='fs-par-col';
+        p.steps.forEach(st => { const el=fsRenderStep(st); if(el){el.style.maxWidth='100%';col.appendChild(el);} });
+        row.appendChild(col);
+      });
+      w.appendChild(row); return w;
+    }
+    case 'sub': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;';
+      w.innerHTML=`<div class="fs-subinfo"><span class="fs-subinfo-lbl">${s.label}</span>${s.items.map(i=>`<span class="fs-subinfo-item">${i}</span>`).join('')}</div>`; return w;
+    }
+    case 'end': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;justify-content:center;';
+      w.innerHTML=`<div class="fs-end ${s.style}">${s.label}</div>`; return w;
+    }
+    case 'banner': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;margin-bottom:12px;';
+      w.innerHTML=`<div class="fs-pending-banner"><span style="font-size:15px">⚠️</span><span>${s.text}</span></div>`; return w;
+    }
+    case 'flowlink': {
+      const w = document.createElement('div'); w.style.cssText='width:100%;max-width:480px;display:flex;justify-content:center;';
+      w.innerHTML=`<button class="fs-flowlink" onclick="fsSwitchTab('${s.flowId}');document.getElementById('fs-tabs').scrollIntoView({behavior:'smooth'})">↗ ${s.label}</button>`; return w;
+    }
+    default: return null;
+  }
+}
+
+function fsOpenModal(key, title) {
+  const d = fsModuleDetails[key];
+  const badge = document.getElementById('modal-badge');
+  badge.textContent = 'Proceso';
+  badge.style.cssText = 'background:#1a2744;color:#fff';
+  document.getElementById('modal-title').textContent = title;
+  const body = document.getElementById('modal-body');
+  if (!d) { body.innerHTML = `<div class="modal-note">Nodo de proceso interno.</div>`; }
+  else {
+    const act = (d.tables||[]).filter(t=>t.status==='active').length;
+    const pnd = (d.tables||[]).filter(t=>t.status==='pending').length;
+    body.innerHTML = `
+      ${d.note?`<p style="font-size:13px;color:#374151;line-height:1.6;margin-bottom:14px">${d.note}</p>`:''}
+      ${d.tables&&d.tables.length?`<div class="modal-section">
+        <div class="modal-section-title">Tablas (${act} activas · ${pnd} pendientes)</div>
+        ${d.tables.map(t=>`<div class="modal-table-row">
+          <div class="modal-table-dot" style="background:${t.status==='active'?'#16a34a':t.status==='partial'?'#d97706':'#9ca3af'}"></div>
+          <span class="modal-table-name">${t.name}</span>
+          <span class="modal-table-fields">~${t.fields} campos</span>
+          <span class="modal-table-s ${t.status}">${{active:'Activa',partial:'Parcial',pending:'Pendiente'}[t.status]}</span>
+        </div>`).join('')}
+      </div>`:''}
+      ${d.pending&&d.pending.length?`<div class="modal-section">
+        <div class="modal-section-title">Pendiente de desarrollo</div>
+        ${d.pending.map(p=>`<div style="font-size:11px;color:#b91c1c;padding:5px 10px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:6px;margin-bottom:4px">⏳ ${p}</div>`).join('')}
+      </div>`:''}`;
   }
   document.getElementById('modal-overlay').classList.add('open');
 }
 
-function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
-function handleOverlayClick(e) { if(e.target===document.getElementById('modal-overlay')) closeModal(); }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+function fsSwitchTab(id) {
+  document.querySelectorAll('.fs-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.fs-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`fst-${id}`).classList.add('active');
+  document.getElementById(`fsp-${id}`).classList.add('active');
+}
 
-// INIT
-buildUI();
+function fsBuildUI() {
+  const tabsEl = document.getElementById('fs-tabs');
+  const panelsEl = document.getElementById('fs-panels');
+  fsFlows.forEach((f,i) => {
+    const tab = document.createElement('div');
+    tab.className = 'fs-tab'+(i===0?' active':'');
+    tab.id = `fst-${f.id}`;
+    tab.innerHTML = `${f.title}<span class="fs-dot" style="background:${f.dotColor}"></span>`;
+    tab.onclick = () => fsSwitchTab(f.id);
+    tabsEl.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'fs-panel'+(i===0?' active':'');
+    panel.id = `fsp-${f.id}`;
+
+    panel.innerHTML = `<div class="fs-flow-header">
+      <h3>${f.title}</h3><p>${f.desc}</p>
+      <div class="fs-badges">${f.badges.map(b=>`<span class="fs-badge" style="border-color:${b.c};color:${b.c};background:${b.c}15">${b.l}</span>`).join('')}</div>
+    </div>`;
+
+    const diag = document.createElement('div'); diag.className = 'fs-diagram';
+    f.steps.forEach(s => { const el = fsRenderStep(s); if(el) diag.appendChild(el); });
+    panel.appendChild(diag);
+    panelsEl.appendChild(panel);
+  });
+}
+
+fsBuildUI();
 </script>
 </body>
 </html>

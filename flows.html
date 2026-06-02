@@ -1942,6 +1942,8 @@ const fsFlows = [
                 {steps:[fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato')]}
               ]),
               fsB.conn(''),
+              fsB.proc('Encuesta Entregas','email'),
+              fsB.conn(''),
               fsB.end('✅ Contrato activo · entrega completada','success')
             ]},
             {label:'✗ No Entregado',type:'no',steps:[
@@ -2038,8 +2040,6 @@ const fsFlows = [
     steps:[
       // ── 1. INICIO: CONTRATO ACTIVO
       fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
-      fsB.conn('En el momento de la entrega del vehículo'),
-      fsB.proc('Encuesta Entregas','email'),
       // ── 2. EMAIL PASAR POR TALLER (acción manual)
       fsB.conn(''),
       fsB.proc('Email pasar por Taller','email'),

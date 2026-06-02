@@ -2053,7 +2053,7 @@ const fsFlows = [
       fsB.proc('Email a Postventa','email'),
       fsB.par([
         {steps:[fsB.sub('Email con indicaciones al cliente',['Fecha Prevista de Devolución','Lugar de Devolución','Proveedor de Devolución'])]},
-        {steps:[fsB.sub('OTP Devoluciones',['Con los datos de Andrés se manda la OTP','Se recogen datos para liquidación y Stock'])]}
+        {steps:[fsB.sub('OTP Devoluciones',['Dep. Logística/Postventa manda la OTP','Se recogen datos para liquidación y Stock'])]}
       ]),
       // ── 5. DEVOLUCIÓN REALIZADA
       fsB.conn('Vehículo devuelto'),

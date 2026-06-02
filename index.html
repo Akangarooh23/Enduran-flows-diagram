@@ -783,7 +783,7 @@ const flows = [
       name: 'API Bureau Crediticio',
       description: 'Consulta de riesgo crediticio del cliente en bureaus externos. Devuelve nivel de endeudamiento, score externo y posibles incidencias (RAI).',
       trigger: 'Antes de aprobar la cotización',
-      fields: ['CIRBE · Equifax · RAI', 'Score externo'],
+      fields: ['INCOFISA · AIS · EQUIFAX · ASNEF', 'Score externo'],
       status: 'pending'
     },
     ia: {
@@ -1230,7 +1230,7 @@ function openModal(flowId, type) {
 function getAIInputs(flowId) {
   const inputs = {
     oferta:       'Historial de conversiones · Perfil cliente · Configuración del vehículo · Residual pactado',
-    scoring:      'Score CIRBE · Historial de pagos · Sector/tamaño empresa · Variables macroeconómicas',
+    scoring:      'Score CPP (INCOFISA · AIS · EQUIFAX) · Historial de pagos · Sector/tamaño empresa · Variables macroeconómicas',
     contrato:     'Documento PDF del contrato · Condiciones económicas · Cláusulas especiales',
     entrega:      'Histórico de pedidos OEM · Stock actual · Estacionalidad · Plazos históricos',
     facturacion:  'Historial cobros · Perfil riesgo · Días de retraso anteriores · Score crediticio',

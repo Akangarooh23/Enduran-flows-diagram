@@ -1719,7 +1719,7 @@ const fsFlows = [
   {
     id:'venta_vo', title:'🏷️ Venta VO', dotColor:'#9ca3af',
     desc:'Segunda vida del vehículo devuelto: baja en Flota, cálculo de precio basado en VNC + margen, registro en Existencias y venta.',
-    badges:[{l:'Flota ✅',c:'#92400e'},{l:'Precios VNC ✅',c:'#0891b2'},{l:'Precios Venta Sin IVA ✅',c:'#0369a1'},{l:'Existencias ✅',c:'#b45309'},{l:'Stock ✅',c:'#6d28d9'}],
+    badges:[{l:'Flota ✅',c:'#92400e'},{l:'Amortizaciones ✅',c:'#0e7490'},{l:'Precios VNC ✅',c:'#0891b2'},{l:'Precios Venta Sin IVA ✅',c:'#0369a1'},{l:'Existencias ✅',c:'#b45309'},{l:'Stock ✅',c:'#6d28d9'}],
     steps:[
       // ── 1. ENTRADA: TRAS DEVOLUCIÓN Y LIQUIDACIÓN
       fsB.mod('Mod. Flota','Baja del vehículo','carga','active','carga'),
@@ -1727,9 +1727,12 @@ const fsFlows = [
       // ── 2. DESTINO DEL VEHÍCULO
       fsB.branch('¿Destino?',[
         {label:'Vender',type:'yes',steps:[
-          // CADENA DE PRECIO: VNC → Precio Venta Sin IVA → Existencias
+          // CADENA DE PRECIO: Amortizaciones → VNC → Precio Venta Sin IVA → Existencias
+          fsB.mod('Amortizaciones','Importe mensual por coche · automático','lineas','active','amortizaciones'),
+          fsB.sub('Cálculo automático mes a mes',['Amortización mensual = (Valor inicial a amortizar − VR) / plazo contrato','Se genera automáticamente para cada vehículo de Flota']),
+          fsB.conn('Importes de amortización → Precios VNC'),
           fsB.mod('Precios VNC','VNC mes a mes · todos los vehículos de Flota','datos_fin','active','precios_vnc'),
-          fsB.sub('Cálculo VNC mensual',['Amortización mensual = (Valor inicial a amortizar − VR) / plazo contrato','VNC mes N = Valor inicial − (Amortización mensual × N meses transcurridos)']),
+          fsB.sub('Cálculo VNC',['VNC mes N = Precio Inicial − amortizaciones acumuladas del Mod. Amortizaciones']),
           fsB.conn('VNC del mes + Margen Enduran'),
           fsB.mod('Precios Venta Sin IVA','Precio de venta mes a mes','contabilidad','active','precios_venta'),
           fsB.sub('Cálculo precio venta',['Precio VNC del mes correspondiente','+ Margen Enduran','= Precio de Venta Sin IVA']),

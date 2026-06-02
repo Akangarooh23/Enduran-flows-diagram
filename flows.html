@@ -756,7 +756,7 @@ body {
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
-        11 áreas &nbsp;·&nbsp; 62 módulos
+        12 áreas &nbsp;·&nbsp; 63 módulos
       </div>
       <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
     </div>
@@ -1122,6 +1122,30 @@ const moduleGroups = [
       api: { name: 'API Conector BI', f: ['Pool cartera → BI', 'Elegibilidad ECB · Reporting'] },
       ia:  { title: "Moody's Analyst", pr: 'diferencial', f: ["Criterios Moody's para titulizaciones", 'Evaluación in-time de cartera'] } },
   ]},
+  { label: 'Units', color: '#1a4731', modules: [
+    { title: 'Proformas VN',           status: 'active',
+      erpF: ['Configuración vehículo nuevo', 'Modelo · Opcionales · Packs'],
+      api: { name: 'API Jato', f: ['Catálogo · PVP · Código Jato', 'Opciones · Disponibilidad'] },
+      ia:  { title: 'Offer Assistant', pr: 'core', f: ['Genera ofertas autónomamente', 'Variables predefinidas por modelo'] } },
+    { title: 'Planes de Mantenimiento', status: 'active',
+      erpF: ['Preventivo por modelo y km', 'Costes · Cuadrícula · Periodos'],
+      apis: [
+        { name: 'API TecAlliance',  f: ['Info. general · Tiempos OR', 'Catálogo piezas · Referencias'] },
+        { name: 'API Marcas',       f: ['Planes por modelo (si disponible)', 'Km previstos · Manuales técnicos'] }
+      ],
+      ias: [
+        { title: 'Maintenance Analyst',   pr: 'core',      f: ['Costes predictivos por modelo', 'Mano de obra oficial vs generalista'] },
+        { title: 'Maintenance Assistant', pr: 'quick-win', f: ['Analiza documentos de marca', 'Mantenimientos preventivos · km'] }
+      ] },
+    { title: 'Valores Residuales',     status: 'partial',
+      erpF: ['VR por código Jato · plazo · km', '⚠️ Manual temporal → pendiente API'],
+      api: { name: 'API Eurotax / Bähr & Fess', f: ['VR mercado · Tendencia', 'Por modelo · antigüedad'] },
+      ia:  { title: 'Residual Analyst', pr: 'diferencial', f: ['Evolución VR por modelo', 'Precio · depreciación · market value'] } },
+    { title: 'Market Value',           status: 'pending',
+      erpF: ['Valor de mercado en tiempo real', 'Precios venta · Oportunidades renovación'],
+      api: { name: 'API CarsWise', f: ['Scraping precios de mercado', 'Análisis oportunidades VO'] },
+      ia:  { title: 'Remarketing Analyst', pr: 'diferencial', f: ['Oportunidades venta/renovación flota', 'Prórrogas por desviación en precios'] } },
+  ]},
   { label: 'Gestión de Cotización', color: '#1e3a5f', modules: [
     { title: 'Oferta',              status: 'active',
       erpF: ['Cotización · Cuota · Residual', 'Estados: Borrador → Firmada'],
@@ -1133,10 +1157,6 @@ const moduleGroups = [
     { title: 'Perfil Cotización',   status: 'active',
       erpF: ['Parámetros de cotización por perfil', 'Requerimientos · Peculiaridades'],
       api: null, ia: null },
-    { title: 'Listado Residual',    status: 'partial',
-      erpF: ['VR por código Jato · plazo · km', '⚠️ Manual temporal → pendiente API'],
-      api: { name: 'API Eurotax / Jato', f: ['VR mercado · Tendencia', 'Por modelo · antigüedad'] },
-      ia:  { title: 'Predicción VR', pr: 'diferencial', f: ['Modelo dinámico', 'Señales mercado'] } },
     { title: 'Leads',               status: 'pending',
       erpF: ['Oportunidades comerciales entrantes', 'Canal · Origen · Estado'],
       api: null,
@@ -1186,10 +1206,6 @@ const moduleGroups = [
       erpF: ['Vehículos en cartera activa', 'Matrícula · Contrato · Estado'],
       api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
       ia:  { title: 'Optimización flota', pr: 'core', f: ['Asignación vehículo óptimo', 'Pred. depreciación por modelo'] } },
-    { title: 'Proformas VN',        status: 'active',
-      erpF: ['Configuración vehículo nuevo', 'Modelo · Opcionales · Packs'],
-      api: { name: 'API Jato / Proveedor', f: ['Catálogo · PVP', 'Opciones · Disponibilidad'] },
-      ia: null },
     { title: 'Pool',                status: 'active',
       erpF: ['Vehículos de sustitución disponibles', 'Disponibilidad · Asignación'],
       api: null, ia: null },
@@ -1197,10 +1213,6 @@ const moduleGroups = [
       erpF: ['Facturas de gestoría por vehículo', 'Vincula: Flota → Pedido → Contrato'],
       api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
       ia: null },
-    { title: 'Planes de Mantenimiento', status: 'active',
-      erpF: ['Preventivo por modelo y km', 'Costes · Cuadrícula · Periodos'],
-      api: { name: 'API TecAlliance', f: ['Catálogo piezas · Referencias', 'Manuales técnicos · Tiempos OR'] },
-      ia:  { title: 'Mantenimiento predictivo', pr: 'core', f: ['Telemática · Alertas', 'Costes previstos'] } },
     { title: 'Alquiler Flota',      status: 'pending',
       erpF: ['Alquiler de vehículos de flota', 'Disponibilidad · Tarifas · Período'],
       api: null, ia: null },
@@ -1460,32 +1472,34 @@ function renderModuleCatalog() {
       const col = document.createElement('div');
       col.className = 'flow-column';
 
-      const apiHtml = mod.api ? `
+      const apiList = mod.apis ? mod.apis : (mod.api ? [mod.api] : []);
+      const apiHtml = apiList.map(a => `
         <div class="v-connector">
           <div class="v-line api"></div><div class="v-dot api"></div><div class="v-line api"></div>
         </div>
         <div class="card-row">
           <div class="card api">
             <div class="card-badge api">API</div>
-            <div class="card-title">${mod.api.name}</div>
-            <div class="card-fields">${mod.api.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+            <div class="card-title">${a.name}</div>
+            <div class="card-fields">${a.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
           </div>
           <div class="h-arrow last"></div>
-        </div>` : '';
+        </div>`).join('');
 
-      const iaHtml = mod.ia ? `
+      const iaList = mod.ias ? mod.ias : (mod.ia ? [mod.ia] : []);
+      const iaHtml = iaList.map(ia => `
         <div class="v-connector">
           <div class="v-line ia"></div><div class="v-dot ia"></div><div class="v-line ia"></div>
         </div>
         <div class="card-row">
           <div class="card ia">
             <div class="card-badge ia">IA</div>
-            <div class="card-title">${mod.ia.title}</div>
-            <div class="card-fields">${mod.ia.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
-            <div class="priority-badge ${mod.ia.pr}">${prL[mod.ia.pr]}</div>
+            <div class="card-title">${ia.title}</div>
+            <div class="card-fields">${ia.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+            <div class="priority-badge ${ia.pr}">${prL[ia.pr]}</div>
           </div>
           <div class="h-arrow last"></div>
-        </div>` : '';
+        </div>`).join('');
 
       const eClass = (mod.status === 'active' || mod.status === 'partial') ? 'erp' : 'mod-grey';
       col.innerHTML = `

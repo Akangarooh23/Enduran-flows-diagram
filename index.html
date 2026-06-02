@@ -1739,10 +1739,10 @@ const fsFlows = [
           fsB.conn('Precio del mes recogido automáticamente'),
           fsB.mod('Existencias','Vehículo registrado para venta','vo','active','existencias'),
           fsB.sub('Datos registrados',['Datos del vehículo (matrícula · km · estado...)','Precio = Precios Venta Sin IVA del mes correspondiente']),
-          fsB.conn('Venta realizada'),
-          fsB.mod('Existencias','Vendido','vo','active','existencias'),
-          fsB.conn('Se genera factura de venta'),
+          fsB.conn('Venta realizada — se genera factura'),
           fsB.mod('Mod. Facturación Clientes','Factura venta VO','facturacion','active','facturacion'),
+          fsB.conn('Al generarse la factura → Existencias se marca como Vendido'),
+          fsB.mod('Existencias','Vendido','vo','active','existencias'),
           fsB.conn(''),
           fsB.end('✅ Vehículo vendido y facturado','success')
         ]},

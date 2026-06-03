@@ -756,7 +756,7 @@ body {
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
-        12 áreas &nbsp;·&nbsp; 63 módulos
+        14 áreas &nbsp;·&nbsp; 70 módulos
       </div>
       <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
     </div>
@@ -1104,6 +1104,7 @@ const flows = [
 // MODULE CATALOG DATA
 // ══════════════════════════════════════════
 const moduleGroups = [
+  // ── 1. FINANCIACIÓN ──────────────────────────────────────────────
   { label: 'Financiación', color: '#0e4f6e', modules: [
     { title: 'Líneas de Financiación', status: 'pending',
       erpF: ['Líneas de crédito por entidad financiera', 'Disponible total · Condiciones · Perfiles'],
@@ -1121,7 +1122,11 @@ const moduleGroups = [
       erpF: ['Pools de vehículos para titulización', 'Criterios ECB · Elegibilidad · Reporting'],
       api: { name: 'API Conector BI', f: ['Pool cartera → BI', 'Elegibilidad ECB · Reporting'] },
       ia:  { title: "Moody's Analyst", pr: 'diferencial', f: ["Criterios Moody's para titulizaciones", 'Evaluación in-time de cartera'] } },
+    { title: 'Perfil Cotización',   status: 'active',
+      erpF: ['Parámetros de cotización por perfil', 'Requerimientos · Peculiaridades'],
+      api: null, ia: null },
   ]},
+  // ── 2. UNITS ─────────────────────────────────────────────────────
   { label: 'Units', color: '#1a4731', modules: [
     { title: 'Proformas VN',           status: 'active',
       erpF: ['Configuración vehículo nuevo', 'Modelo · Opcionales · Packs'],
@@ -1146,48 +1151,32 @@ const moduleGroups = [
       api: { name: 'API CarsWise', f: ['Scraping precios de mercado', 'Análisis oportunidades VO'] },
       ia:  { title: 'Remarketing Analyst', pr: 'diferencial', f: ['Oportunidades venta/renovación flota', 'Prórrogas por desviación en precios'] } },
   ]},
-  { label: 'Gestión de Cotización', color: '#1e3a5f', modules: [
+  // ── 3. OFERTAS ───────────────────────────────────────────────────
+  { label: 'Ofertas', color: '#1e3a5f', modules: [
     { title: 'Oferta',              status: 'active',
       erpF: ['Cotización · Cuota · Residual', 'Estados: Borrador → Firmada'],
-      api: { name: 'API Jato', f: ['Modelos · PVP · Código Jato', 'Opciones · Residuales · Plazo'] },
-      ia:  { title: 'Scoring propuesta', pr: 'quick-win', f: ['Precio óptimo conversión', 'Config. sugerida por perfil'] } },
+      api: { name: 'API Signaturit', f: ['Firma digital oferta', 'Timestamp · Trazabilidad'] },
+      ia:  { title: 'Competitor Scraping', pr: 'quick-win', f: ['Ofertas competencia por modelo', 'Posicionamiento de precio'] } },
     { title: 'Oferta Resumen',      status: 'active',
       erpF: ['Vista consolidada de ofertas', 'Filtros por estado · cliente · KPIs'],
       api: null, ia: null },
-    { title: 'Perfil Cotización',   status: 'active',
-      erpF: ['Parámetros de cotización por perfil', 'Requerimientos · Peculiaridades'],
-      api: null, ia: null },
-    { title: 'Leads',               status: 'pending',
-      erpF: ['Oportunidades comerciales entrantes', 'Canal · Origen · Estado'],
-      api: null,
-      ia:  { title: 'Scoring lead', pr: 'quick-win', f: ['Prob. conversión', 'Perfil cliente'] } },
-    { title: 'Campañas',            status: 'pending',
-      erpF: ['Condiciones especiales fabricante', 'Período · Modelos · Descuento'],
+    { title: 'Pool',                status: 'active',
+      erpF: ['Vehículos de sustitución disponibles', 'Disponibilidad · Asignación · Pool activo'],
       api: null, ia: null },
   ]},
-  { label: 'Gestión de Renting', color: '#1e3a5f', modules: [
+  // ── 4. RIESGOS ───────────────────────────────────────────────────
+  { label: 'Riesgos', color: '#374151', modules: [
     { title: 'Riesgos',             status: 'active',
       erpF: ['Estados CPP: 1-Pend. Sanción · 2-Aprobada', '3-Con Garantía · 4-Rechazada'],
       api: { name: 'CPP (INCOFISA · AIS · EQUIFAX · ASNEF)', f: ['Score crediticio · Comportamiento', 'ASNEF · Impagados'] },
       ia:  { title: 'Predicción de impago', pr: 'core', f: ['Variables conductoras', 'Alertas tempranas'] } },
+  ]},
+  // ── 5. CONTRATOS ─────────────────────────────────────────────────
+  { label: 'Contratos', color: '#0f4c75', modules: [
     { title: 'Contratos',           status: 'active',
       erpF: ['Contrato principal de renting', 'Condiciones · Documentos · Firma'],
       api: { name: 'API Firma Digital', f: ['Signaturit · DocuSign', 'Timestamp legal certificado'] },
       ia:  { title: 'Extracción contratos', pr: 'quick-win', f: ['OCR inteligente', 'Detección anomalías'] } },
-    { title: 'Entregas',            status: 'active',
-      erpF: ['Acta entrega · Fotos · Km', 'Encuesta satisfacción NPS'],
-      api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
-      ia:  { title: 'Detección daños en acta', pr: 'core', f: ['Computer Vision fotos', 'Clasificación automática daños'] } },
-    { title: 'Pedidos',             status: 'pending',
-      erpF: ['Pedido a proveedor OEM', 'Estado · Plazo · Matrícula pendiente'],
-      api: { name: 'API Jato / Proveedor', f: ['Disponibilidad · PVP', 'Plazo entrega OEM'] },
-      ia:  { title: 'Predicción de plazos', pr: 'core', f: ['Demand forecasting', 'Alertas stock OEM'] } },
-    { title: 'Carga Datos Pedidos', status: 'pending',
-      erpF: ['Carga matrícula · bastidor', 'Vinculación pedido → contrato'],
-      api: null, ia: null },
-    { title: 'Devolución',          status: 'pending',
-      erpF: ['Proceso de devolución al fin contrato', 'Acta devolución · Peritación'],
-      api: null, ia: { title: 'Predicción estado vehículo', pr: 'core', f: ['Cargos esperados · Daños', 'Basado en km GPS · historial mant.'] } },
     { title: 'Recalculos',          status: 'pending',
       erpF: ['Recálculo de condiciones', 'Km · Cuota · Servicios ajustados'],
       api: null, ia: null },
@@ -1201,21 +1190,41 @@ const moduleGroups = [
       erpF: ['Propuestas de recálculo/subrogación', 'Estado · Aprobación pendiente'],
       api: null, ia: null },
   ]},
-  { label: 'Gestión de Flota', color: '#134e4a', modules: [
-    { title: 'Flota',               status: 'active',
-      erpF: ['Vehículos en cartera activa', 'Matrícula · Contrato · Estado'],
+  // ── 6. ENTREGAS Y DEVOLUCIONES ───────────────────────────────────
+  { label: 'Entregas y Dev.', color: '#1d4a3a', modules: [
+    { title: 'Entregas',            status: 'active',
+      erpF: ['Acta entrega · Fotos · Km', 'Encuesta satisfacción NPS'],
       api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
-      ia:  { title: 'Optimización flota', pr: 'core', f: ['Asignación vehículo óptimo', 'Pred. depreciación por modelo'] } },
-    { title: 'Pool',                status: 'active',
-      erpF: ['Vehículos de sustitución disponibles', 'Disponibilidad · Asignación'],
+      ia:  { title: 'Delivery Verifier', pr: 'core', f: ['Verifica entregables · estado vehículo', 'Escala a persona si incidencia'] } },
+    { title: 'Devoluciones',        status: 'pending',
+      erpF: ['Proceso de devolución al fin contrato', 'Acta devolución · Peritación'],
+      api: { name: 'API Campa / Recepción Log.', f: ['Recepción vehículo · Datos campa', 'Carga automática estado entrada'] },
+      ia:  { title: 'Damage Estimator', pr: 'core', f: ['Estimación cargos por daños histórico', 'Coord. recompra si contrato con tercero'] } },
+  ]},
+  // ── 7. FLOTA ─────────────────────────────────────────────────────
+  { label: 'Flota', color: '#134e4a', modules: [
+    { title: 'Compras',             status: 'active',
+      erpF: ['Vehículos en cartera activa', 'Matrícula · Contrato · Estado'],
+      api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
+      ia:  { title: 'Buying Analyst 2', pr: 'quick-win', f: ['Revisa documentación compra', 'Comunica con proveedores si falta factura'] } },
+    { title: 'Pedidos',             status: 'pending',
+      erpF: ['Pedido a proveedor OEM', 'Estado · Plazo · Matrícula pendiente'],
+      api: { name: 'API Mail / Proveedor', f: ['Envío automático pedido', 'Confirmación recepción · Disponibilidad'] },
+      ia:  { title: 'Order Analyst', pr: 'core', f: ['Comunica pedido al proveedor', 'Confirma recepción y disponibilidad'] } },
+    { title: 'Rappels',             status: 'pending',
+      erpF: ['Condiciones de rappel por proveedor', 'Umbrales · Compras acumuladas · Liquidación'],
+      api: null,
+      ia:  { title: 'Rappel Analyst', pr: 'diferencial', f: ['Proveedor más rentable por rappel', 'Compras a fecha vs condiciones pactadas'] } },
+    { title: 'Carga Datos Pedidos', status: 'pending',
+      erpF: ['Carga matrícula · bastidor', 'Vinculación pedido → contrato'],
+      api: null, ia: null },
+    { title: 'Alquiler',            status: 'pending',
+      erpF: ['Alquiler de vehículos de flota', 'Disponibilidad · Tarifas · Período'],
       api: null, ia: null },
     { title: 'Gestoría',            status: 'active',
       erpF: ['Facturas de gestoría por vehículo', 'Vincula: Flota → Pedido → Contrato'],
       api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
       ia: null },
-    { title: 'Alquiler Flota',      status: 'pending',
-      erpF: ['Alquiler de vehículos de flota', 'Disponibilidad · Tarifas · Período'],
-      api: null, ia: null },
     { title: 'Existencias',         status: 'pending',
       erpF: ['Stock VO disponible para venta', 'Precio venta · Estado · Canal'],
       api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Retasación · Tendencia'] },
@@ -1239,26 +1248,30 @@ const moduleGroups = [
       erpF: ['Comisiones comerciales', 'Por contrato · Comercial · Importe'],
       api: null, ia: null },
   ]},
+  // ── 8. FACTURACIÓN ───────────────────────────────────────────────
   { label: 'Facturación', color: '#7c2d12', modules: [
     { title: 'Facturación Clientes', status: 'active',
       erpF: ['Facturas emitidas al cliente', 'Cuotas · Servicios · Venta VO'],
       api: { name: 'API Banca / SEPA', f: ['Domiciliaciones', 'Devoluciones · Conciliación'] },
-      ia:  { title: 'Impagos en cartera', pr: 'core', f: ['Early warning', 'Recobro automatizado'] } },
+      ia: null },
     { title: 'Fact. Proveedores',   status: 'active',
       erpF: ['Facturas recibidas de proveedores', 'Taller · Seguro · Gestoría'],
       api: { name: 'API AEAT — SII', f: ['Envío SII', 'Validación NIF'] },
       ia:  { title: 'OCR facturas proveedor', pr: 'quick-win', f: ['Extracción automática', 'Detección duplicados'] } },
     { title: 'Validación Anticipos', status: 'pending',
       erpF: ['Verificación cobro de anticipos', 'Antes de matriculación del vehículo'],
-      api: null, ia: null },
-    { title: 'Proformas',           status: 'pending',
-      erpF: ['Proformas de venta', 'Precio · Descuento · Cliente'],
-      api: null, ia: null },
+      api: { name: 'API Banco', f: ['Recepción fianza · Confirmación ingreso', 'Vinculación automática a contrato'] },
+      ia:  { title: 'Anticipo Validator', pr: 'quick-win', f: ['Valida anticipo sin intervención manual', 'Vincula ingreso bancario al contrato'] } },
   ]},
+  // ── 9. RECOBROS ──────────────────────────────────────────────────
   { label: 'Recobros', color: '#7f1d1d', modules: [
     { title: 'Facturas Impagadas',  status: 'pending',
       erpF: ['Facturas vencidas sin cobro', 'Contrato · Importe · Días mora'],
-      api: null, ia: { title: 'Early warning impago', pr: 'core', f: ['Prob. impago', 'Segmento de riesgo'] } },
+      apis: [
+        { name: 'API Banco', f: ['Recibo devuelto · Datos automáticos', 'Sin descarga manual de fichero'] },
+        { name: 'API Comunicaciones', f: ['Aviso automático cliente impago', 'Notificación registro factura'] }
+      ],
+      ia: { title: 'Early warning impago', pr: 'core', f: ['Prob. impago', 'Segmento de riesgo'] } },
     { title: 'Expedientes',         status: 'pending',
       erpF: ['Agrupación de impagados por matrícula', 'Estado Demanda · Estado Denuncia'],
       api: null, ia: { title: 'Priorización de expedientes', pr: 'core', f: ['Scoring prob. cobro exitoso', 'Gestión por orden de impacto'] } },
@@ -1270,6 +1283,7 @@ const moduleGroups = [
       api: { name: 'ASNEF Fichero Impagados', f: ['Registro · Consulta', 'Alta · Baja deudas'] },
       ia: null },
   ]},
+  // ── 10. VENTA VO ─────────────────────────────────────────────────
   { label: 'Venta VO', color: '#78350f', modules: [
     { title: 'Liquidación',         status: 'pending',
       erpF: ['Liquidación fin de contrato', 'Exceso km · Daños · Regularizaciones'],
@@ -1281,33 +1295,46 @@ const moduleGroups = [
       erpF: ['Stock VO disponible en venta', 'Precio · Canal comercial · Estado'],
       api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Benchmark competencia'] },
       ia:  { title: 'Optimización precio VO', pr: 'diferencial', f: ['Precio óptimo', 'Tiempo venta estimado'] } },
+    { title: 'Proformas',           status: 'pending',
+      erpF: ['Proformas de venta VO', 'Precio · Descuento · Cliente'],
+      api: null, ia: null },
   ]},
+  // ── 11. SERVICIOS ────────────────────────────────────────────────
   { label: 'Servicios', color: '#4c1d95', modules: [
     { title: 'Seguros',             status: 'pending',
       erpF: ['Pólizas de seguro de flota', 'Coberturas · Primas · Vigencia'],
-      api: { name: 'API Aseguradora (Affinity)', f: ['Póliza · Cobertura', 'Siniestro · Prima'] },
-      ia: null },
-    { title: 'Siniestros Affinity', status: 'pending',
-      erpF: ['Partes de siniestro Affinity', 'Estado · Liquidación · Taller'],
-      api: { name: 'API Aseguradora Affinity', f: ['Parte · Estado', 'Liquidación siniestro'] },
-      ia: null },
+      api: { name: 'API Aseguradora', f: ['Alta · Baja · Garantías · Póliza', 'Comunicado automático a cliente'] },
+      ia:  { title: 'Siniestralidad Predictiva', pr: 'diferencial', f: ['Correlación perfil cliente-seguro', 'Análisis predictivo siniestralidad'] } },
+    { title: 'Siniestros',          status: 'pending',
+      erpF: ['Partes de siniestro', 'Estado · Liquidación · Taller'],
+      api: { name: 'API Aseguradora', f: ['Parte · Estado', 'Liquidación siniestro'] },
+      ia:  { title: 'Claims Router', pr: 'core', f: ['Recibe comunicado siniestro', 'Deriva a aseguradora o departamento'] } },
     { title: 'Multas',              status: 'pending',
       erpF: ['Notificaciones de multas DGT', 'Conductor · Traslado · Pago'],
       api: { name: 'API Proveedor Gestión Multas', f: ['Notificaciones · Traslado', 'Pago · Alegaciones'] },
-      ia:  { title: 'Detección conductores de riesgo', pr: 'core', f: ['Patrón multas por conductor', 'Alerta gestor de flota'] } },
+      ia:  { title: 'Multas Proactive Agent', pr: 'core', f: ['Lee multa y detecta fecha vencimiento', 'Emite orden de pago automática si urgente'] } },
     { title: 'Autorizaciones',      status: 'pending',
       erpF: ['Autorizaciones de trabajos/servicios', 'Taller · Proveedor · Importe'],
-      api: null, ia: { title: 'Auto-aprobación bajo umbral', pr: 'quick-win', f: ['Aprobación automática · reglas', 'Escala solo casos complejos'] } },
-    { title: 'Alquiler',            status: 'pending',
-      erpF: ['Servicios de alquiler', 'Disponibilidad · Tarifas · Período'],
+      api: { name: 'API Proveedor Servicio', f: ['Solicitud autorización si excede umbral', 'Respuesta proveedor → ERP'] },
+      ia:  { title: 'Auto-aprobación bajo umbral', pr: 'quick-win', f: ['Aprobación automática · reglas', 'Escala a persona si supera umbral'] } },
+    { title: 'Coche Sustitución',   status: 'pending',
+      erpF: ['Gestión coche de sustitución', 'Disponibilidad · Asignación · Período'],
       api: null, ia: null },
     { title: 'Peritaciones',        status: 'pending',
       erpF: ['Informes de peritación de vehículos', 'Daños · Valoración · Estado'],
-      api: null, ia: { title: 'Detección daños CV', pr: 'core', f: ['Computer Vision fotos', 'Valoración automática'] } },
-    { title: 'Informe Conceptos',   status: 'pending',
-      erpF: ['Informes por conceptos de servicio', 'Agrupación · Análisis · Exportación'],
+      api: { name: 'API DEKRA', f: ['Solicitud peritación', 'Recepción informe · Daños · Valoración'] },
+      ia: null },
+    { title: 'Postventa',           status: 'pending',
+      erpF: ['Gestión postventa y atención cliente', 'Incidencias · Seguimiento · Resolución'],
+      api: null, ia: null },
+    { title: 'Neumáticos',          status: 'pending',
+      erpF: ['Gestión de neumáticos por vehículo', 'Cambios · Estado · Proveedor'],
+      api: null, ia: null },
+    { title: 'Averías',             status: 'pending',
+      erpF: ['Gestión de averías y asistencia', 'Incidencia · Taller · Resolución'],
       api: null, ia: null },
   ]},
+  // ── 12. CONTABILIDAD ─────────────────────────────────────────────
   { label: 'Contabilidad', color: '#1e3a5f', modules: [
     { title: 'Fact. Contabilizada Cliente', status: 'pending',
       erpF: ['Asientos de facturas cliente', 'Cuenta · Importe · Período'],
@@ -1339,6 +1366,7 @@ const moduleGroups = [
       erpF: ['Efectos proveedor contabilizados', 'Asientos generados automáticamente'],
       api: null, ia: null },
   ]},
+  // ── 13. CUADRO DE MANDO ──────────────────────────────────────────
   { label: 'Cuadro de Mando', color: '#1e3a5f', modules: [
     { title: 'ECB',                 status: 'pending',
       erpF: ['Estado de cartera · KPIs', 'Concentración · Mora'],
@@ -1348,11 +1376,15 @@ const moduleGroups = [
       erpF: ['Informes manuales y exportaciones', 'Formatos Excel · PDF'],
       api: null, ia: null },
   ]},
+  // ── 14. TERCEROS ─────────────────────────────────────────────────
   { label: 'Terceros', color: '#1e3a5f', modules: [
     { title: 'Clientes',            status: 'active',
       erpF: ['CRM: Empresas y personas físicas', 'Contactos · Direcciones · Tipología'],
       api: { name: 'KYC / AML', f: ['Verificación de identidad', 'Sanciones · RAI'] },
       ia:  { title: 'Predicción churn', pr: 'diferencial', f: ['LTV scoring', 'Retención proactiva'] } },
+    { title: 'CRM',                 status: 'pending',
+      erpF: ['Gestión de oportunidades comerciales', 'Pipeline · Leads · Seguimiento'],
+      api: null, ia: { title: 'Scoring lead', pr: 'quick-win', f: ['Prob. conversión', 'Perfil cliente'] } },
     { title: 'Proveedores',         status: 'active',
       erpF: ['Catálogo de proveedores activos', 'CIF · IBAN · Categoría · Red'],
       api: null, ia: null },

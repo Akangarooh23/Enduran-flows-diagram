@@ -1865,7 +1865,7 @@ const fsFlows = [
     badges:[{l:'Proformas ✅',c:'#7c3aed'},{l:'Mantenimientos ✅',c:'#166534'},{l:'Residuales ⚠️',c:'#78350f'},{l:'Ofertas ✅',c:'#1d4ed8'},{l:'Riesgos ✅',c:'#374151'},{l:'Contratos ✅',c:'#0f766e'},{l:'Pedidos ❌',c:'#b91c1c'},{l:'Entregas ✅',c:'#a16207'}],
     steps:[
       // ── 1. PROFORMA VN
-      fsB.mod('Mod. Proformas VN','Configuración vehículo nuevo','proformas','active','proformas',['Modelo','Opcionales','Packs']),
+      fsB.mod('Mod. Proformas VN','Configuración vehículo nuevo · Código Jato','proformas','active','proformas',['Modelo','Opcionales','Packs','Código Jato']),
       // ── PREREQUISITOS para crear oferta
       fsB.conn('Verificar prerequisitos para crear oferta'),
       fsB.par([
@@ -1873,7 +1873,7 @@ const fsFlows = [
           fsB.mod('Mod. Mantenimientos','Plan vinculado a proforma','mant','active','mant_plan',['Costes por km','Cuadrícula preventiva'])
         ]},
         {steps:[
-          fsB.mod('Listado Residuales','Código Jato registrado','residuales','partial','residuales',['⚠️ Manual · temporal','Pendiente → API EUROTAX'])
+          fsB.mod('Valores Residuales','VR por modelo · plazo · km','residuales','partial','residuales',['⚠️ Manual temporal','Pendiente → API Eurotax / Bähr & Fess'])
         ]}
       ]),
       fsB.conn('Prerequisitos OK → crear oferta borrador'),
@@ -1917,19 +1917,22 @@ const fsFlows = [
       fsB.branch('¿Firma contrato?',[
         {label:'3 — Firmado',type:'yes',steps:[
           fsB.conn(''),
-          fsB.proc('Email admon@','email'),
+          fsB.proc('Mail Validación','email'),
           fsB.conn(''),
-          fsB.mod('Anticipos','Validación anticipo','contrato','pending','anticipos'),
+          fsB.mod('Fianza / Garantía','Validación cobro fianza','contrato','pending','anticipos'),
           fsB.conn(''),
           fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','pending','contrato'),
           fsB.sub('❌ Estados 4–7 pendientes',['Actuales: Pendiente Firma · Enviada Firma · Firmada · Paralizada · Anulada']),
           // ── 5. PEDIDO DE COMPRA
           fsB.conn('Se genera pedido de compra según proforma'),
-          fsB.mod('Mod. Pedidos','1 — Pedido creado','pedidos','pending','pedidos'),
-          fsB.conn('Concesionario entrega vehículos'),
-          // ── Alta en Flota con bastidor (sin matrícula aún)
-          fsB.mod('Mod. Flota','Alta bastidor — sin matrícula','carga','active','carga'),
-          fsB.conn('Alta bastidor genera solicitud automática'),
+          fsB.mod('Mod. Pedidos','1 — Pedido creado · derivado a concesión','pedidos','pending','pedidos'),
+          fsB.conn('Pago del vehículo → vinculación a disposición financiera'),
+          fsB.sub('Pago vehículo',['Pago a proveedor registrado en Disposiciones Financieras','Pedido sale de Pedidos al pagarse']),
+          fsB.mod('Mod. Pedidos','2 — Pagado','pedidos','pending','pedidos'),
+          fsB.conn('Vehículo pagado → alta en Flota'),
+          // ── Alta en Flota + asignación matrícula (no en Pedidos)
+          fsB.mod('Mod. Flota','Alta vehículo · asignación matrícula','carga','active','carga'),
+          fsB.conn('Alta en Flota genera solicitud de matrícula'),
           fsB.proc('Solicitud matrícula → Gestoría','email'),
           // ── Parallel: Gestoría (matrícula) + Seguros
           fsB.par([
@@ -1938,12 +1941,10 @@ const fsFlows = [
             ]},
             {steps:[
               fsB.mod('Mod. Seguros','Alta de póliza','seguros','pending','seguros'),
-              fsB.conn('AFFINITY'),
-              fsB.proc('Email + Excel Atlas','email')
+              fsB.proc('Email + Excel / API Aseguradora','email')
             ]}
           ]),
           fsB.conn('Gestoría vincula: Flota → Pedido → Contrato'),
-          fsB.mod('Mod. Pedidos','2 — Matriculado','pedidos','pending','pedidos'),
           fsB.conn(''),
           fsB.par([
             {steps:[fsB.mod('Mod. Entregas','Vehículo Matrículado ✓','entregas','active','entregas')]},
@@ -1962,7 +1963,7 @@ const fsFlows = [
           // ── FORMULARIO CLIENTE (con lugar y fecha ya definidos)
           fsB.conn('Formulario al cliente con lugar y fecha de entrega'),
           fsB.proc('Formulario Cliente','process'),
-          fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
+          fsB.sub('Datos de quién recoge el vehículo',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
           // ── HOJA DE ENTREGA VÍA SIGNATURIT OCR
           fsB.conn('En fecha prevista de entrega'),
           fsB.proc('Hoja de entrega → Signaturit OCR → Concesionario/Campa','firma'),

@@ -699,19 +699,12 @@ body {
 </div>
 
 <!-- TOOLBAR -->
-<div class="toolbar">
+<div class="toolbar" style="display:none">
   <span class="toolbar-label">Ver</span>
   <button class="filter-btn all active" onclick="toggleLayer('all')">Todos</button>
   <button class="filter-btn erp active" id="btn-erp" onclick="toggleLayer('erp')">Módulos ERP</button>
   <button class="filter-btn api active" id="btn-api" onclick="toggleLayer('api')">APIs Externas</button>
   <button class="filter-btn ia  active" id="btn-ia"  onclick="toggleLayer('ia')">Agentes IA</button>
-  <div class="sep"></div>
-  <span class="toolbar-label">Estado</span>
-  <div class="status-filters">
-    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot active"></span>Implementado (6)</span>
-    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot partial"></span>Parcial (2)</span>
-    <span style="font-size:11px;color:#6b7280;display:flex;align-items:center;gap:4px"><span class="status-dot pending"></span>Pendiente (2)</span>
-  </div>
   <div class="sep"></div>
   <span style="font-size:11px;color:#64748b">Clic en cualquier tarjeta para ver detalles completos</span>
   <div class="sep"></div>
@@ -719,7 +712,7 @@ body {
 </div>
 
 <!-- DIAGRAM -->
-<div id="sec-arch" class="sec-content">
+<div id="sec-arch" class="sec-content" style="display:none">
 <div class="diagram-wrapper">
   <div class="diagram" id="diagram">
 
@@ -750,10 +743,6 @@ body {
     <div class="legend-line dashed"></div>
     <span>Integración API</span>
   </div>
-  <div class="sep" style="height:16px;background:#e2e8f0;width:1px"></div>
-  <div class="legend-item"><span class="status-dot active"></span>Implementado</div>
-  <div class="legend-item"><span class="status-dot partial"></span>Parcial</div>
-  <div class="legend-item"><span class="status-dot pending"></span>Pendiente</div>
   <div class="legend-footer">Documento confidencial · Uso interno · ENDURAN</div>
 </div>
 </div><!-- /sec-arch -->
@@ -767,7 +756,7 @@ body {
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
-        10 áreas &nbsp;·&nbsp; 60 módulos
+        14 áreas &nbsp;·&nbsp; 70 módulos
       </div>
       <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
     </div>
@@ -1115,52 +1104,79 @@ const flows = [
 // MODULE CATALOG DATA
 // ══════════════════════════════════════════
 const moduleGroups = [
-  { label: 'Gestión de Cotización', color: '#1e3a5f', modules: [
-    { title: 'Oferta',              status: 'active',
-      erpF: ['Cotización · Cuota · Residual', 'Estados: Borrador → Firmada'],
-      api: { name: 'API Jato', f: ['Modelos · PVP · Código Jato', 'Opciones · Residuales · Plazo'] },
-      ia:  { title: 'Scoring propuesta', pr: 'quick-win', f: ['Precio óptimo conversión', 'Config. sugerida por perfil'] } },
-    { title: 'Oferta Resumen',      status: 'active',
-      erpF: ['Vista consolidada de ofertas', 'Filtros por estado · cliente · KPIs'],
-      api: null, ia: null },
+  // ── 1. FINANCIACIÓN ──────────────────────────────────────────────
+  { label: 'Financiación', color: '#0e4f6e', modules: [
+    { title: 'Líneas de Financiación', status: 'pending',
+      erpF: ['Líneas de crédito por entidad financiera', 'Disponible total · Condiciones · Perfiles'],
+      api: null,
+      ia:  { title: 'Credit Analyst', pr: 'core', f: ['Línea óptima por composición de oferta', 'Análisis: plazo · cancelación · sustitución'] } },
+    { title: 'Disposiciones Financieras', status: 'active',
+      erpF: ['Fondos dispuestos sobre línea de crédito', 'Capital dispuesto · Disponible restante'],
+      api: { name: 'API Conector BI', f: ['Fondos dispuestos → BI', 'Reporting bancario · Amortizaciones'] },
+      ia:  { title: 'Buying Analyst', pr: 'quick-win', f: ['Criterios elegibilidad aplicados', 'Verificación coches adquiridos vs línea'] } },
+    { title: 'Unidades Financiadas', status: 'active',
+      erpF: ['Condiciones por matrícula', '% Representación · Importe prorrateado'],
+      api: { name: 'API Conector BI', f: ['Unidades por matrícula → BI', 'Prorrateado · % Representación'] },
+      ia: null },
+    { title: 'Titulizaciones ECB',  status: 'pending',
+      erpF: ['Pools de vehículos para titulización', 'Criterios ECB · Elegibilidad · Reporting'],
+      api: { name: 'API Conector BI', f: ['Pool cartera → BI', 'Elegibilidad ECB · Reporting'] },
+      ia:  { title: "Moody's Analyst", pr: 'diferencial', f: ["Criterios Moody's para titulizaciones", 'Evaluación in-time de cartera'] } },
     { title: 'Perfil Cotización',   status: 'active',
       erpF: ['Parámetros de cotización por perfil', 'Requerimientos · Peculiaridades'],
       api: null, ia: null },
-    { title: 'Listado Residual',    status: 'partial',
+  ]},
+  // ── 2. UNITS ─────────────────────────────────────────────────────
+  { label: 'Units', color: '#1a4731', modules: [
+    { title: 'Proformas VN',           status: 'active',
+      erpF: ['Configuración vehículo nuevo', 'Modelo · Opcionales · Packs'],
+      api: { name: 'API Jato', f: ['Catálogo · PVP · Código Jato', 'Opciones · Disponibilidad'] },
+      ia:  { title: 'Offer Assistant', pr: 'core', f: ['Genera ofertas autónomamente', 'Variables predefinidas por modelo'] } },
+    { title: 'Planes de Mantenimiento', status: 'active',
+      erpF: ['Preventivo por modelo y km', 'Costes · Cuadrícula · Periodos'],
+      apis: [
+        { name: 'API TecAlliance',  f: ['Info. general · Tiempos OR', 'Catálogo piezas · Referencias'] },
+        { name: 'API Marcas',       f: ['Planes por modelo (si disponible)', 'Km previstos · Manuales técnicos'] }
+      ],
+      ias: [
+        { title: 'Maintenance Analyst',   pr: 'core',      f: ['Costes predictivos por modelo', 'Mano de obra oficial vs generalista'] },
+        { title: 'Maintenance Assistant', pr: 'quick-win', f: ['Analiza documentos de marca', 'Mantenimientos preventivos · km'] }
+      ] },
+    { title: 'Valores Residuales',     status: 'partial',
       erpF: ['VR por código Jato · plazo · km', '⚠️ Manual temporal → pendiente API'],
-      api: { name: 'API Eurotax / Jato', f: ['VR mercado · Tendencia', 'Por modelo · antigüedad'] },
-      ia:  { title: 'Predicción VR', pr: 'diferencial', f: ['Modelo dinámico', 'Señales mercado'] } },
-    { title: 'Leads',               status: 'pending',
-      erpF: ['Oportunidades comerciales entrantes', 'Canal · Origen · Estado'],
-      api: null,
-      ia:  { title: 'Scoring lead', pr: 'quick-win', f: ['Prob. conversión', 'Perfil cliente'] } },
-    { title: 'Campañas',            status: 'pending',
-      erpF: ['Condiciones especiales fabricante', 'Período · Modelos · Descuento'],
+      api: { name: 'API Eurotax / Bähr & Fess', f: ['VR mercado · Tendencia', 'Por modelo · antigüedad'] },
+      ia:  { title: 'Residual Analyst', pr: 'diferencial', f: ['Evolución VR por modelo', 'Precio · depreciación · market value'] } },
+    { title: 'Market Value',           status: 'pending',
+      erpF: ['Valor de mercado en tiempo real', 'Precios venta · Oportunidades renovación'],
+      api: { name: 'API CarsWise', f: ['Scraping precios de mercado', 'Análisis oportunidades VO'] },
+      ia:  { title: 'Remarketing Analyst', pr: 'diferencial', f: ['Oportunidades venta/renovación flota', 'Prórrogas por desviación en precios'] } },
+  ]},
+  // ── 3. OFERTAS ───────────────────────────────────────────────────
+  { label: 'Ofertas', color: '#1e3a5f', modules: [
+    { title: 'Oferta',              status: 'active',
+      erpF: ['Cotización · Cuota · Residual', 'Estados: Borrador → Firmada'],
+      api: { name: 'API Signaturit', f: ['Firma digital oferta', 'Timestamp · Trazabilidad'] },
+      ia:  { title: 'Competitor Scraping', pr: 'quick-win', f: ['Ofertas competencia por modelo', 'Posicionamiento de precio'] } },
+    { title: 'Oferta Resumen',      status: 'active',
+      erpF: ['Vista consolidada de ofertas', 'Filtros por estado · cliente · KPIs'],
+      api: null, ia: null },
+    { title: 'Pool',                status: 'active',
+      erpF: ['Vehículos de sustitución disponibles', 'Disponibilidad · Asignación · Pool activo'],
       api: null, ia: null },
   ]},
-  { label: 'Gestión de Renting', color: '#1e3a5f', modules: [
+  // ── 4. RIESGOS ───────────────────────────────────────────────────
+  { label: 'Riesgos', color: '#374151', modules: [
     { title: 'Riesgos',             status: 'active',
       erpF: ['Estados CPP: 1-Pend. Sanción · 2-Aprobada', '3-Con Garantía · 4-Rechazada'],
       api: { name: 'CPP (INCOFISA · AIS · EQUIFAX · ASNEF)', f: ['Score crediticio · Comportamiento', 'ASNEF · Impagados'] },
       ia:  { title: 'Predicción de impago', pr: 'core', f: ['Variables conductoras', 'Alertas tempranas'] } },
+  ]},
+  // ── 5. CONTRATOS ─────────────────────────────────────────────────
+  { label: 'Contratos', color: '#0f4c75', modules: [
     { title: 'Contratos',           status: 'active',
       erpF: ['Contrato principal de renting', 'Condiciones · Documentos · Firma'],
       api: { name: 'API Firma Digital', f: ['Signaturit · DocuSign', 'Timestamp legal certificado'] },
       ia:  { title: 'Extracción contratos', pr: 'quick-win', f: ['OCR inteligente', 'Detección anomalías'] } },
-    { title: 'Entregas',            status: 'active',
-      erpF: ['Acta entrega · Fotos · Km', 'Encuesta satisfacción NPS'],
-      api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
-      ia:  { title: 'Detección daños en acta', pr: 'core', f: ['Computer Vision fotos', 'Clasificación automática daños'] } },
-    { title: 'Pedidos',             status: 'pending',
-      erpF: ['Pedido a proveedor OEM', 'Estado · Plazo · Matrícula pendiente'],
-      api: { name: 'API Jato / Proveedor', f: ['Disponibilidad · PVP', 'Plazo entrega OEM'] },
-      ia:  { title: 'Predicción de plazos', pr: 'core', f: ['Demand forecasting', 'Alertas stock OEM'] } },
-    { title: 'Carga Datos Pedidos', status: 'pending',
-      erpF: ['Carga matrícula · bastidor', 'Vinculación pedido → contrato'],
-      api: null, ia: null },
-    { title: 'Devolución',          status: 'pending',
-      erpF: ['Proceso de devolución al fin contrato', 'Acta devolución · Peritación'],
-      api: null, ia: { title: 'Predicción estado vehículo', pr: 'core', f: ['Cargos esperados · Daños', 'Basado en km GPS · historial mant.'] } },
     { title: 'Recalculos',          status: 'pending',
       erpF: ['Recálculo de condiciones', 'Km · Cuota · Servicios ajustados'],
       api: null, ia: null },
@@ -1174,36 +1190,41 @@ const moduleGroups = [
       erpF: ['Propuestas de recálculo/subrogación', 'Estado · Aprobación pendiente'],
       api: null, ia: null },
   ]},
-  { label: 'Gestión de Flota', color: '#134e4a', modules: [
-    { title: 'Flota',               status: 'active',
-      erpF: ['Vehículos en cartera activa', 'Matrícula · Contrato · Estado'],
+  // ── 6. ENTREGAS Y DEVOLUCIONES ───────────────────────────────────
+  { label: 'Entregas y Dev.', color: '#1d4a3a', modules: [
+    { title: 'Entregas',            status: 'active',
+      erpF: ['Acta entrega · Fotos · Km', 'Encuesta satisfacción NPS'],
       api: { name: 'API DGT', f: ['Matrícula · Bastidor', 'Titularidad · ITV'] },
-      ia:  { title: 'Optimización flota', pr: 'core', f: ['Asignación vehículo óptimo', 'Pred. depreciación por modelo'] } },
-    { title: 'Líneas de Financiación', status: 'pending',
-      erpF: ['Líneas de crédito por entidad financiera', 'Disponible total · Condiciones · Perfiles'],
-      api: { name: 'API Banca / PSD2', f: ['Condiciones de línea', 'Disponible en tiempo real'] },
-      ia: null },
-    { title: 'Disposiciones Financieras', status: 'active',
-      erpF: ['Fondos dispuestos sobre línea de crédito', 'Capital dispuesto · Disponible restante'],
-      api: { name: 'API Banca / PSD2', f: ['Disposiciones activas', 'Amortizaciones bancarias'] },
-      ia: null },
-    { title: 'Datos Financiación',  status: 'active',
-      erpF: ['Condiciones por matrícula', '% Representación · Importe prorrateado'],
+      ia:  { title: 'Delivery Verifier', pr: 'core', f: ['Verifica entregables · estado vehículo', 'Escala a persona si incidencia'] } },
+    { title: 'Devoluciones',        status: 'pending',
+      erpF: ['Proceso de devolución al fin contrato', 'Acta devolución · Peritación'],
+      api: { name: 'API Campa / Recepción Log.', f: ['Recepción vehículo · Datos campa', 'Carga automática estado entrada'] },
+      ia:  { title: 'Damage Estimator', pr: 'core', f: ['Estimación cargos por daños histórico', 'Coord. recompra si contrato con tercero'] } },
+  ]},
+  // ── 7. FLOTA ─────────────────────────────────────────────────────
+  { label: 'Flota', color: '#134e4a', modules: [
+    { title: 'Compras',             status: 'active',
+      erpF: ['Vehículos en cartera activa', 'Matrícula · Contrato · Estado'],
+      api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
+      ia:  { title: 'Buying Analyst 2', pr: 'quick-win', f: ['Revisa documentación compra', 'Comunica con proveedores si falta factura'] } },
+    { title: 'Pedidos',             status: 'pending',
+      erpF: ['Pedido a proveedor OEM', 'Estado · Plazo · Matrícula pendiente'],
+      api: { name: 'API Mail / Proveedor', f: ['Envío automático pedido', 'Confirmación recepción · Disponibilidad'] },
+      ia:  { title: 'Order Analyst', pr: 'core', f: ['Comunica pedido al proveedor', 'Confirma recepción y disponibilidad'] } },
+    { title: 'Rappels',             status: 'pending',
+      erpF: ['Condiciones de rappel por proveedor', 'Umbrales · Compras acumuladas · Liquidación'],
+      api: null,
+      ia:  { title: 'Rappel Analyst', pr: 'diferencial', f: ['Proveedor más rentable por rappel', 'Compras a fecha vs condiciones pactadas'] } },
+    { title: 'Carga Datos Pedidos', status: 'pending',
+      erpF: ['Carga matrícula · bastidor', 'Vinculación pedido → contrato'],
       api: null, ia: null },
-    { title: 'Proformas VN',        status: 'active',
-      erpF: ['Configuración vehículo nuevo', 'Modelo · Opcionales · Packs'],
-      api: { name: 'API Jato / Proveedor', f: ['Catálogo · PVP', 'Opciones · Disponibilidad'] },
-      ia: null },
-    { title: 'Pool',                status: 'active',
-      erpF: ['Vehículos de sustitución disponibles', 'Disponibilidad · Asignación'],
-      api: null, ia: null },
-    { title: 'Planes de Mantenimiento', status: 'active',
-      erpF: ['Preventivo por modelo y km', 'Costes · Cuadrícula · Periodos'],
-      api: { name: 'API Aseg. / Talleres', f: ['Presupuestos taller', 'OR · Reparación'] },
-      ia:  { title: 'Mantenimiento predictivo', pr: 'core', f: ['Telemática · Alertas', 'Costes previstos'] } },
-    { title: 'Alquiler Flota',      status: 'pending',
+    { title: 'Alquiler',            status: 'pending',
       erpF: ['Alquiler de vehículos de flota', 'Disponibilidad · Tarifas · Período'],
       api: null, ia: null },
+    { title: 'Gestoría',            status: 'active',
+      erpF: ['Facturas de gestoría por vehículo', 'Vincula: Flota → Pedido → Contrato'],
+      api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
+      ia: null },
     { title: 'Existencias',         status: 'pending',
       erpF: ['Stock VO disponible para venta', 'Precio venta · Estado · Canal'],
       api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Retasación · Tendencia'] },
@@ -1227,26 +1248,30 @@ const moduleGroups = [
       erpF: ['Comisiones comerciales', 'Por contrato · Comercial · Importe'],
       api: null, ia: null },
   ]},
+  // ── 8. FACTURACIÓN ───────────────────────────────────────────────
   { label: 'Facturación', color: '#7c2d12', modules: [
     { title: 'Facturación Clientes', status: 'active',
       erpF: ['Facturas emitidas al cliente', 'Cuotas · Servicios · Venta VO'],
       api: { name: 'API Banca / SEPA', f: ['Domiciliaciones', 'Devoluciones · Conciliación'] },
-      ia:  { title: 'Impagos en cartera', pr: 'core', f: ['Early warning', 'Recobro automatizado'] } },
+      ia: null },
     { title: 'Fact. Proveedores',   status: 'active',
       erpF: ['Facturas recibidas de proveedores', 'Taller · Seguro · Gestoría'],
       api: { name: 'API AEAT — SII', f: ['Envío SII', 'Validación NIF'] },
       ia:  { title: 'OCR facturas proveedor', pr: 'quick-win', f: ['Extracción automática', 'Detección duplicados'] } },
     { title: 'Validación Anticipos', status: 'pending',
       erpF: ['Verificación cobro de anticipos', 'Antes de matriculación del vehículo'],
-      api: null, ia: null },
-    { title: 'Proformas',           status: 'pending',
-      erpF: ['Proformas de venta', 'Precio · Descuento · Cliente'],
-      api: null, ia: null },
+      api: { name: 'API Banco', f: ['Recepción fianza · Confirmación ingreso', 'Vinculación automática a contrato'] },
+      ia:  { title: 'Anticipo Validator', pr: 'quick-win', f: ['Valida anticipo sin intervención manual', 'Vincula ingreso bancario al contrato'] } },
   ]},
+  // ── 9. RECOBROS ──────────────────────────────────────────────────
   { label: 'Recobros', color: '#7f1d1d', modules: [
     { title: 'Facturas Impagadas',  status: 'pending',
       erpF: ['Facturas vencidas sin cobro', 'Contrato · Importe · Días mora'],
-      api: null, ia: { title: 'Early warning impago', pr: 'core', f: ['Prob. impago', 'Segmento de riesgo'] } },
+      apis: [
+        { name: 'API Banco', f: ['Recibo devuelto · Datos automáticos', 'Sin descarga manual de fichero'] },
+        { name: 'API Comunicaciones', f: ['Aviso automático cliente impago', 'Notificación registro factura'] }
+      ],
+      ia: { title: 'Early warning impago', pr: 'core', f: ['Prob. impago', 'Segmento de riesgo'] } },
     { title: 'Expedientes',         status: 'pending',
       erpF: ['Agrupación de impagados por matrícula', 'Estado Demanda · Estado Denuncia'],
       api: null, ia: { title: 'Priorización de expedientes', pr: 'core', f: ['Scoring prob. cobro exitoso', 'Gestión por orden de impacto'] } },
@@ -1258,6 +1283,7 @@ const moduleGroups = [
       api: { name: 'ASNEF Fichero Impagados', f: ['Registro · Consulta', 'Alta · Baja deudas'] },
       ia: null },
   ]},
+  // ── 10. VENTA VO ─────────────────────────────────────────────────
   { label: 'Venta VO', color: '#78350f', modules: [
     { title: 'Liquidación',         status: 'pending',
       erpF: ['Liquidación fin de contrato', 'Exceso km · Daños · Regularizaciones'],
@@ -1269,33 +1295,46 @@ const moduleGroups = [
       erpF: ['Stock VO disponible en venta', 'Precio · Canal comercial · Estado'],
       api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Benchmark competencia'] },
       ia:  { title: 'Optimización precio VO', pr: 'diferencial', f: ['Precio óptimo', 'Tiempo venta estimado'] } },
+    { title: 'Proformas',           status: 'pending',
+      erpF: ['Proformas de venta VO', 'Precio · Descuento · Cliente'],
+      api: null, ia: null },
   ]},
+  // ── 11. SERVICIOS ────────────────────────────────────────────────
   { label: 'Servicios', color: '#4c1d95', modules: [
     { title: 'Seguros',             status: 'pending',
       erpF: ['Pólizas de seguro de flota', 'Coberturas · Primas · Vigencia'],
-      api: { name: 'API Aseguradora (Affinity)', f: ['Póliza · Cobertura', 'Siniestro · Prima'] },
-      ia: null },
-    { title: 'Siniestros Affinity', status: 'pending',
-      erpF: ['Partes de siniestro Affinity', 'Estado · Liquidación · Taller'],
-      api: { name: 'API Aseguradora Affinity', f: ['Parte · Estado', 'Liquidación siniestro'] },
-      ia: null },
+      api: { name: 'API Aseguradora', f: ['Alta · Baja · Garantías · Póliza', 'Comunicado automático a cliente'] },
+      ia:  { title: 'Siniestralidad Predictiva', pr: 'diferencial', f: ['Correlación perfil cliente-seguro', 'Análisis predictivo siniestralidad'] } },
+    { title: 'Siniestros',          status: 'pending',
+      erpF: ['Partes de siniestro', 'Estado · Liquidación · Taller'],
+      api: { name: 'API Aseguradora', f: ['Parte · Estado', 'Liquidación siniestro'] },
+      ia:  { title: 'Claims Router', pr: 'core', f: ['Recibe comunicado siniestro', 'Deriva a aseguradora o departamento'] } },
     { title: 'Multas',              status: 'pending',
       erpF: ['Notificaciones de multas DGT', 'Conductor · Traslado · Pago'],
       api: { name: 'API Proveedor Gestión Multas', f: ['Notificaciones · Traslado', 'Pago · Alegaciones'] },
-      ia:  { title: 'Detección conductores de riesgo', pr: 'core', f: ['Patrón multas por conductor', 'Alerta gestor de flota'] } },
+      ia:  { title: 'Multas Proactive Agent', pr: 'core', f: ['Lee multa y detecta fecha vencimiento', 'Emite orden de pago automática si urgente'] } },
     { title: 'Autorizaciones',      status: 'pending',
       erpF: ['Autorizaciones de trabajos/servicios', 'Taller · Proveedor · Importe'],
-      api: null, ia: { title: 'Auto-aprobación bajo umbral', pr: 'quick-win', f: ['Aprobación automática · reglas', 'Escala solo casos complejos'] } },
-    { title: 'Alquiler',            status: 'pending',
-      erpF: ['Servicios de alquiler', 'Disponibilidad · Tarifas · Período'],
+      api: { name: 'API Proveedor Servicio', f: ['Solicitud autorización si excede umbral', 'Respuesta proveedor → ERP'] },
+      ia:  { title: 'Auto-aprobación bajo umbral', pr: 'quick-win', f: ['Aprobación automática · reglas', 'Escala a persona si supera umbral'] } },
+    { title: 'Coche Sustitución',   status: 'pending',
+      erpF: ['Gestión coche de sustitución', 'Disponibilidad · Asignación · Período'],
       api: null, ia: null },
     { title: 'Peritaciones',        status: 'pending',
       erpF: ['Informes de peritación de vehículos', 'Daños · Valoración · Estado'],
-      api: null, ia: { title: 'Detección daños CV', pr: 'core', f: ['Computer Vision fotos', 'Valoración automática'] } },
-    { title: 'Informe Conceptos',   status: 'pending',
-      erpF: ['Informes por conceptos de servicio', 'Agrupación · Análisis · Exportación'],
+      api: { name: 'API DEKRA', f: ['Solicitud peritación', 'Recepción informe · Daños · Valoración'] },
+      ia: null },
+    { title: 'Postventa',           status: 'pending',
+      erpF: ['Gestión postventa y atención cliente', 'Incidencias · Seguimiento · Resolución'],
+      api: null, ia: null },
+    { title: 'Neumáticos',          status: 'pending',
+      erpF: ['Gestión de neumáticos por vehículo', 'Cambios · Estado · Proveedor'],
+      api: null, ia: null },
+    { title: 'Averías',             status: 'pending',
+      erpF: ['Gestión de averías y asistencia', 'Incidencia · Taller · Resolución'],
       api: null, ia: null },
   ]},
+  // ── 12. CONTABILIDAD ─────────────────────────────────────────────
   { label: 'Contabilidad', color: '#1e3a5f', modules: [
     { title: 'Fact. Contabilizada Cliente', status: 'pending',
       erpF: ['Asientos de facturas cliente', 'Cuenta · Importe · Período'],
@@ -1327,6 +1366,7 @@ const moduleGroups = [
       erpF: ['Efectos proveedor contabilizados', 'Asientos generados automáticamente'],
       api: null, ia: null },
   ]},
+  // ── 13. CUADRO DE MANDO ──────────────────────────────────────────
   { label: 'Cuadro de Mando', color: '#1e3a5f', modules: [
     { title: 'ECB',                 status: 'pending',
       erpF: ['Estado de cartera · KPIs', 'Concentración · Mora'],
@@ -1336,11 +1376,15 @@ const moduleGroups = [
       erpF: ['Informes manuales y exportaciones', 'Formatos Excel · PDF'],
       api: null, ia: null },
   ]},
+  // ── 14. TERCEROS ─────────────────────────────────────────────────
   { label: 'Terceros', color: '#1e3a5f', modules: [
     { title: 'Clientes',            status: 'active',
       erpF: ['CRM: Empresas y personas físicas', 'Contactos · Direcciones · Tipología'],
       api: { name: 'KYC / AML', f: ['Verificación de identidad', 'Sanciones · RAI'] },
       ia:  { title: 'Predicción churn', pr: 'diferencial', f: ['LTV scoring', 'Retención proactiva'] } },
+    { title: 'CRM',                 status: 'pending',
+      erpF: ['Gestión de oportunidades comerciales', 'Pipeline · Leads · Seguimiento'],
+      api: null, ia: { title: 'Scoring lead', pr: 'quick-win', f: ['Prob. conversión', 'Perfil cliente'] } },
     { title: 'Proveedores',         status: 'active',
       erpF: ['Catálogo de proveedores activos', 'CIF · IBAN · Categoría · Red'],
       api: null, ia: null },
@@ -1373,7 +1417,6 @@ function renderDiagram() {
       <!-- ERP card row -->
       <div class="card-row" id="row-erp-${flow.id}">
         <div class="card erp" onclick="openModal('${flow.id}', 'erp')" title="${flow.erp.title}">
-          <div class="status-indicator ${statusClass}"></div>
           <div class="card-badge erp">ERP</div>
           <div class="card-title">${flow.erp.title}</div>
           <div class="card-fields">
@@ -1393,7 +1436,6 @@ function renderDiagram() {
       <!-- API card row -->
       <div class="card-row" id="row-api-${flow.id}">
         <div class="card api" onclick="openModal('${flow.id}', 'api')" title="${flow.api.name}">
-          <div class="status-indicator pending"></div>
           <div class="card-badge api">API</div>
           <div class="card-title">${flow.api.name}</div>
           <div class="card-fields">
@@ -1462,40 +1504,40 @@ function renderModuleCatalog() {
       const col = document.createElement('div');
       col.className = 'flow-column';
 
-      const apiHtml = mod.api ? `
+      const apiList = mod.apis ? mod.apis : (mod.api ? [mod.api] : []);
+      const apiHtml = apiList.map(a => `
         <div class="v-connector">
           <div class="v-line api"></div><div class="v-dot api"></div><div class="v-line api"></div>
         </div>
         <div class="card-row">
           <div class="card api">
-            <div class="status-indicator pending"></div>
             <div class="card-badge api">API</div>
-            <div class="card-title">${mod.api.name}</div>
-            <div class="card-fields">${mod.api.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+            <div class="card-title">${a.name}</div>
+            <div class="card-fields">${a.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
           </div>
           <div class="h-arrow last"></div>
-        </div>` : '';
+        </div>`).join('');
 
-      const iaHtml = mod.ia ? `
+      const iaList = mod.ias ? mod.ias : (mod.ia ? [mod.ia] : []);
+      const iaHtml = iaList.map(ia => `
         <div class="v-connector">
           <div class="v-line ia"></div><div class="v-dot ia"></div><div class="v-line ia"></div>
         </div>
         <div class="card-row">
           <div class="card ia">
             <div class="card-badge ia">IA</div>
-            <div class="card-title">${mod.ia.title}</div>
-            <div class="card-fields">${mod.ia.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
-            <div class="priority-badge ${mod.ia.pr}">${prL[mod.ia.pr]}</div>
+            <div class="card-title">${ia.title}</div>
+            <div class="card-fields">${ia.f.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
+            <div class="priority-badge ${ia.pr}">${prL[ia.pr]}</div>
           </div>
           <div class="h-arrow last"></div>
-        </div>` : '';
+        </div>`).join('');
 
       const eClass = (mod.status === 'active' || mod.status === 'partial') ? 'erp' : 'mod-grey';
       col.innerHTML = `
         <div class="col-header">${mod.title}</div>
         <div class="card-row">
           <div class="card ${eClass}">
-            <div class="status-indicator ${mod.status}"></div>
             <div class="card-badge ${eClass}">ERP</div>
             <div class="card-title">${mod.title}</div>
             <div class="card-fields">${mod.erpF.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
@@ -1799,7 +1841,7 @@ const fsFlows = [
           fsB.mod('Líneas de Financiación','Disponible por entidad financiera','lineas','pending','lineas_fin',['Entidad','Disponible total','Condiciones'])
         ]},
         {steps:[
-          fsB.mod('Perfil de Cotización','Datos · Requerimientos · Peculiaridades','ofertas','active','perfil_cot',['Requerimientos','Peculiaridades cotización','Datos financieros'])
+          fsB.mod('Perfil de Cotización','Datos · Requerimientos · Criterios de Elegibilidad','ofertas','active','perfil_cot',['Requerimientos','Criterios de Elegibilidad','Datos financieros'])
         ]}
       ]),
       // 2 · DISPOSICIÓN FINANCIERA
@@ -1814,7 +1856,7 @@ const fsFlows = [
       fsB.mod('Datos de Financiación','Datos prorrateados por matrícula','datos_fin','active','datos_fin',['% Representación','Importe prorrateado','Por matrícula']),
       // FIN
       fsB.conn(''),
-      fsB.end('↪️ Ver flujo Entregas (Facturas · Gestoría)','neutral')
+      fsB.link('entregas','Ver flujo Entregas')
     ]
   },
   {
@@ -1823,7 +1865,7 @@ const fsFlows = [
     badges:[{l:'Proformas ✅',c:'#7c3aed'},{l:'Mantenimientos ✅',c:'#166534'},{l:'Residuales ⚠️',c:'#78350f'},{l:'Ofertas ✅',c:'#1d4ed8'},{l:'Riesgos ✅',c:'#374151'},{l:'Contratos ✅',c:'#0f766e'},{l:'Pedidos ❌',c:'#b91c1c'},{l:'Entregas ✅',c:'#a16207'}],
     steps:[
       // ── 1. PROFORMA VN
-      fsB.mod('Mod. Proformas VN','Configuración vehículo nuevo','proformas','active','proformas',['Modelo','Opcionales','Packs']),
+      fsB.mod('Mod. Proformas VN','Configuración vehículo nuevo · Código Jato','proformas','active','proformas',['Modelo','Opcionales','Packs','Código Jato']),
       // ── PREREQUISITOS para crear oferta
       fsB.conn('Verificar prerequisitos para crear oferta'),
       fsB.par([
@@ -1831,7 +1873,7 @@ const fsFlows = [
           fsB.mod('Mod. Mantenimientos','Plan vinculado a proforma','mant','active','mant_plan',['Costes por km','Cuadrícula preventiva'])
         ]},
         {steps:[
-          fsB.mod('Listado Residuales','Código Jato registrado','residuales','partial','residuales',['⚠️ Manual · temporal','Pendiente → API EUROTAX'])
+          fsB.mod('Valores Residuales','VR por modelo · plazo · km','residuales','partial','residuales',['⚠️ Manual temporal','Pendiente → API Eurotax / Bähr & Fess'])
         ]}
       ]),
       fsB.conn('Prerequisitos OK → crear oferta borrador'),
@@ -1875,19 +1917,22 @@ const fsFlows = [
       fsB.branch('¿Firma contrato?',[
         {label:'3 — Firmado',type:'yes',steps:[
           fsB.conn(''),
-          fsB.proc('Email admon@','email'),
+          fsB.proc('Mail Validación','email'),
           fsB.conn(''),
-          fsB.mod('Anticipos','Validación anticipo','contrato','pending','anticipos'),
+          fsB.mod('Fianza / Garantía','Validación cobro fianza','contrato','pending','anticipos'),
           fsB.conn(''),
           fsB.mod('Mod. Contrato','4 — Pendiente de Matrícula','contrato','pending','contrato'),
           fsB.sub('❌ Estados 4–7 pendientes',['Actuales: Pendiente Firma · Enviada Firma · Firmada · Paralizada · Anulada']),
           // ── 5. PEDIDO DE COMPRA
           fsB.conn('Se genera pedido de compra según proforma'),
-          fsB.mod('Mod. Pedidos','1 — Pedido creado','pedidos','pending','pedidos'),
-          fsB.conn('Concesionario entrega vehículos'),
-          // ── Alta en Flota con bastidor (sin matrícula aún)
-          fsB.mod('Mod. Flota','Alta bastidor — sin matrícula','carga','active','carga'),
-          fsB.conn('Alta bastidor genera solicitud automática'),
+          fsB.mod('Mod. Pedidos','1 — Pedido creado · derivado a concesión','pedidos','pending','pedidos'),
+          fsB.conn('Pago del vehículo → vinculación a disposición financiera'),
+          fsB.sub('Pago vehículo',['Pago a proveedor registrado en Disposiciones Financieras','Pedido sale de Pedidos al pagarse']),
+          fsB.mod('Mod. Pedidos','2 — Pagado','pedidos','pending','pedidos'),
+          fsB.conn('Vehículo pagado → alta en Flota'),
+          // ── Alta en Flota + asignación matrícula (no en Pedidos)
+          fsB.mod('Mod. Flota','Alta vehículo · asignación matrícula','carga','active','carga'),
+          fsB.conn('Alta en Flota genera solicitud de matrícula'),
           fsB.proc('Solicitud matrícula → Gestoría','email'),
           // ── Parallel: Gestoría (matrícula) + Seguros
           fsB.par([
@@ -1896,12 +1941,10 @@ const fsFlows = [
             ]},
             {steps:[
               fsB.mod('Mod. Seguros','Alta de póliza','seguros','pending','seguros'),
-              fsB.conn('AFFINITY'),
-              fsB.proc('Email + Excel Atlas','email')
+              fsB.proc('Email + Excel / API Aseguradora','email')
             ]}
           ]),
           fsB.conn('Gestoría vincula: Flota → Pedido → Contrato'),
-          fsB.mod('Mod. Pedidos','2 — Matriculado','pedidos','pending','pedidos'),
           fsB.conn(''),
           fsB.par([
             {steps:[fsB.mod('Mod. Entregas','Vehículo Matrículado ✓','entregas','active','entregas')]},
@@ -1920,7 +1963,7 @@ const fsFlows = [
           // ── FORMULARIO CLIENTE (con lugar y fecha ya definidos)
           fsB.conn('Formulario al cliente con lugar y fecha de entrega'),
           fsB.proc('Formulario Cliente','process'),
-          fsB.sub('Datos del recogedor',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
+          fsB.sub('Datos de quién recoge el vehículo',['Nombre de quien recoge el vehículo','Teléfono de contacto','DNI — se verificará contra OCR en el momento de entrega']),
           // ── HOJA DE ENTREGA VÍA SIGNATURIT OCR
           fsB.conn('En fecha prevista de entrega'),
           fsB.proc('Hoja de entrega → Signaturit OCR → Concesionario/Campa','firma'),
@@ -1937,6 +1980,8 @@ const fsFlows = [
                 {steps:[fsB.mod('Mod. Entregas','3 — Entregado','entregas','pending','entregas')]},
                 {steps:[fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato')]}
               ]),
+              fsB.conn(''),
+              fsB.proc('Encuesta Entregas','email'),
               fsB.conn(''),
               fsB.end('✅ Contrato activo · entrega completada','success')
             ]},
@@ -2034,8 +2079,6 @@ const fsFlows = [
     steps:[
       // ── 1. INICIO: CONTRATO ACTIVO
       fsB.mod('Mod. Contrato','7 — Activo','contrato','pending','contrato'),
-      fsB.conn('En el momento de la entrega del vehículo'),
-      fsB.proc('Encuesta Entregas','email'),
       // ── 2. EMAIL PASAR POR TALLER (acción manual)
       fsB.conn(''),
       fsB.proc('Email pasar por Taller','email'),
@@ -2049,7 +2092,7 @@ const fsFlows = [
       fsB.proc('Email a Postventa','email'),
       fsB.par([
         {steps:[fsB.sub('Email con indicaciones al cliente',['Fecha Prevista de Devolución','Lugar de Devolución','Proveedor de Devolución'])]},
-        {steps:[fsB.sub('OTP Devoluciones',['Con los datos de Andrés se manda la OTP','Se recogen datos para liquidación y Stock'])]}
+        {steps:[fsB.sub('OTP Devoluciones',['Dep. Logística/Postventa manda la OTP','Se recogen datos para liquidación y Stock'])]}
       ]),
       // ── 5. DEVOLUCIÓN REALIZADA
       fsB.conn('Vehículo devuelto'),

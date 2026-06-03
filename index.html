@@ -756,7 +756,7 @@ body {
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
-        14 áreas &nbsp;·&nbsp; 70 módulos
+        14 áreas &nbsp;·&nbsp; 74 módulos
       </div>
       <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
     </div>
@@ -1366,14 +1366,25 @@ const moduleGroups = [
       erpF: ['Efectos proveedor contabilizados', 'Asientos generados automáticamente'],
       api: null, ia: null },
   ]},
-  // ── 13. CUADRO DE MANDO ──────────────────────────────────────────
-  { label: 'Cuadro de Mando', color: '#1e3a5f', modules: [
-    { title: 'ECB',                 status: 'pending',
-      erpF: ['Estado de cartera · KPIs', 'Concentración · Mora'],
-      api: { name: 'API / Conector BI', f: ['Power BI · Tableau', 'Data warehouse'] },
-      ia:  { title: 'Predicción mora cartera', pr: 'core', f: ['Early warning mora', 'Concentración riesgo'] } },
-    { title: 'Manuales',            status: 'pending',
-      erpF: ['Informes manuales y exportaciones', 'Formatos Excel · PDF'],
+  // ── 13. RAG ──────────────────────────────────────────────────────
+  { label: 'RAG', color: '#1e3a5f', modules: [
+    { title: 'Manuales',                        status: 'pending',
+      erpF: ['Manuales internos y documentación', 'Formatos Excel · PDF'],
+      api: null, ia: null },
+    { title: 'Documentaciones Vehículos',       status: 'pending',
+      erpF: ['Documentación técnica por modelo', 'Fichas · Certificados · Homologación'],
+      api: null, ia: null },
+    { title: 'Guía de Uso Vehículos',           status: 'pending',
+      erpF: ['Guías de uso para el arrendatario', 'Manual usuario · Instrucciones'],
+      api: null, ia: null },
+    { title: 'Aspectos Contratos',              status: 'pending',
+      erpF: ['Aspectos de interés general en contratos', 'Cláusulas · Condiciones generales'],
+      api: null, ia: null },
+    { title: 'Pólizas Seguros',                 status: 'pending',
+      erpF: ['Documentación de pólizas de seguro', 'Coberturas · Condicionado general'],
+      api: null, ia: null },
+    { title: 'Informes Externos',               status: 'pending',
+      erpF: ['Informes de terceros y externos', 'Peritaciones · Auditorías · Valoraciones'],
       api: null, ia: null },
   ]},
   // ── 14. TERCEROS ─────────────────────────────────────────────────

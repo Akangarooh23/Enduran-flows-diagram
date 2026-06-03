@@ -756,7 +756,7 @@ body {
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
-        14 áreas &nbsp;·&nbsp; 74 módulos
+        14 áreas &nbsp;·&nbsp; 71 módulos
       </div>
       <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
     </div>
@@ -1215,37 +1215,17 @@ const moduleGroups = [
       erpF: ['Condiciones de rappel por proveedor', 'Umbrales · Compras acumuladas · Liquidación'],
       api: null,
       ia:  { title: 'Rappel Analyst', pr: 'diferencial', f: ['Proveedor más rentable por rappel', 'Compras a fecha vs condiciones pactadas'] } },
-    { title: 'Carga Datos Pedidos', status: 'pending',
-      erpF: ['Carga matrícula · bastidor', 'Vinculación pedido → contrato'],
-      api: null, ia: null },
     { title: 'Alquiler',            status: 'pending',
       erpF: ['Alquiler de vehículos de flota', 'Disponibilidad · Tarifas · Período'],
       api: null, ia: null },
-    { title: 'Gestoría',            status: 'active',
-      erpF: ['Facturas de gestoría por vehículo', 'Vincula: Flota → Pedido → Contrato'],
-      api: { name: 'API Gestoría Pradilla', f: ['Trámites DGT · Matrículas', 'Transferencias · Costes gestoría'] },
-      ia: null },
-    { title: 'Existencias',         status: 'pending',
-      erpF: ['Stock VO disponible para venta', 'Precio venta · Estado · Canal'],
-      api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Retasación · Tendencia'] },
-      ia:  { title: 'Predicción VR', pr: 'diferencial', f: ['Modelo dinámico', 'Señales mercado'] } },
     { title: 'Amortizaciones',      status: 'pending',
       erpF: ['Amortización mensual automática por vehículo', '(V. inicial a amortizar − VR) ÷ meses contrato'],
       api: null, ia: { title: 'Ajuste dinámico amortización', pr: 'diferencial', f: ['VNC real vs mercado · alerta', 'Mejora pricing próximas ofertas'] } },
-    { title: 'Precios VNC',         status: 'pending',
-      erpF: ['Valor neto contable por vehículo', 'Precio inicial − amortizaciones acumuladas'],
-      api: null, ia: null },
-    { title: 'Precio Venta (sin IVA)', status: 'pending',
-      erpF: ['Precio VO propuesto sin IVA', 'VNC + Margen Enduran'],
-      api: null, ia: { title: 'Optimización precio VO', pr: 'diferencial', f: ['Precio óptimo', 'Análisis competencia'] } },
     { title: 'Stock',               status: 'pending',
       erpF: ['Stock total de vehículos', 'Estado · Ubicación · Disponibilidad'],
       api: null, ia: null },
     { title: 'Stock Alquiler',      status: 'pending',
       erpF: ['Stock disponible para alquiler', 'Categoría · Disponibilidad · Km'],
-      api: null, ia: null },
-    { title: 'Comisión',            status: 'pending',
-      erpF: ['Comisiones comerciales', 'Por contrato · Comercial · Importe'],
       api: null, ia: null },
   ]},
   // ── 8. FACTURACIÓN ───────────────────────────────────────────────
@@ -1298,6 +1278,16 @@ const moduleGroups = [
     { title: 'Proformas',           status: 'pending',
       erpF: ['Proformas de venta VO', 'Precio · Descuento · Cliente'],
       api: null, ia: null },
+    { title: 'Existencias',         status: 'pending',
+      erpF: ['Stock VO disponible para venta', 'Precio venta · Estado · Canal'],
+      api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Retasación · Tendencia'] },
+      ia:  { title: 'Predicción VR', pr: 'diferencial', f: ['Modelo dinámico', 'Señales mercado'] } },
+    { title: 'Precios VNC',         status: 'pending',
+      erpF: ['Valor neto contable por vehículo', 'Precio inicial − amortizaciones acumuladas'],
+      api: null, ia: null },
+    { title: 'Precio Venta (sin IVA)', status: 'pending',
+      erpF: ['Precio VO propuesto sin IVA', 'VNC + Margen Enduran'],
+      api: null, ia: { title: 'Optimización precio VO', pr: 'diferencial', f: ['Precio óptimo', 'Análisis competencia'] } },
   ]},
   // ── 11. SERVICIOS ────────────────────────────────────────────────
   { label: 'Servicios', color: '#4c1d95', modules: [

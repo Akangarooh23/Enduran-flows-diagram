@@ -1483,7 +1483,7 @@ function renderModuleCatalog() {
   container.innerHTML = '';
   const prL = { 'quick-win': '⚡ Quick Win', 'core': '🧠 Core IA', 'diferencial': '🚀 Diferencial' };
 
-  moduleGroups.forEach(grp => {
+  moduleGroups.forEach((grp, grpIdx) => {
     const group = document.createElement('div');
     group.className = 'mc-group';
 
@@ -1498,7 +1498,7 @@ function renderModuleCatalog() {
     group.appendChild(modsDiv);
     container.appendChild(group);
 
-    grp.modules.forEach(mod => {
+    grp.modules.forEach((mod, modIdx) => {
       const col = document.createElement('div');
       col.className = 'flow-column';
 
@@ -1535,7 +1535,7 @@ function renderModuleCatalog() {
       col.innerHTML = `
         <div class="col-header">${mod.title}</div>
         <div class="card-row">
-          <div class="card ${eClass}">
+          <div class="card ${eClass}" style="cursor:pointer" onclick="openModuleModal(${grpIdx},${modIdx})">
             <div class="card-badge ${eClass}">ERP</div>
             <div class="card-title">${mod.title}</div>
             <div class="card-fields">${mod.erpF.map(f=>`<div class="card-field">${f}</div>`).join('')}</div>
@@ -1671,6 +1671,64 @@ function openModal(flowId, type) {
       </div>
     `;
   }
+
+  overlay.classList.add('open');
+}
+
+function openModuleModal(grpIdx, modIdx) {
+  const grp = moduleGroups[grpIdx];
+  const mod = grp.modules[modIdx];
+  const overlay = document.getElementById('modal-overlay');
+  const title   = document.getElementById('modal-title');
+  const badge   = document.getElementById('modal-badge');
+  const body    = document.getElementById('modal-body');
+
+  const statusLabel = { active: '✅ Implementado', partial: '🔶 Parcial', pending: '⏳ Pendiente' }[mod.status] || '⏳ Pendiente';
+  const statusColor = { active: '#15803d', partial: '#b45309', pending: '#6b7280' }[mod.status] || '#6b7280';
+
+  badge.textContent = grp.label;
+  badge.className = 'modal-badge';
+  badge.style.cssText = `background:${grp.color};color:#fff`;
+  title.textContent = mod.title;
+
+  const prL = { 'quick-win': '⚡ Quick Win', 'core': '🧠 Core IA', 'diferencial': '🚀 Diferencial' };
+
+  const apiList = mod.apis ? mod.apis : (mod.api ? [mod.api] : []);
+  const apisHtml = apiList.length ? `
+    <div class="modal-section">
+      <div class="modal-section-title">APIs externas</div>
+      ${apiList.map(a => `
+        <div class="modal-api-card">
+          <div class="modal-api-name">🔌 ${a.name}</div>
+          <div class="modal-api-desc">${a.f.join(' · ')}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  const iaList = mod.ias ? mod.ias : (mod.ia ? [mod.ia] : []);
+  const iasHtml = iaList.length ? `
+    <div class="modal-section">
+      <div class="modal-section-title">Agentes IA</div>
+      ${iaList.map(ia => `
+        <div class="modal-ai-card">
+          <div class="modal-ai-name">🤖 ${ia.title}</div>
+          <div class="modal-ai-tech" style="margin-top:4px">${prL[ia.pr] || ia.pr}</div>
+          <div class="modal-ai-benefit">${ia.f.join(' · ')}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  body.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <span style="font-size:13px;font-weight:600;color:${statusColor}">${statusLabel}</span>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">Campos del módulo ERP</div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px">
+        ${mod.erpF.map(f => `<div style="font-size:13px;color:#374151;padding:3px 0;border-bottom:1px solid #f1f5f9">${f}</div>`).join('')}
+      </div>
+    </div>
+    ${apisHtml}
+    ${iasHtml}
+  `;
 
   overlay.classList.add('open');
 }

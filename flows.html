@@ -1389,6 +1389,291 @@ const moduleGroups = [
   ]},
 ];
 
+// Tablas DB por módulo — usadas en el modal del catálogo
+const moduleTables = {
+  // ── FINANCIACIÓN ──
+  'Líneas de Financiación': [
+    { name: 'lineas_financiacion', fields: 20, status: 'pending' },
+    { name: 'linea_condiciones',   fields: 12, status: 'pending' },
+    { name: 'entidades_financiadoras', fields: 15, status: 'pending' },
+  ],
+  'Disposiciones Financieras': [
+    { name: 'disposiciones_financieras', fields: 18, status: 'active' },
+    { name: 'datos_financiacion',        fields: 22, status: 'active' },
+  ],
+  'Unidades Financiadas': [
+    { name: 'unidades_financiadas', fields: 16, status: 'active' },
+    { name: 'financiacion_vehiculo', fields: 12, status: 'active' },
+  ],
+  'Titulizaciones ECB': [
+    { name: 'titulizaciones',          fields: 20, status: 'pending' },
+    { name: 'titulizacion_vehiculos',  fields: 10, status: 'pending' },
+    { name: 'criterios_ecb',           fields: 12, status: 'pending' },
+  ],
+  'Perfil Cotización': [
+    { name: 'perfil_cotizacion', fields: 20, status: 'active' },
+  ],
+  // ── UNITS ──
+  'Proformas VN': [
+    { name: 'proformas_vn',      fields: 28, status: 'active' },
+    { name: 'proforma_opciones', fields: 14, status: 'active' },
+    { name: 'proforma_packs',    fields: 12, status: 'active' },
+  ],
+  'Planes de Mantenimiento': [
+    { name: 'planes_mantenimiento',          fields: 20, status: 'active' },
+    { name: 'plan_mantenimiento_costes',     fields: 14, status: 'active' },
+    { name: 'plan_mantenimiento_cuadricula', fields: 12, status: 'active' },
+  ],
+  'Valores Residuales': [
+    { name: 'residuales',          fields: 12, status: 'active' },
+    { name: 'residuales_historico', fields: 10, status: 'partial' },
+  ],
+  'Market Value': [
+    { name: 'market_value',      fields: 14, status: 'pending' },
+    { name: 'precios_mercado_vo', fields: 12, status: 'pending' },
+  ],
+  // ── OFERTAS ──
+  'Oferta': [
+    { name: 'ofertas',                      fields: 35, status: 'active' },
+    { name: 'oferta_cuotas_servicios',       fields: 14, status: 'active' },
+    { name: 'oferta_resultados_financieros', fields: 18, status: 'active' },
+  ],
+  'Oferta Resumen': [
+    { name: 'ofertas', fields: 35, status: 'active' },
+  ],
+  'Pool': [
+    { name: 'proforma_pool', fields: 10, status: 'active' },
+    { name: 'pool_vehiculos', fields: 12, status: 'active' },
+  ],
+  // ── RIESGOS ──
+  'Riesgos': [
+    { name: 'riesgos',       fields: 20, status: 'active' },
+    { name: 'estado_riesgo', fields:  6, status: 'active' },
+  ],
+  // ── CONTRATOS ──
+  'Contratos': [
+    { name: 'contratos_renting',    fields: 38, status: 'active' },
+    { name: 'condiciones_contrato', fields: 18, status: 'active' },
+    { name: 'documentos_contrato',  fields: 12, status: 'active' },
+  ],
+  'Recalculos': [
+    { name: 'recalculos_contrato', fields: 16, status: 'pending' },
+    { name: 'recalculo_lineas',    fields: 10, status: 'pending' },
+  ],
+  'Subrogaciones': [
+    { name: 'subrogaciones',          fields: 18, status: 'pending' },
+    { name: 'subrogacion_condiciones', fields: 10, status: 'pending' },
+  ],
+  'Cancelaciones': [
+    { name: 'cancelaciones',         fields: 16, status: 'pending' },
+    { name: 'cancelacion_liquidacion', fields: 12, status: 'pending' },
+  ],
+  'Propuestas Recalc/Subr': [
+    { name: 'propuestas_modificacion', fields: 14, status: 'pending' },
+  ],
+  // ── ENTREGAS Y DEV. ──
+  'Entregas': [
+    { name: 'entregas',             fields: 20, status: 'active' },
+    { name: 'actas_entrega',        fields: 16, status: 'active' },
+    { name: 'encuesta_satisfaccion', fields: 12, status: 'active' },
+  ],
+  'Devoluciones': [
+    { name: 'devoluciones',    fields: 18, status: 'pending' },
+    { name: 'actas_devolucion', fields: 20, status: 'pending' },
+  ],
+  'Liquidación': [
+    { name: 'liquidaciones_contrato', fields: 18, status: 'pending' },
+    { name: 'liquidacion_conceptos',  fields: 12, status: 'pending' },
+  ],
+  // ── FLOTA ──
+  'Compras': [
+    { name: 'vehiculos', fields: 45, status: 'active' },
+    { name: 'flota',     fields: 20, status: 'active' },
+  ],
+  'Pedidos': [
+    { name: 'pedidos_vehiculo', fields: 18, status: 'pending' },
+    { name: 'pedido_estados',   fields:  8, status: 'pending' },
+  ],
+  'Rappels': [
+    { name: 'rappels_proveedor',   fields: 16, status: 'pending' },
+    { name: 'rappel_liquidaciones', fields: 10, status: 'pending' },
+  ],
+  'Alquiler': [
+    { name: 'alquiler_vehiculos', fields: 18, status: 'pending' },
+    { name: 'alquiler_tarifas',   fields: 10, status: 'pending' },
+  ],
+  'Amortizaciones': [
+    { name: 'amortizaciones_vehiculo', fields: 14, status: 'pending' },
+    { name: 'cuadro_amortizacion',     fields: 10, status: 'pending' },
+  ],
+  'Stock': [
+    { name: 'stock_vehiculos',  fields: 16, status: 'pending' },
+    { name: 'stock_ubicaciones', fields:  8, status: 'pending' },
+  ],
+  'Stock Alquiler': [
+    { name: 'stock_alquiler', fields: 14, status: 'pending' },
+  ],
+  // ── FACTURACIÓN ──
+  'Facturación Clientes': [
+    { name: 'facturas_clientes',      fields: 28, status: 'active' },
+    { name: 'facturas_lineas_cliente', fields: 14, status: 'active' },
+    { name: 'cuotas_contrato',        fields: 14, status: 'pending' },
+  ],
+  'Fact. Proveedores': [
+    { name: 'facturas_proveedor',       fields: 24, status: 'active' },
+    { name: 'facturas_proveedor_lineas', fields: 14, status: 'active' },
+  ],
+  'Validación Anticipos': [
+    { name: 'anticipos_contrato', fields: 14, status: 'pending' },
+    { name: 'cobros_anticipos',   fields: 10, status: 'pending' },
+  ],
+  // ── RECOBROS ──
+  'Facturas Impagadas': [
+    { name: 'impagos',              fields: 14, status: 'pending' },
+    { name: 'impago_notificaciones', fields: 10, status: 'pending' },
+  ],
+  'Expedientes': [
+    { name: 'expedientes_recobro', fields: 18, status: 'pending' },
+    { name: 'expediente_acciones', fields: 12, status: 'pending' },
+  ],
+  'Clientes Impagados': [
+    { name: 'clientes_impagados', fields: 10, status: 'pending' },
+  ],
+  'ASNEF': [
+    { name: 'asnef_registros', fields: 12, status: 'pending' },
+    { name: 'asnef_historico', fields: 10, status: 'pending' },
+  ],
+  // ── VENTA VO ──
+  'Vehículos VO (Manual)': [
+    { name: 'vehiculos_segunda_mano', fields: 18, status: 'pending' },
+    { name: 'ventas_segunda_mano',    fields: 16, status: 'pending' },
+  ],
+  'Proformas': [
+    { name: 'proformas_vo',      fields: 16, status: 'pending' },
+    { name: 'proforma_vo_lineas', fields: 10, status: 'pending' },
+  ],
+  'Existencias': [
+    { name: 'existencias_vo', fields: 16, status: 'pending' },
+  ],
+  'Precios VNC': [
+    { name: 'precios_vnc', fields: 10, status: 'pending' },
+  ],
+  'Precio Venta (sin IVA)': [
+    { name: 'precio_venta_vo', fields:  8, status: 'pending' },
+    { name: 'margen_vo',       fields:  8, status: 'pending' },
+  ],
+  // ── SERVICIOS ──
+  'Seguros': [
+    { name: 'polizas_seguro',   fields: 24, status: 'pending' },
+    { name: 'seguro_coberturas', fields: 10, status: 'pending' },
+  ],
+  'Siniestros': [
+    { name: 'siniestros',       fields: 28, status: 'pending' },
+    { name: 'siniestro_partes', fields: 14, status: 'pending' },
+  ],
+  'Multas': [
+    { name: 'multas',           fields: 18, status: 'pending' },
+    { name: 'multa_tramitaciones', fields: 12, status: 'pending' },
+  ],
+  'Autorizaciones': [
+    { name: 'autorizaciones_trabajo', fields: 14, status: 'pending' },
+    { name: 'autorizacion_conceptos', fields: 10, status: 'pending' },
+  ],
+  'Coche Sustitución': [
+    { name: 'vehiculos_sustitucion',    fields: 14, status: 'pending' },
+    { name: 'asignaciones_sustitucion', fields: 10, status: 'pending' },
+  ],
+  'Peritaciones': [
+    { name: 'peritaciones',   fields: 15, status: 'pending' },
+    { name: 'peritacion_danos', fields: 12, status: 'pending' },
+  ],
+  'Postventa': [
+    { name: 'tickets_postventa',    fields: 16, status: 'pending' },
+    { name: 'postventa_seguimiento', fields: 10, status: 'pending' },
+  ],
+  'Neumáticos': [
+    { name: 'neumaticos_vehiculo', fields: 14, status: 'pending' },
+    { name: 'neumatico_cambios',   fields: 10, status: 'pending' },
+  ],
+  'Averías': [
+    { name: 'averias',             fields: 16, status: 'pending' },
+    { name: 'averia_intervenciones', fields: 12, status: 'pending' },
+  ],
+  // ── CONTABILIDAD ──
+  'Fact. Contabilizada Cliente': [
+    { name: 'asientos_contables', fields: 20, status: 'pending' },
+    { name: 'plan_cuentas',       fields: 12, status: 'pending' },
+    { name: 'centros_coste',      fields:  8, status: 'pending' },
+  ],
+  'Efectos Cliente': [
+    { name: 'efectos_cliente',     fields: 16, status: 'pending' },
+    { name: 'efectos_vencimientos', fields: 10, status: 'pending' },
+  ],
+  'Remesa Efectos Cliente': [
+    { name: 'remesas_cobro', fields: 12, status: 'pending' },
+    { name: 'remesa_lineas', fields:  8, status: 'pending' },
+  ],
+  'Efectos Cliente Contab.': [
+    { name: 'efectos_contabilizados', fields: 10, status: 'pending' },
+  ],
+  'Fact. Contabilizada Pvee': [
+    { name: 'asientos_proveedor', fields: 16, status: 'pending' },
+    { name: 'iva_soportado',      fields:  8, status: 'pending' },
+  ],
+  'Efectos Pvee': [
+    { name: 'efectos_proveedor', fields: 14, status: 'pending' },
+    { name: 'pagos_pendientes',  fields: 10, status: 'pending' },
+  ],
+  'Remesa Efectos Pvee': [
+    { name: 'remesas_pago',      fields: 12, status: 'pending' },
+    { name: 'remesa_pago_lineas', fields:  8, status: 'pending' },
+  ],
+  'Efectos Pvee Contab.': [
+    { name: 'efectos_pvee_contabilizados', fields: 10, status: 'pending' },
+  ],
+  // ── RAG ──
+  'Manuales': [
+    { name: 'rag_manuales', fields: 10, status: 'pending' },
+    { name: 'rag_chunks',   fields:  6, status: 'pending' },
+  ],
+  'Documentaciones Vehículos': [
+    { name: 'rag_docs_vehiculos', fields: 10, status: 'pending' },
+    { name: 'rag_chunks',         fields:  6, status: 'pending' },
+  ],
+  'Guía de Uso Vehículos': [
+    { name: 'rag_guias_uso', fields: 8, status: 'pending' },
+    { name: 'rag_chunks',    fields: 6, status: 'pending' },
+  ],
+  'Aspectos Contratos': [
+    { name: 'rag_clausulas', fields: 8, status: 'pending' },
+    { name: 'rag_chunks',    fields: 6, status: 'pending' },
+  ],
+  'Pólizas Seguros': [
+    { name: 'rag_polizas', fields: 8, status: 'pending' },
+    { name: 'rag_chunks',  fields: 6, status: 'pending' },
+  ],
+  'Informes Externos': [
+    { name: 'rag_informes_ext', fields: 8, status: 'pending' },
+    { name: 'rag_chunks',       fields: 6, status: 'pending' },
+  ],
+  // ── TERCEROS ──
+  'Clientes': [
+    { name: 'clientes',          fields: 30, status: 'active' },
+    { name: 'contactos_cliente', fields: 16, status: 'active' },
+    { name: 'tipologia_cliente', fields:  8, status: 'active' },
+  ],
+  'CRM': [
+    { name: 'leads',          fields: 20, status: 'pending' },
+    { name: 'oportunidades',  fields: 16, status: 'pending' },
+    { name: 'pipeline_stages', fields:  8, status: 'pending' },
+  ],
+  'Proveedores': [
+    { name: 'proveedores',          fields: 22, status: 'active' },
+    { name: 'proveedor_categorias', fields:  8, status: 'active' },
+    { name: 'proveedor_contactos',  fields: 12, status: 'active' },
+  ],
+};
+
 // ══════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════
@@ -1716,16 +2001,46 @@ function openModuleModal(grpIdx, modIdx) {
         </div>`).join('')}
     </div>` : '';
 
+  const tables = moduleTables[mod.title] || [];
+  const totalF   = tables.reduce((s, t) => s + t.fields, 0);
+  const activeT  = tables.filter(t => t.status === 'active').length;
+  const partialT = tables.filter(t => t.status === 'partial').length;
+  const pendingT = tables.filter(t => t.status === 'pending').length;
+
+  const tablesHtml = tables.length ? `
+    <div class="modal-section">
+      <div class="modal-section-title">Tablas de la base de datos</div>
+      <div class="modal-table-grid">
+        ${tables.map(t => `
+          <div class="modal-table-row">
+            <div class="modal-table-dot" style="background:${t.status==='active'?'#16a34a':t.status==='partial'?'#d97706':'#9ca3af'}"></div>
+            <span class="modal-table-name">${t.name}</span>
+            <span class="modal-table-fields">~${t.fields} campos</span>
+            <span class="modal-table-status ${t.status}">${{active:'Activa',partial:'Parcial',pending:'Pendiente'}[t.status]}</span>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const statsHtml = tables.length ? `
+    <div class="stats-grid">
+      <div class="stat-box"><div class="sv">${tables.length}</div><div class="sl">Tablas</div></div>
+      <div class="stat-box"><div class="sv">~${totalF}</div><div class="sl">Campos</div></div>
+      <div class="stat-box"><div class="sv" style="color:#15803d">${activeT}</div><div class="sl">Activas</div></div>
+      <div class="stat-box"><div class="sv" style="color:#6b7280">${pendingT}</div><div class="sl">Pendientes</div></div>
+    </div>` : '';
+
   body.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
       <span style="font-size:13px;font-weight:600;color:${statusColor}">${statusLabel}</span>
     </div>
+    ${statsHtml}
     <div class="modal-section">
-      <div class="modal-section-title">Campos del módulo ERP</div>
+      <div class="modal-section-title">Descripción del módulo</div>
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px">
         ${mod.erpF.map(f => `<div style="font-size:13px;color:#374151;padding:3px 0;border-bottom:1px solid #f1f5f9">${f}</div>`).join('')}
       </div>
     </div>
+    ${tablesHtml}
     ${apisHtml}
     ${iasHtml}
   `;

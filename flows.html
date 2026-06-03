@@ -756,7 +756,7 @@ body {
     </div>
     <div style="display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;color:#94a3b8;background:#2d3a50;padding:4px 12px;border-radius:6px;border:1px solid #374151;">
-        14 áreas &nbsp;·&nbsp; 71 módulos
+        14 áreas &nbsp;·&nbsp; 70 módulos
       </div>
       <button class="sec-toggle" id="toggle-mc" onclick="toggleSection('sec-mc','toggle-mc')" title="Colapsar/Expandir">▼ Módulos</button>
     </div>
@@ -1200,6 +1200,9 @@ const moduleGroups = [
       erpF: ['Proceso de devolución al fin contrato', 'Acta devolución · Peritación'],
       api: { name: 'API Campa / Recepción Log.', f: ['Recepción vehículo · Datos campa', 'Carga automática estado entrada'] },
       ia:  { title: 'Damage Estimator', pr: 'core', f: ['Estimación cargos por daños histórico', 'Coord. recompra si contrato con tercero'] } },
+    { title: 'Liquidación',         status: 'pending',
+      erpF: ['Liquidación fin de contrato', 'Exceso km · Daños · Regularizaciones'],
+      api: null, ia: null },
   ]},
   // ── 7. FLOTA ─────────────────────────────────────────────────────
   { label: 'Flota', color: '#134e4a', modules: [
@@ -1265,12 +1268,6 @@ const moduleGroups = [
   ]},
   // ── 10. VENTA VO ─────────────────────────────────────────────────
   { label: 'Venta VO', color: '#78350f', modules: [
-    { title: 'Liquidación',         status: 'pending',
-      erpF: ['Liquidación fin de contrato', 'Exceso km · Daños · Regularizaciones'],
-      api: null, ia: null },
-    { title: 'Vehículos Retirados', status: 'pending',
-      erpF: ['Vehículos devueltos pendientes', 'Peritación · Estado · Destino'],
-      api: null, ia: null },
     { title: 'Vehículos VO (Manual)', status: 'pending',
       erpF: ['Stock VO disponible en venta', 'Precio · Canal comercial · Estado'],
       api: { name: 'API Eurotax / Indicata', f: ['Valor mercado VO', 'Benchmark competencia'] },

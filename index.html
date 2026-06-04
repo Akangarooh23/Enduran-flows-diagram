@@ -1118,7 +1118,7 @@ const moduleGroups = [
       erpF: ['Condiciones por matrícula', '% Representación · Importe prorrateado'],
       api: { name: 'API Conector BI', f: ['Unidades por matrícula → BI', 'Prorrateado · % Representación'] },
       ia: null },
-    { title: 'Titulizaciones ECB',  status: 'pending',
+    { title: 'ECB',  status: 'pending',
       erpF: ['Pools de vehículos para titulización', 'Criterios ECB · Elegibilidad · Reporting'],
       api: { name: 'API Conector BI', f: ['Pool cartera → BI', 'Elegibilidad ECB · Reporting'] },
       ia:  { title: "Moody's Analyst", pr: 'diferencial', f: ["Criterios Moody's para titulizaciones", 'Evaluación in-time de cartera'] } },
@@ -1405,7 +1405,7 @@ const moduleTables = {
     { name: 'unidades_financiadas', fields: 16, status: 'active' },
     { name: 'financiacion_vehiculo', fields: 12, status: 'active' },
   ],
-  'Titulizaciones ECB': [
+  'ECB': [
     { name: 'titulizaciones',          fields: 20, status: 'pending' },
     { name: 'titulizacion_vehiculos',  fields: 10, status: 'pending' },
     { name: 'criterios_ecb',           fields: 12, status: 'pending' },
